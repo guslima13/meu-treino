@@ -1,0 +1,17 @@
+{
+  "name": "Meu Treino",
+  "short_name": "Meu Treino",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#101713",
+  "theme_color": "#17231d",
+  "description": "Seu treino de academia, séries, cargas e evolução.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
