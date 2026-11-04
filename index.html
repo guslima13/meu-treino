@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101010">
 <title>Meu Treino</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
 <style>
 :root{--bg:#0c0d0d;--panel:#171919;--panel2:#202323;--line:#303535;--text:#f4f5f2;--muted:#9da5a1;--accent:#d7ff00;--accent2:#b6d900;--danger:#ff6464}
 *{box-sizing:border-box}
@@ -479,6 +486,14 @@ cancelBtn.onclick=closeModal;
 exerciseForm.onsubmit=saveExercise;
 
 render();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('Não foi possível registrar o modo app:', err));
+  });
+}
 </script>
 </body>
 </html>
