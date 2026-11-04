@@ -16,7 +16,9 @@ header{position:sticky;top:0;z-index:5;background:#101212ed;backdrop-filter:blur
 main{max-width:980px;margin:auto;padding:20px 16px 90px}
 .hero{display:flex;justify-content:space-between;gap:16px;align-items:end;margin:12px 0 18px}
 .eyebrow{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
-.hero h1{font-size:clamp(27px,5vw,40px);line-height:1.05;margin:5px 0}
+.hero h1{font-size:clamp(27px,5vw,40px);line-height:1.12;margin:5px 0;overflow-wrap:anywhere}
+.day-focus{font-size:clamp(16px,2.7vw,24px);font-weight:900;letter-spacing:.01em}
+.exercise h3{text-transform:uppercase}
 .muted{color:var(--muted)}
 .daynav{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin:20px 0 16px}
 .daybtn{background:var(--panel);color:var(--muted);border:1px solid var(--line);padding:12px 4px;border-radius:12px;font-weight:800;cursor:pointer}
@@ -33,7 +35,8 @@ main{max-width:980px;margin:auto;padding:20px 16px 90px}
 .progress>i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
 .progress.weekly>i{background:#9dbb00}
 .progress-sub{font-size:11px;color:var(--muted);margin-top:6px}
-.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:18px 0}
+.toolbar .btn{width:100%;min-height:46px;padding:10px 8px}
 .btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:10px 13px;border-radius:10px;font-weight:700;cursor:pointer}
 .btn.primary{background:var(--accent);color:#101010;border-color:var(--accent)}
 .btn.danger{color:var(--danger)}
@@ -97,11 +100,8 @@ main{max-width:980px;margin:auto;padding:20px 16px 90px}
   <div class="progress"><i id="progressBar"></i></div>
   <div class="progress-sub">Evolução das séries do treino selecionado.</div>
  </div>
- <div class="progress-panel">
-  <div class="progress-heading"><strong>Progresso da semana</strong><span id="weeklyPercent">0%</span></div>
-  <div class="progress weekly"><i id="weeklyProgressBar"></i></div>
-  <div class="progress-sub" id="weeklyDescription">Séries concluídas de segunda a sábado.</div>
- </div>
+
+ <section id="exerciseList"></section>
  <div class="toolbar">
   <button class="btn primary" id="addBtn">＋ Adicionar exercício</button>
   <button class="btn" id="resetBtn">Reiniciar este treino</button>
@@ -109,7 +109,11 @@ main{max-width:980px;margin:auto;padding:20px 16px 90px}
   <button class="btn" id="importBtn">Importar backup</button>
   <input type="file" id="importFile" accept="application/json" hidden>
  </div>
- <section id="exerciseList"></section>
+ <div class="progress-panel">
+  <div class="progress-heading"><strong>Progresso da semana</strong><span id="weeklyPercent">0%</span></div>
+  <div class="progress weekly"><i id="weeklyProgressBar"></i></div>
+  <div class="progress-sub" id="weeklyDescription">Séries concluídas de segunda a sábado.</div>
+ </div>
  <div class="footer">Seus dados ficam salvos neste aparelho e navegador. Exporte um backup para levar suas alterações a outro dispositivo.</div>
 </main>
 
@@ -258,10 +262,14 @@ function weeklyTotals(){
 }
 
 function render(){
- document.getElementById('dayTitle').textContent=({
-  Segunda:'Segunda-feira',Terça:'Terça-feira',Quarta:'Quarta-feira',
-  Quinta:'Quinta-feira',Sexta:'Sexta-feira',Sábado:'Sábado'
- })[day]||day;
+ const dayLabel=({
+  Segunda:'SEGUNDA-FEIRA',Terça:'TERÇA-FEIRA',Quarta:'QUARTA-FEIRA',
+  Quinta:'QUINTA-FEIRA',Sexta:'SEXTA-FEIRA',Sábado:'SÁBADO'
+ })[day]||day.toUpperCase();
+ const dayExercises=state.workouts[day]||[];
+ const muscleGroups=[...new Set(dayExercises.map(e=>(e.muscle||'').trim()).filter(Boolean))];
+ document.getElementById('dayTitle').innerHTML=
+  `${esc(dayLabel)}<span class="day-focus"> | (${muscleGroups.map(m=>esc(m.toUpperCase())).join(' - ')})</span>`;
 
  document.getElementById('daynav').innerHTML=days.map(d=>
   `<button class="daybtn ${d===day?'active':''}" data-day="${d}">${d.slice(0,3).toUpperCase()}</button>`
@@ -290,7 +298,7 @@ function render(){
   return `<article class="exercise">
    <div class="exhead">
     <div>
-     <div class="exnum">EXERCÍCIO ${String(i+1).padStart(2,'0')} · ${esc(e.muscle)}</div>
+     <div class="exnum">Exerc. ${String(i+1).padStart(2,'0')} · ${esc(e.muscle)}</div>
      <h3>${esc(e.name)}</h3>
      <div class="meta">${esc(e.equipment)} · ${esc(e.execution)} · Pegada: ${esc(e.grip)}${e.note?' · '+esc(e.note):''}</div>
     </div>
