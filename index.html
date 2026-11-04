@@ -125,26 +125,37 @@ color:#111
 }
 
 .summary{
-display:flex;
+display:grid;
+grid-template-columns:repeat(2,minmax(0,1fr));
 gap:10px;
-flex-wrap:wrap;
 margin:14px 0
 }
 
 .stat{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:6px;
+flex-wrap:wrap;
+min-width:0;
+min-height:58px;
+padding:10px 12px;
 background:var(--panel);
 border:1px solid var(--line);
 border-radius:12px;
-padding:10px 14px;
-min-width:110px
+text-align:center
 }
 
 .stat b{
-display:block;
-font-size:20px
+display:inline;
+font-size:clamp(16px,2vw,20px);
+font-variant-numeric:tabular-nums
 }
 
-.stat small{color:var(--muted)}
+.stat small{
+color:var(--muted);
+font-size:12px
+}
 
 .progress-panel{
 background:var(--panel);
@@ -535,9 +546,11 @@ flex-direction:column
 .summary{gap:7px}
 
 .stat{
-flex:1;
-min-width:90px
+padding:10px 6px;
+gap:4px
 }
+
+.stat small{font-size:11px}
 
 .exercise{padding:12px}
 
@@ -568,9 +581,14 @@ min-width:90px
 <nav class="daynav" id="daynav"></nav>
 
 <div class="summary">
-<div class="stat"><b id="exerciseCount">6</b><small>Exercícios</small></div>
-<div class="stat"><b id="setCount">26</b><small>Séries previstas</small></div>
-<div class="stat"><b id="doneCount">0/26</b><small>Séries concluídas</small></div>
+<div class="stat">
+<b id="exerciseProgress">0/6</b>
+<small>Exercícios concluídos</small>
+</div>
+<div class="stat">
+<b id="setProgress">0/27</b>
+<small>Séries concluídas</small>
+</div>
 </div>
 
 <!-- BOTÃO INICIAR TREINO -->
@@ -1189,10 +1207,21 @@ const list=state.workouts[day]||[];
 const total=plannedSets(list);
 
 let done=0;
+let completedExercises=0;
 
 list.forEach((e,i)=>{
 
-done+=checksFor(day,i).filter(Boolean).length;
+const checks=checksFor(day,i);
+const exerciseSets=+e.sets||1;
+
+done+=checks.filter(Boolean).length;
+
+if(Array.from(
+{length:exerciseSets},
+(_,j)=>checks[j]===true
+).every(Boolean)){
+completedExercises++;
+}
 
 });
 
@@ -1200,13 +1229,10 @@ const dailyPct=total
 ?Math.min(100,done/total*100)
 :0;
 
-document.getElementById('exerciseCount').textContent=
-list.length;
+document.getElementById('exerciseProgress').textContent=
+completedExercises+'/'+list.length;
 
-document.getElementById('setCount').textContent=
-total;
-
-document.getElementById('doneCount').textContent=
+document.getElementById('setProgress').textContent=
 done+'/'+total;
 
 document.getElementById('progressBar').style.width=
