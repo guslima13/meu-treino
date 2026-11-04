@@ -40,21 +40,25 @@ main{max-width:980px;margin:auto;padding:20px 16px 90px}
 .btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:10px 13px;border-radius:10px;font-weight:700;cursor:pointer}
 .btn.primary{background:var(--accent);color:#101010;border-color:var(--accent)}
 .btn.danger{color:var(--danger)}
-.exercise{background:linear-gradient(145deg,#1b1f1f,#141717);border:1px solid var(--line);border-radius:16px;padding:15px;margin:12px 0;box-shadow:0 8px 24px #0003}
-.exhead{display:flex;justify-content:space-between;gap:12px}
+.exercise{display:grid;grid-template-columns:minmax(0,1fr) 28px;gap:10px;background:linear-gradient(145deg,#1b1f1f,#141717);border:1px solid var(--line);border-radius:16px;padding:15px;margin:12px 0;box-shadow:0 8px 24px #0003}\n.exercise-main{min-width:0}
+.exhead{display:flex;justify-content:flex-start;gap:8px;min-width:0}\n.exhead>div{min-width:0;width:100%}
 .exnum{color:var(--accent);font-weight:900;font-size:12px}
 .exercise h3{font-size:19px;margin:2px 0 4px}
-.meta{color:var(--muted);font-size:12px}
-.actions{display:flex;gap:4px;flex:0 0 auto;flex-wrap:nowrap;white-space:nowrap;align-items:center;justify-content:flex-end}
-.iconbtn{width:30px;height:30px;min-width:30px;padding:0;border:1px solid #343b39;background:#202625;color:#aeb8b2;border-radius:7px;cursor:pointer;flex:0 0 30px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;line-height:1;opacity:.82}
-.setgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-top:14px}\n.setgrid.three-cols{grid-template-columns:repeat(3,minmax(0,1fr))}
-.set{background:#101313;border:1px solid #303737;border-radius:10px;padding:8px 6px;text-align:center;min-width:0}
-.set label{display:block;color:var(--muted);font-size:10px;font-weight:800;margin-bottom:5px}
-.set input.load-input{width:100%;background:#252a2a;color:white;border:1px solid #394040;border-radius:7px;padding:7px 2px;text-align:center;font-size:14px;min-width:0}
-.set.done{border-color:var(--accent);background:#20270c}
-.set.done input.load-input{border-color:#718900}
-.setcheck{display:flex;justify-content:center;align-items:center;gap:5px;font-size:11px;color:var(--muted);margin-top:7px}
-.setcheck input{accent-color:var(--accent);width:16px;height:16px}
+.meta{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.actions{display:flex;flex-direction:column;gap:7px;flex:0 0 32px;align-items:center;justify-content:center;align-self:center;padding-top:0}
+.iconbtn{width:29px;height:29px;min-width:29px;padding:0;border:1px solid #343b39;background:#202625;color:#aeb8b2;border-radius:7px;cursor:pointer;flex:0 0 29px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;line-height:1;opacity:.86}
+.sets-table{margin-top:14px;border:1px solid #303737;border-radius:12px;padding:0 10px;background:#18211d;overflow:hidden}
+.sets-head,.set-row{display:grid;grid-template-columns:32px minmax(0,.78fr) 48px;column-gap:7px;align-items:center}
+.sets-head{min-height:30px;color:var(--muted);font-size:10px;text-transform:uppercase;border-bottom:1px solid #34413a}
+.set-row{min-height:64px;border-bottom:1px solid #34413a}
+.set-row:last-child{border-bottom:0}
+.set-number{font-weight:800;color:var(--text);font-size:14px}
+.set-input{width:100%;min-width:0;height:45px;box-sizing:border-box;background:#202d27;color:white;border:1px solid #35463d;border-radius:10px;padding:8px;font:inherit;font-size:14px}
+.set-input::placeholder{color:#718078}
+.set-done-btn{height:40px;width:48px;border:0;border-radius:10px;background:#202d27;color:var(--text);font-weight:800;cursor:pointer}
+.set-done-btn.done{background:#789b5d;color:#101810}
+.set-row.completed .set-number{color:#aab5ad}
+.set-row.completed .set-input{opacity:.82}
 .empty{padding:28px;text-align:center;color:var(--muted)}
 .footer{color:var(--muted);font-size:12px;text-align:center;margin:28px 0}
 .modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
@@ -70,7 +74,9 @@ main{max-width:980px;margin:auto;padding:20px 16px 90px}
  main{padding:16px 12px 70px}
  .daynav{gap:4px}
  .daybtn{font-size:12px;padding:11px 2px}
- .setgrid{grid-template-columns:repeat(2,minmax(0,1fr))}\n .setgrid.three-cols{grid-template-columns:repeat(3,minmax(0,1fr))}\n .exhead{align-items:flex-start}\n .exhead>div:first-child{min-width:0;flex:1}\n .actions{gap:3px}\n .iconbtn{width:27px;height:27px;min-width:27px;flex-basis:27px;padding:0;font-size:11px;border-radius:6px}
+ .exhead{align-items:flex-start}
+ .actions{gap:5px;flex-direction:column}
+ .iconbtn{width:24px;height:24px;min-width:24px;flex-basis:24px;padding:0;font-size:10px;border-radius:6px}
  .hero{align-items:start;flex-direction:column}
  .summary{gap:7px}
  .stat{flex:1;min-width:90px}
@@ -298,26 +304,31 @@ function render(){
  document.getElementById('exerciseList').innerHTML=list.length?list.map((e,i)=>{
   const checks=checksFor(day,i);
   return `<article class="exercise">
-   <div class="exhead">
-    <div>
-     <div class="exnum">Exerc. ${String(i+1).padStart(2,'0')} · ${esc(e.muscle)}</div>
-     <h3>${esc(e.name)}</h3>
-     <div class="meta">${esc(e.equipment)} · ${esc(e.execution)} · Pegada: ${esc(e.grip)}${e.note?' · '+esc(e.note):''}</div>
+   <div class="exercise-main">
+    <div class="exhead">
+     <div>
+      <div class="exnum">Exerc. ${String(i+1).padStart(2,'0')} · ${esc(e.muscle)}</div>
+      <h3>${esc(e.name)}</h3>
+      <div class="meta" title="${esc(e.equipment)} · ${esc(e.execution)} · Pegada: ${esc(e.grip)}${e.note?' · '+esc(e.note):''}">${esc(e.equipment)} · ${esc(e.execution)} · Pegada: ${esc(e.grip)}${e.note?' · '+esc(e.note):''}</div>
+     </div>
     </div>
-    <div class="actions">
-     <button class="iconbtn" onclick="editExercise(${i})" title="Editar">✎</button>
-     <button class="iconbtn" onclick="moveExercise(${i},-1)" title="Subir">↑</button>
-     <button class="iconbtn" onclick="moveExercise(${i},1)" title="Descer">↓</button>
-     <button class="iconbtn" onclick="deleteExercise(${i})" title="Excluir">×</button>
+    <div class="sets-table">
+    <div class="sets-head"><span>Série</span><span>Carga (kg)</span><span>Feito</span></div>
+    ${Array.from({length:+e.sets||1},(_,j)=>
+     `<div class="set-row ${checks[j]?'completed':''}">
+      <span class="set-number">${j+1}</span>
+      <input class="set-input" aria-label="Carga da série ${j+1}" inputmode="decimal" value="${esc((e.loads||[])[j]??'')}" onchange="changeLoad(${i},${j},this.value)" placeholder="Carga">
+      <button type="button" class="set-done-btn ${checks[j]?'done':''}" aria-label="${checks[j]?'Desmarcar':'Marcar'} série ${j+1} como feita" onclick="toggleSet(${i},${j},${!checks[j]})">${checks[j]?'✓':'OK'}</button>
+     </div>`
+    ).join('')}
     </div>
    </div>
-   <div class="setgrid ${(+e.sets||1)===3 || (+e.sets||1)>=5?'three-cols':''}">${Array.from({length:+e.sets||1},(_,j)=>
-    `<div class="set ${checks[j]?'done':''}">
-     <label>SÉRIE ${j+1}</label>
-     <input class="load-input" aria-label="Carga série ${j+1}" value="${esc((e.loads||[])[j]??'')}" onchange="changeLoad(${i},${j},this.value)" placeholder="Carga">
-     <label class="setcheck"><input type="checkbox" ${checks[j]?'checked':''} onchange="toggleSet(${i},${j},this.checked)"> Feita</label>
-    </div>`
-   ).join('')}</div>
+   <div class="actions">
+    <button class="iconbtn" onclick="editExercise(${i})" title="Editar" aria-label="Editar">✎</button>
+    <button class="iconbtn" onclick="moveExercise(${i},-1)" title="Subir" aria-label="Subir">↑</button>
+    <button class="iconbtn" onclick="moveExercise(${i},1)" title="Descer" aria-label="Descer">↓</button>
+    <button class="iconbtn" onclick="deleteExercise(${i})" title="Excluir" aria-label="Excluir">×</button>
+   </div>
   </article>`;
  }).join(''):'<div class="empty">Nenhum exercício neste treino. Use “Adicionar exercício” para começar.</div>';
 
@@ -335,6 +346,13 @@ function changeLoad(i,j,v){
  const e=state.workouts[day][i];
  e.loads=e.loads||[];
  e.loads[j]=v;
+ save();
+}
+
+function changeReps(i,j,v){
+ const e=state.workouts[day][i];
+ e.reps=e.reps||[];
+ e.reps[j]=v;
  save();
 }
 
