@@ -1773,22 +1773,22 @@ render();
 
 <script>
 
-// MODO APLICATIVO / SERVICE WORKER
+// MODO APLICATIVO / SERVICE WORKER ATUALIZADO
 
-if('serviceWorker' in navigator){
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register(
+        './service-worker.js',
+        { updateViaCache: 'none' }
+      );
 
-window.addEventListener('load',()=>{
+      await registration.update();
 
-navigator.serviceWorker.register(
-'./service-worker.js'
-).catch(err=>
-console.warn(
-'Não foi possível registrar o modo app:',
-err
-));
-
-});
-
+    } catch (err) {
+      console.warn('Não foi possível atualizar o aplicativo:', err);
+    }
+  });
 }
 
 </script>
