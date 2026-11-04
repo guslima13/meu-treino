@@ -45,9 +45,9 @@ main{max-width:980px;margin:auto;padding:20px 16px 90px}
 .exnum{color:var(--accent);font-weight:900;font-size:12px}
 .exercise h3{font-size:19px;margin:2px 0 4px}
 .meta{color:var(--muted);font-size:12px}
-.actions{display:flex;gap:5px;flex-wrap:wrap}
-.iconbtn{border:1px solid var(--line);background:#252a2a;color:#dce1dc;border-radius:8px;padding:6px 9px;cursor:pointer}
-.setgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-top:14px}
+.actions{display:flex;gap:4px;flex:0 0 auto;flex-wrap:nowrap;white-space:nowrap;align-items:center;justify-content:flex-end}
+.iconbtn{width:30px;height:30px;min-width:30px;padding:0;border:1px solid #343b39;background:#202625;color:#aeb8b2;border-radius:7px;cursor:pointer;flex:0 0 30px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;line-height:1;opacity:.82}
+.setgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-top:14px}\n.setgrid.three-cols{grid-template-columns:repeat(3,minmax(0,1fr))}
 .set{background:#101313;border:1px solid #303737;border-radius:10px;padding:8px 6px;text-align:center;min-width:0}
 .set label{display:block;color:var(--muted);font-size:10px;font-weight:800;margin-bottom:5px}
 .set input.load-input{width:100%;background:#252a2a;color:white;border:1px solid #394040;border-radius:7px;padding:7px 2px;text-align:center;font-size:14px;min-width:0}
@@ -70,7 +70,7 @@ main{max-width:980px;margin:auto;padding:20px 16px 90px}
  main{padding:16px 12px 70px}
  .daynav{gap:4px}
  .daybtn{font-size:12px;padding:11px 2px}
- .setgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .setgrid{grid-template-columns:repeat(2,minmax(0,1fr))}\n .setgrid.three-cols{grid-template-columns:repeat(3,minmax(0,1fr))}\n .exhead{align-items:flex-start}\n .exhead>div:first-child{min-width:0;flex:1}\n .actions{gap:3px}\n .iconbtn{width:27px;height:27px;min-width:27px;flex-basis:27px;padding:0;font-size:11px;border-radius:6px}
  .hero{align-items:start;flex-direction:column}
  .summary{gap:7px}
  .stat{flex:1;min-width:90px}
@@ -86,7 +86,7 @@ main{max-width:980px;margin:auto;padding:20px 16px 90px}
   <div>
    <div class="eyebrow">Sua rotina, no seu ritmo</div>
    <h1 id="dayTitle">Segunda-feira</h1>
-   <div class="muted">Escolha o treino que você vai fazer hoje. A ordem é sua.</div>
+   <div class="muted" id="dayMuscles"></div>
   </div>
  </div>
  <nav class="daynav" id="daynav"></nav>
@@ -268,8 +268,10 @@ function render(){
  })[day]||day.toUpperCase();
  const dayExercises=state.workouts[day]||[];
  const muscleGroups=[...new Set(dayExercises.map(e=>(e.muscle||'').trim()).filter(Boolean))];
- document.getElementById('dayTitle').innerHTML=
-  `${esc(dayLabel)}<span class="day-focus"> | (${muscleGroups.map(m=>esc(m.toUpperCase())).join(' - ')})</span>`;
+ document.getElementById('dayTitle').textContent=dayLabel;
+ document.getElementById('dayMuscles').textContent=muscleGroups.length
+  ? muscleGroups.map(m=>m.toUpperCase()).join(' | ')
+  : 'Grupos musculares não informados';
 
  document.getElementById('daynav').innerHTML=days.map(d=>
   `<button class="daybtn ${d===day?'active':''}" data-day="${d}">${d.slice(0,3).toUpperCase()}</button>`
@@ -309,7 +311,7 @@ function render(){
      <button class="iconbtn" onclick="deleteExercise(${i})" title="Excluir">×</button>
     </div>
    </div>
-   <div class="setgrid">${Array.from({length:+e.sets||1},(_,j)=>
+   <div class="setgrid ${(+e.sets||1)===3 || (+e.sets||1)>=5?'three-cols':''}">${Array.from({length:+e.sets||1},(_,j)=>
     `<div class="set ${checks[j]?'done':''}">
      <label>SÉRIE ${j+1}</label>
      <input class="load-input" aria-label="Carga série ${j+1}" value="${esc((e.loads||[])[j]??'')}" onchange="changeLoad(${i},${j},this.value)" placeholder="Carga">
