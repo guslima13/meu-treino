@@ -462,6 +462,12 @@ background:#789b5d;
 color:#101810
 }
 
+.set-done-btn:disabled,.exercise-done-btn:disabled{
+opacity:.38;
+filter:grayscale(1);
+cursor:not-allowed;
+}
+
 .set-row.completed .set-number{color:#aab5ad}
 
 .set-row.completed .set-input{opacity:.82}
@@ -1203,6 +1209,12 @@ finishBtn.disabled=true;
 
 }
 
+// Só permite marcar séries e exercícios enquanto o treino estiver ativo.
+const canMarkProgress=session.status==='active';
+document.querySelectorAll('.set-done-btn,.exercise-done-btn').forEach(button=>{
+button.disabled=!canMarkProgress;
+});
+
 }
 
 // ========================================
@@ -1472,6 +1484,8 @@ save();
 
 function toggleSet(i,j,v){
 
+if(getWorkoutStatus().status!=='active') return;
+
 const a=checksFor(day,i);
 
 a[j]=v;
@@ -1483,6 +1497,8 @@ render();
 }
 
 function toggleExercise(i){
+
+if(getWorkoutStatus().status!=='active') return;
 
 const exercise=state.workouts[day][i];
 if(!exercise) return;
