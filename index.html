@@ -528,13 +528,18 @@ font-size:14px
 .set-input::placeholder{color:#718078}
 
 .load-stepper{
-display:none;
+display:flex;
 flex-direction:column;
 gap:2px;
 flex:0 0 27px;
 }
 
-.load-control.open .load-stepper{display:flex}
+/* Realce breve somente quando uma das setas é usada. */
+.load-control.adjusting .set-input{
+border-color:var(--accent);
+box-shadow:0 0 0 3px #d7ff0038;
+transition:border-color .12s ease,box-shadow .12s ease;
+}
 
 .load-stepper button{
 flex:1;
@@ -977,7 +982,7 @@ Exporte um backup para levar suas alterações a outro dispositivo.
 </div>
 
 <div class="field">
-<label>Carga de cada série (preencha uma caixinha por série)</label>
+<label>Carga de cada série</label>
 <div id="loadsBySet" class="loads-by-set"></div>
 </div>
 
@@ -1362,12 +1367,6 @@ const session=getWorkoutStatus();
 if(session.status!=='active')
 return;
 
-if(!confirm(
-'Deseja realmente finalizar este treino?'
-))
-return;
-
-
 session.status='finished';
 
 session.finishedAt=new Date().toISOString();
@@ -1640,8 +1639,7 @@ aria-label="Carga da série ${j+1}"
 inputmode="decimal"
 value="${esc((e.loads||[])[j]??'')}"
 onchange="changeLoad(${i},${j},this.value)"
-onclick="showLoadStepper(this)"
-onfocus="showLoadStepper(this)"
+ 
 placeholder="Carga">
 <div class="load-stepper" aria-label="Ajustar carga em 1,25 kg">
 <button type="button" aria-label="Aumentar carga em 1,25 kg"
@@ -1765,11 +1763,6 @@ render();
 
 }
 
-function showLoadStepper(input){
-  const control=input.closest('.load-control');
-  if(control) control.classList.add('open');
-}
-
 function adjustLoadStep(i,j,direction,button){
   const e=state.workouts[day][i];
   if(!e) return;
@@ -1793,16 +1786,19 @@ function adjustLoadStep(i,j,direction,button){
   const input=control ? control.querySelector('.set-input') : null;
   if(input) input.value=formatted;
 
+  // Realce breve ao usar as setas, sem focar o campo nem abrir o teclado.
+  if(control){
+    control.classList.remove('adjusting');
+    void control.offsetWidth;
+    control.classList.add('adjusting');
+    clearTimeout(control._adjustingTimer);
+    control._adjustingTimer=setTimeout(()=>{
+      control.classList.remove('adjusting');
+    },350);
+  }
+
   save();
 }
-
-// Fecha os controles quando o usuário toca/clica fora da barrinha.
-document.addEventListener('pointerdown',event=>{
-  if(event.target.closest('.load-control')) return;
-  document.querySelectorAll('.load-control.open').forEach(control=>{
-    control.classList.remove('open');
-  });
-});
 
 function changeLoad(i,j,v){
 
