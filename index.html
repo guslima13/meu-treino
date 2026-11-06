@@ -1967,8 +1967,8 @@ select:focus {
 .move-day-options button{min-height:42px;font-weight:800}
 .move-day-options button:disabled{opacity:.3;cursor:not-allowed}
 .backup-actions{grid-template-columns:1fr 1fr}
-.info-catalog-dialog{width:min(560px,100%);max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain}
-.catalog-entry{display:grid;gap:6px;margin:13px 0}
+.info-catalog-dialog{width:min(560px,100%);max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column}
+.catalog-entry{display:grid;gap:6px;margin:13px 0;order:0}
 .catalog-entry label{font-size:12px;color:var(--muted);font-weight:800}
 .catalog-entry>div{display:flex;gap:8px}
 .catalog-entry input{min-width:0;flex:1;background:#0f1212;color:white;border:1px solid #394040;border-radius:9px;padding:11px;font:inherit}
@@ -1982,14 +1982,15 @@ select:focus {
 .catalog-list-item .btn{flex:0 0 auto;padding:6px 9px}
 .catalog-empty{padding:8px;color:var(--muted);font-size:12px}
 
-/* Catálogo geral de exercícios: destaque mantido em um bloco mais compacto. */
+/* Lista de exercícios no topo do cadastro, sem halo ou destaque verde. */
 .exercise-catalog-entry{
-  margin:12px 0 9px;
-  padding:8px;
-  border:1px solid #718b35;
-  border-radius:12px;
-  background:linear-gradient(135deg,#20291b,#171e18);
-  box-shadow:0 0 0 1px #d7ff0012,inset 0 1px 0 #ffffff0a;
+  order:0;
+  margin:0 0 14px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
 }
 .exercise-catalog-entry>label{display:none}
 .exercise-catalog-toggle{
@@ -2001,8 +2002,12 @@ select:focus {
   gap:10px;
   padding:8px 12px;
   font-size:14px;
-  font-weight:900;
+  font-weight:800;
   white-space:normal;
+  border:1px solid var(--accent);
+  background:var(--accent);
+  color:#101010;
+  box-shadow:none;
 }
 .exercise-catalog-arrow{font-size:20px;line-height:1}
 .exercise-catalog-entry .catalog-list{margin-top:5px}
@@ -2201,11 +2206,11 @@ select:focus {
 <div class="confirm-backdrop" id="infoCatalogModal" hidden>
   <section class="confirm-dialog info-catalog-dialog" role="dialog" aria-modal="true" aria-labelledby="infoCatalogTitle">
     <h2 id="infoCatalogTitle">Cadastro e exclusão de informações</h2>
+    <div class="catalog-entry exercise-catalog-entry"><div><button type="button" class="btn primary exercise-catalog-toggle" data-exercise-catalog-toggle><span aria-hidden="true">☷</span> Ver lista de exercícios <span class="exercise-catalog-arrow" aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="exerciseCatalogList" hidden></div></div>
     <div class="catalog-entry"><label for="newMuscle">Grupo muscular</label><div><input id="newMuscle" type="text" placeholder="Novo grupo muscular"><button type="button" class="btn primary" data-catalog-add="muscle">Adicionar</button><button type="button" class="btn" data-catalog-list="muscle">Ver lista</button></div><div class="catalog-list" id="catalogList-muscle" hidden></div></div>
     <div class="catalog-entry"><label for="newEquipment">Equipamento</label><div><input id="newEquipment" type="text" placeholder="Novo equipamento"><button type="button" class="btn primary" data-catalog-add="equipment">Adicionar</button><button type="button" class="btn" data-catalog-list="equipment">Ver lista</button></div><div class="catalog-list" id="catalogList-equipment" hidden></div></div>
     <div class="catalog-entry"><label for="newExecution">Execução</label><div><input id="newExecution" type="text" placeholder="Nova execução"><button type="button" class="btn primary" data-catalog-add="execution">Adicionar</button><button type="button" class="btn" data-catalog-list="execution">Ver lista</button></div><div class="catalog-list" id="catalogList-execution" hidden></div></div>
     <div class="catalog-entry"><label for="newGrip">Pegada</label><div><input id="newGrip" type="text" placeholder="Nova pegada"><button type="button" class="btn primary" data-catalog-add="grip">Adicionar</button><button type="button" class="btn" data-catalog-list="grip">Ver lista</button></div><div class="catalog-list" id="catalogList-grip" hidden></div></div>
-    <div class="catalog-entry exercise-catalog-entry"><div><button type="button" class="btn primary exercise-catalog-toggle" data-exercise-catalog-toggle><span aria-hidden="true">☷</span> Ver lista de exercícios <span class="exercise-catalog-arrow" aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="exerciseCatalogList" hidden></div></div>
     <p class="catalog-feedback" id="catalogFeedback" aria-live="polite"></p>
     <div class="confirm-actions"><button type="button" class="btn" id="closeInfoCatalogBtn">Fechar</button></div>
   </section>
@@ -3043,8 +3048,8 @@ ${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><pat
 <div class="actions">
 
 <button type="button" class="iconbtn" onclick="editExercise(${i})" title="Editar" aria-label="Editar">✎</button>
+<button type="button" class="iconbtn" onclick="replaceExercise(${i})" title="Substituir exercício" aria-label="Substituir exercício"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9a4 4 0 0 0-4 4v2"/><path d="m4 10 3 3 3-3"/><path d="M4 17h9a4 4 0 0 0 4-4v-2"/><path d="m20 14-3-3-3 3"/></svg></button>
 <button type="button" class="iconbtn" onclick="openMoveDayDialog(${i})" title="Mover para outro dia da semana" aria-label="Mover para outro dia da semana"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="13" height="16" rx="2"/><path d="M7 3v4M12 3v4M3 10h13M13 14h8m-3-3 3 3-3 3"/></svg></button>
-<button type="button" class="iconbtn" onclick="replaceExercise(${i})" title="Substituir exercício" aria-label="Substituir exercício"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13l-3-3m6 13H7l3 3"/><path d="M17 4l3 3-3 3M7 14l-3 3 3 3"/></svg></button>
 <button type="button" class="iconbtn" onclick="moveExercise(${i},-1)" title="Subir" aria-label="Subir">↑</button>
 <button type="button" class="iconbtn" onclick="moveExercise(${i},1)" title="Descer" aria-label="Descer">↓</button>
 <button type="button" class="iconbtn" onclick="deleteExercise(${i})" title="Excluir exercício" aria-label="Excluir exercício">×</button>
@@ -3405,6 +3410,20 @@ function readLoadFields(){
     });
 }
 
+function preserveExerciseDropdownValues(exercise){
+  if(!exercise) return;
+  state.catalogs=state.catalogs||{muscle:[],equipment:[],execution:[],grip:[]};
+  ['muscle','equipment','execution','grip'].forEach(category=>{
+    state.catalogs[category]=Array.isArray(state.catalogs[category])?state.catalogs[category]:[];
+    const value=String(exercise[category]??'').trim();
+    if(!value || value==='-') return;
+    const key=value.toLocaleLowerCase('pt-BR');
+    if(!state.catalogs[category].some(item=>String(item).trim().toLocaleLowerCase('pt-BR')===key)){
+      state.catalogs[category].push(value);
+    }
+  });
+}
+
 function upsertExerciseCatalog(exercise, oldName=''){
   state.exerciseCatalog=Array.isArray(state.exerciseCatalog)?state.exerciseCatalog:[];
   const oldKey=String(oldName||'').trim().toLocaleLowerCase('pt-BR');
@@ -3430,6 +3449,7 @@ function getCatalogValues(category,includeDash=false){
   };
   (state.catalogs?.[category]||[]).forEach(add);
   Object.values(state.workouts||{}).flat().forEach(ex=>add(ex?.[category]));
+  (state.exerciseCatalog||[]).forEach(ex=>add(ex?.[category]));
   if(includeDash) add('-');
   return [...unique.values()].sort((a,b)=>a==='-'?-1:b==='-'?1:a.localeCompare(b,'pt-BR'));
 }
@@ -3478,6 +3498,7 @@ function preserveSelectValue(select, value){
 
 function editExercise(i){
 
+if(i!==null && !state.workouts[day]?.[i]) return;
 editIndex=i;
 
 const e=i===null
@@ -3590,7 +3611,7 @@ modal.classList.add('open');
 function handleExerciseNameInput(){
   if(editIndex!==null) return;
   const typed=fName.value.trim();
-  const catalog=Object.values(state.workouts||{}).flat();
+  const catalog=[...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()];
   const match=typed
     ? catalog.find(ex=>String(ex.name||'').trim().toLocaleLowerCase('pt-BR')===typed.toLocaleLowerCase('pt-BR'))
     : null;
@@ -3706,7 +3727,11 @@ loads:readLoadFields()
 
 };
 
+if(editIndex!==null && !old) return;
 recordUndo(editIndex===null?'Exercício adicionado':'Exercício editado');
+
+// Registra os valores anteriores antes de qualquer alteração do exercício.
+if(old) preserveExerciseDropdownValues(old);
 
 if(editIndex===null){
   state.workouts[day].push(e);
@@ -3810,6 +3835,9 @@ function replaceExercise(i){
   window.exerciseReplacementCatalog=catalog;
 
   const groups={};
+  // Os grupos cadastrados também aparecem no catálogo, mesmo antes de receberem
+  // um exercício. Os exercícios disponíveis continuam vindo apenas do catálogo mestre.
+  getCatalogValues('muscle',false).forEach(muscle=>{groups[muscle]=[];});
   catalog.forEach((ex,index)=>{
     const muscle=String(ex.muscle||'Outros').trim()||'Outros';
     (groups[muscle] ||= []).push({ex,index});
@@ -3825,7 +3853,7 @@ function replaceExercise(i){
           <span class="replace-chevron">⌄</span>
         </summary>
         <div class="replace-options">
-          ${items.map(({ex,index})=>`
+          ${items.length ? items.map(({ex,index})=>`
             <button type="button" class="replace-option" onclick="chooseReplacement(${index})">
               <span class="replace-option-title">${esc(ex.name||'Exercício sem nome')}</span>
               <span class="replace-option-details">
@@ -3836,7 +3864,7 @@ function replaceExercise(i){
               </span>
               <span class="replace-select-label">Selecionar</span>
             </button>
-          `).join('')}
+          `).join('') : '<p class="replace-hint">Nenhum exercício cadastrado neste grupo muscular.</p>'}
         </div>
       </details>
     `).join('');
@@ -3848,7 +3876,6 @@ function replaceExercise(i){
     <section class="replace-modal" role="dialog" aria-modal="true" aria-labelledby="replaceModalTitle">
       <header class="replace-modal-header">
         <div>
-          <span class="replace-eyebrow">CATÁLOGO DE EXERCÍCIOS</span>
           <h2 id="replaceModalTitle">Substituir exercício</h2>
           <p>Escolha um exercício para entrar no lugar de <b>${esc(current.name)}</b>.</p>
         </div>
@@ -4059,8 +4086,8 @@ function performDeleteCatalogValue(category,value){
   recordUndo(`${catalogLabels[category]} excluído do cadastro`);
   state.catalogs=state.catalogs||{};
   state.catalogs[category]=(state.catalogs[category]||[]).filter(item=>String(item).trim().toLocaleLowerCase('pt-BR')!==normalized);
-  // Remove também valores antigos presentes nos exercícios, para que não reapareçam nos selects.
-  Object.values(state.workouts||{}).flat().forEach(ex=>{
+  // Esta tela é a única autorizada a excluir uma opção: remove-a de todas as fontes.
+  [...Object.values(state.workouts||{}).flat(),...(state.exerciseCatalog||[])].forEach(ex=>{
     if(String(ex?.[category]??'').trim().toLocaleLowerCase('pt-BR')===normalized){
       ex[category]=category==='muscle'?'':'-';
     }
@@ -4122,6 +4149,9 @@ function addCatalogValue(category){
   input.value='';
   document.getElementById('catalogFeedback').textContent=`"${value}" cadastrado com sucesso.`;
   renderCatalogList(category);
+  refreshAllStyledSelects();
+  renderAllCatalogLists();
+  render();
 }
 
 // ========================================
