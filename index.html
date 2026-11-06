@@ -1886,6 +1886,7 @@ gap:4px
   border-radius:10px;box-shadow:0 12px 28px #0009;padding:5px
 }
 .exercise-name-list[hidden]{display:none}
+#equipmentAddField[hidden], #equipmentEditField[hidden]{display:none !important}
 .exercise-name-option{
   display:block;width:100%;padding:10px 11px;text-align:left;
   border:0;border-radius:7px;background:transparent;color:var(--text);
@@ -2159,7 +2160,14 @@ Exporte um backup para levar suas alterações a outro dispositivo.
 
 <div class="field">
 <label>Equipamento</label>
-<select id="fEquipment"></select>
+<div class="exercise-name-picker equipment-picker" id="equipmentAddField">
+  <input id="fEquipment" type="text" autocomplete="off" aria-haspopup="listbox" aria-expanded="false" placeholder="Digite ou selecione um equipamento">
+  <button type="button" class="exercise-name-toggle" id="equipmentToggle" aria-label="Mostrar equipamentos cadastrados" aria-expanded="false">▾</button>
+  <div class="exercise-name-list" id="equipmentList" role="listbox" hidden></div>
+</div>
+<div id="equipmentEditField" hidden>
+  <select id="fEquipmentEdit"><option value="-">-</option></select>
+</div>
 </div>
 
 </div>
@@ -2208,7 +2216,7 @@ Exporte um backup para levar suas alterações a outro dispositivo.
 </div>
 
 <div class="field">
-<label>Carga de cada série</label>
+<label id="loadsLabel">Carga de cada série</label>
 <div id="loadsBySet" class="loads-by-set"></div>
 </div>
 
@@ -2234,6 +2242,28 @@ Salvar exercício
 </div>
 
 <script>
+
+// Referências explícitas aos controles do formulário. Isso evita depender
+// do acesso implícito a elementos por seus IDs, que pode falhar em alguns
+// navegadores móveis e WebViews e impedir a abertura dos modais.
+const modal = document.getElementById('modal');
+const fName = document.getElementById('fName');
+const fMuscle = document.getElementById('fMuscle');
+const fEquipment = document.getElementById('fEquipment');
+const fEquipmentEdit = document.getElementById('fEquipmentEdit');
+const equipmentAddField = document.getElementById('equipmentAddField');
+const equipmentEditField = document.getElementById('equipmentEditField');
+const fExecution = document.getElementById('fExecution');
+const fGrip = document.getElementById('fGrip');
+const fSets = document.getElementById('fSets');
+const fNote = document.getElementById('fNote');
+const exerciseForm = document.getElementById('exerciseForm');
+const addBtn = document.getElementById('addBtn');
+const resetBtn = document.getElementById('resetBtn');
+const exportBtn = document.getElementById('exportBtn');
+const importBtn = document.getElementById('importBtn');
+const importFile = document.getElementById('importFile');
+const cancelBtn = document.getElementById('cancelBtn');
 
 // ========================================
 // TREINOS ORIGINAIS
@@ -2842,7 +2872,7 @@ aria-label="${Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Bool
 
 <div class="sets-head">
 <span>Série</span>
-<span>Carga (kg)</span>
+<span>${isAerobicExercise(e)?'Tempo':'Carga (kg)'}</span>
 <span>Feito</span>
 </div>
 
@@ -2859,17 +2889,19 @@ ${j+1}
 <div class="load-control">
 <input
 class="set-input"
-aria-label="Carga da série ${j+1}"
-inputmode="decimal"
-value="${esc((e.loads||[])[j]??'')}"
+aria-label="${isAerobicExercise(e)?'Tempo':'Carga'} da série ${j+1}"
+inputmode="${isAerobicExercise(e)?'numeric':'decimal'}"
+maxlength="${isAerobicExercise(e)?5:undefined}"
+value="${esc(isAerobicExercise(e)?formatTimeValue((e.loads||[])[j]):((e.loads||[])[j]??''))}"
+oninput="${isAerobicExercise(e)?'formatTimeInput(this)':''}"
+onblur="${isAerobicExercise(e)?'normalizeTimeInput(this)':''}"
 onchange="changeLoad(${i},${j},this.value)"
- 
-placeholder="Carga">
-<div class="load-stepper" aria-label="Ajustar carga em 1,25 kg">
-<button type="button" aria-label="Aumentar carga em 1,25 kg"
-onpointerdown="event.preventDefault(); event.stopPropagation(); adjustLoadStep(${i},${j},1,this)">▲</button>
-<button type="button" aria-label="Diminuir carga em 1,25 kg"
-onpointerdown="event.preventDefault(); event.stopPropagation(); adjustLoadStep(${i},${j},-1,this)">▼</button>
+placeholder="${isAerobicExercise(e)?'00:00':'Carga'}">
+<div class="load-stepper" aria-label="${isAerobicExercise(e)?'Ajustar tempo em 10 minutos':'Ajustar carga em 1,25 kg'}">
+<button type="button" aria-label="${isAerobicExercise(e)?'Aumentar tempo em 10 minutos':'Aumentar carga em 1,25 kg'}"
+onpointerdown="event.preventDefault(); event.stopPropagation(); ${isAerobicExercise(e)?'adjustTimeStep':'adjustLoadStep'}(${i},${j},1,this)">▲</button>
+<button type="button" aria-label="${isAerobicExercise(e)?'Diminuir tempo em 10 minutos':'Diminuir carga em 1,25 kg'}"
+onpointerdown="event.preventDefault(); event.stopPropagation(); ${isAerobicExercise(e)?'adjustTimeStep':'adjustLoadStep'}(${i},${j},-1,this)">▼</button>
 </div>
 </div>
 
@@ -2960,6 +2992,30 @@ checks[j]=!alreadyDone;
 save();
 render();
 
+}
+
+function adjustTimeStep(i,j,direction,button){
+  const e=state.workouts[day][i];
+  if(!e) return;
+  e.loads=e.loads||[];
+  const control=button ? button.closest('.load-control') : null;
+  const input=control ? control.querySelector('.set-input') : null;
+  const current=String(input?.value ?? e.loads[j] ?? '').trim();
+  const parsed=current===''?0:parseTimeMinutes(current);
+  if(parsed===null) return;
+  const next=Math.max(0,parsed+direction*10);
+  const formatted=formatTimeMinutes(next);
+  e.loads[j]=formatted;
+  if(input) input.value=formatted;
+
+  if(control){
+    control.classList.remove('adjusting');
+    void control.offsetWidth;
+    control.classList.add('adjusting');
+    clearTimeout(control._adjustingTimer);
+    control._adjustingTimer=setTimeout(()=>control.classList.remove('adjusting'),350);
+  }
+  save();
 }
 
 function adjustLoadStep(i,j,direction,button){
@@ -3098,23 +3154,181 @@ data[b]=temp;
 // EDIÇÃO DE EXERCÍCIOS
 // ========================================
 
-function renderLoadFields(loads,sets){
+function isAerobicExercise(ex){
+  if(!ex) return false;
+  const category=String(ex.muscle||'').trim().toLocaleLowerCase('pt-BR');
+  return /aer[oó]bic|cardio/.test(category);
+}
+
+function parseTimeMinutes(value){
+  const raw=String(value??'').trim().toLocaleLowerCase('pt-BR');
+  if(!raw) return null;
+  // Formato principal HH:MM (ex.: 00:30, 01:30). Também aceita dados antigos como 1h.
+  let match=raw.match(/^(\d{1,3})\s*:\s*(\d{1,2})$/);
+  if(match){
+    const hours=Number(match[1]), minutes=Number(match[2]);
+    if(minutes>=60) return null;
+    return hours*60+minutes;
+  }
+  match=raw.match(/^(\d+)\s*h(?:oras?)?\s*(?:(\d{1,2})\s*(?:m|min|mins|minutos?)?)?$/);
+  if(match){
+    const minutes=Number(match[2]||0);
+    if(minutes>=60) return null;
+    return Number(match[1])*60+minutes;
+  }
+  match=raw.match(/^(\d+)\s*(?:m|min|mins|minuto|minutos)$/);
+  if(match) return Number(match[1]);
+  if(/^\d+$/.test(raw)) return Number(raw);
+  return null;
+}
+
+// Mantém os dígitos e insere automaticamente o separador HH:MM.
+// Ao sair do campo, completa com zeros à esquerda para manter sempre o formato.
+function formatTimeInput(input){
+  if(!input) return;
+  const digits=String(input.value||'').replace(/\D/g,'').slice(0,4);
+  input.value=digits.length>2 ? `${digits.slice(0,2)}:${digits.slice(2)}` : digits;
+}
+
+function normalizeTimeInput(input){
+  if(!input) return;
+  const digits=String(input.value||'').replace(/\D/g,'').slice(0,4);
+  if(!digits){ input.value=''; return; }
+  const padded=digits.padStart(4,'0');
+  let hours=Number(padded.slice(0,2));
+  let minutes=Number(padded.slice(2,4));
+  // Minutos nunca ultrapassam 59; entradas inválidas permanecem corrigíveis.
+  if(minutes>59) minutes=59;
+  input.value=`${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`;
+}
+function formatTimeMinutes(total){
+  const minutes=Math.max(0,Math.round(Number(total)||0));
+  const hours=Math.floor(minutes/60);
+  const remainder=minutes%60;
+  return `${String(hours).padStart(2,'0')}:${String(remainder).padStart(2,'0')}`;
+}
+
+function formatTimeValue(value){
+  const minutes=parseTimeMinutes(value);
+  return minutes===null?'':formatTimeMinutes(minutes);
+}
+
+function renderLoadFields(loads,sets,aerobic=isAerobicExercise({muscle:fMuscle.value})){ 
   const container=document.getElementById('loadsBySet');
   if(!container) return;
   const count=Math.max(1,Math.min(20,Number(sets)||1));
+  const label=document.getElementById('loadsLabel');
+  if(label) label.textContent=aerobic?'Tempo de cada série':'Carga de cada série';
   container.innerHTML=Array.from({length:count},(_,index)=>`
     <div class="load-set-field">
       <label for="editLoad${index}">Série ${index+1}</label>
       <input id="editLoad${index}" class="edit-load-input" type="text"
-        inputmode="decimal" placeholder="Carga (kg)"
-        value="${esc(loads[index]??'')}">
+        inputmode="${aerobic?'numeric':'decimal'}" maxlength="${aerobic?5:undefined}"
+        placeholder="${aerobic?'00:00':'Carga (kg)'}"
+        oninput="${aerobic?'formatTimeInput(this)':''}"
+        onblur="${aerobic?'normalizeTimeInput(this)':''}"
+        value="${esc(aerobic?formatTimeValue(loads[index]):(loads[index]??''))}">
     </div>
   `).join('');
 }
 
 function readLoadFields(){
   return Array.from(document.querySelectorAll('.edit-load-input'))
-    .map(input=>input.value.trim());
+    .map(input=>{
+      const value=input.value.trim();
+      if(!isAerobicExercise({muscle:fMuscle.value}) || !value) return value;
+      const digits=value.replace(/\D/g,'').slice(0,4);
+      if(!digits) return '';
+      const padded=digits.padStart(4,'0');
+      const minutes=Math.min(59,Number(padded.slice(2,4)));
+      return `${padded.slice(0,2)}:${String(minutes).padStart(2,'0')}`;
+    });
+}
+
+function getRegisteredEquipment(){
+  // A lista é compartilhada pelos menus Adicionar e Editar e é atualizada
+  // a partir de todos os exercícios salvos no treino.
+  const unique=new Map();
+  Object.values(state.workouts||{}).flat().forEach(ex=>{
+    const equipment=String(ex.equipment||'').trim();
+    if(!equipment || equipment==='-') return;
+    const key=equipment.toLocaleLowerCase('pt-BR');
+    if(!unique.has(key)) unique.set(key,equipment);
+  });
+  return [...unique.values()].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+}
+
+function renderEquipmentOptions(selectedValue=''){
+  const list=document.getElementById('equipmentList');
+  if(!list) return;
+  const options=['-',...getRegisteredEquipment()];
+  const selected=String(selectedValue||'').trim();
+  if(selected && !options.some(item=>item.toLocaleLowerCase('pt-BR')===selected.toLocaleLowerCase('pt-BR'))){
+    options.push(selected);
+    options.sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  }
+  list.innerHTML=options.length
+    ? options.map(item=>`<button type="button" class="exercise-name-option" role="option" data-equipment="${esc(item)}">${esc(item)}</button>`).join('')
+    : '<div class="exercise-name-option muted">Nenhum equipamento cadastrado ainda</div>';
+}
+
+function setupEquipmentPicker(){
+  const input=document.getElementById('fEquipment');
+  const toggle=document.getElementById('equipmentToggle');
+  const list=document.getElementById('equipmentList');
+  if(!input || input.dataset.pickerReady) return;
+  input.dataset.pickerReady='true';
+  toggle.addEventListener('click',()=>{
+    const opening=list.hidden;
+    renderEquipmentOptions(input.value);
+    list.hidden=!opening;
+    input.setAttribute('aria-expanded',String(opening));
+    toggle.setAttribute('aria-expanded',String(opening));
+  });
+  input.addEventListener('focus',()=>renderEquipmentOptions(input.value));
+  list.addEventListener('click',event=>{
+    const option=event.target.closest('[data-equipment]');
+    if(!option) return;
+    input.value=option.dataset.equipment;
+    list.hidden=true;
+    input.setAttribute('aria-expanded','false');
+    toggle.setAttribute('aria-expanded','false');
+  });
+  input.addEventListener('keydown',event=>{
+    if(event.key==='ArrowDown'){
+      event.preventDefault();
+      renderEquipmentOptions(input.value);
+      list.hidden=false;
+      input.setAttribute('aria-expanded','true');
+      toggle.setAttribute('aria-expanded','true');
+      list.querySelector('[data-equipment]')?.focus();
+    } else if(event.key==='Escape'){
+      list.hidden=true;
+      input.setAttribute('aria-expanded','false');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+  document.addEventListener('click',event=>{
+    if(!event.target.closest('#equipmentAddField')){
+      list.hidden=true;
+      input.setAttribute('aria-expanded','false');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+}
+
+// Garante que o valor salvo exista no select antes de selecioná-lo.
+// Essa função é usada ao abrir os formulários de adicionar/editar.
+function preserveSelectValue(select, value){
+  if(!select) return;
+  const desired=String(value ?? '').trim();
+  if(desired && !Array.from(select.options).some(option=>option.value===desired)){
+    const option=document.createElement('option');
+    option.value=desired;
+    option.textContent=desired;
+    select.appendChild(option);
+  }
+  select.value=desired;
 }
 
 function editExercise(i){
@@ -3184,6 +3398,7 @@ const registeredMuscles=[...new Set(
     .map(ex=>String(ex.muscle||'').trim())
     .filter(Boolean)
 )].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+if(!registeredMuscles.some(m=>/aer[oó]bic|cardio/i.test(m))) registeredMuscles.push('Aeróbico');
 
 const muscleOptions=[...registeredMuscles];
 if(e.muscle && !muscleOptions.includes(e.muscle)){
@@ -3193,35 +3408,21 @@ if(e.muscle && !muscleOptions.includes(e.muscle)){
 fMuscle.innerHTML=muscleOptions
   .map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
 
-// Equipamentos disponíveis são reunidos de todos os exercícios cadastrados.
-const registeredEquipment=[...new Set(
-  Object.values(state.workouts||{}).flat()
-    .map(ex=>String(ex.equipment||'').trim())
-    .filter(Boolean)
-)].sort((a,b)=>a.localeCompare(b,'pt-BR'));
-
-const equipmentOptions=[...registeredEquipment];
-if(e.equipment && !equipmentOptions.includes(e.equipment)){
-  equipmentOptions.push(e.equipment);
-  equipmentOptions.sort((a,b)=>a.localeCompare(b,'pt-BR'));
+// Adicionar mantém digitação livre; Editar usa somente a lista suspensa padronizada.
+equipmentAddField.hidden = i!==null;
+equipmentEditField.hidden = i===null;
+fEquipment.value=e.equipment||'-';
+renderEquipmentOptions(fEquipment.value);
+const equipmentOptions=['-',...getRegisteredEquipment()];
+const currentEquipment=String(e.equipment||'-').trim()||'-';
+if(!equipmentOptions.some(item=>item.toLocaleLowerCase('pt-BR')===currentEquipment.toLocaleLowerCase('pt-BR'))){
+  equipmentOptions.push(currentEquipment);
+  equipmentOptions.sort((a,b)=>a==='-'?-1:b==='-'?1:a.localeCompare(b,'pt-BR'));
 }
-fEquipment.innerHTML=equipmentOptions
-  .map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');
+fEquipmentEdit.innerHTML=equipmentOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');
+fEquipmentEdit.value=currentEquipment;
 
-// Preserva valores antigos que não estejam nas opções e deixa campos novos sem seleção.
-function preserveSelectValue(select,value){
-  const current=String(value||'');
-  if(current && !Array.from(select.options).some(option=>option.value===current)){
-    const option=document.createElement('option');
-    option.value=current;
-    option.textContent=current;
-    select.appendChild(option);
-  }
-  select.value=current;
-  if(!current) select.selectedIndex=-1;
-}
 preserveSelectValue(fMuscle,e.muscle);
-preserveSelectValue(fEquipment,e.equipment);
 preserveSelectValue(fExecution,e.execution);
 preserveSelectValue(fGrip,e.grip);
 refreshAllStyledSelects();
@@ -3233,7 +3434,7 @@ document.getElementById('increaseSetsBtn').disabled=(+fSets.value)>=20;
 
 fNote.value=e.note||'';
 
-renderLoadFields(e.loads||[],e.sets||4);
+renderLoadFields(e.loads||[],e.sets||4,isAerobicExercise(e));
 
 modal.classList.add('open');
 
@@ -3262,17 +3463,21 @@ function handleExerciseNameInput(){
   };
 
   if(match){
-    setField(fMuscle,match.muscle);
-    setField(fEquipment,match.equipment);
+        setField(fMuscle,match.muscle);
+    fEquipment.value=match.equipment||'-';
+    fEquipmentEdit.value=match.equipment||'-';
+    renderEquipmentOptions(fEquipment.value);
     setField(fExecution,match.execution||'-');
     setField(fGrip,match.grip||'-');
     refreshAllStyledSelects();
     fSets.value=match.sets||4;
     fNote.value=match.note||'';
-    renderLoadFields(match.loads||[],match.sets||4);
+    renderLoadFields(match.loads||[],match.sets||4,isAerobicExercise(match));
   }else{
-    setField(fMuscle,'');
-    setField(fEquipment,'');
+        setField(fMuscle,'');
+    fEquipment.value='-';
+    fEquipmentEdit.value='-';
+    renderEquipmentOptions(fEquipment.value);
     setField(fExecution,'');
     setField(fGrip,'');
     fSets.value=4;
@@ -3283,6 +3488,12 @@ function handleExerciseNameInput(){
   document.getElementById('decreaseSetsBtn').disabled=(+fSets.value)<=1;
   document.getElementById('increaseSetsBtn').disabled=(+fSets.value)>=20;
 }
+
+fMuscle.addEventListener('change',()=>{
+  const current=readLoadFields();
+  renderLoadFields(current,fSets.value,isAerobicExercise({muscle:fMuscle.value}));
+  refreshAllStyledSelects();
+});
 
 fName.addEventListener('input',handleExerciseNameInput);
 
@@ -3334,7 +3545,7 @@ name:fName.value.trim(),
 
 muscle:fMuscle.value.trim(),
 
-equipment:fEquipment.value.trim(),
+equipment:String(editIndex===null?fEquipment.value:fEquipmentEdit.value).trim()||'-',
 
 execution:fExecution.value.trim()||'-',
 
@@ -3361,12 +3572,30 @@ else{
 
 state.workouts[day][editIndex]=e;
 
+// O nome do exercício funciona como item de catálogo: ao renomeá-lo,
+// atualiza as ocorrências com o mesmo nome antigo em todos os dias.
+if(old.name){
+  const oldKey=old.name.trim().toLocaleLowerCase('pt-BR');
+  // Mantém o catálogo de substituição sincronizado: todas as ocorrências
+  // do mesmo exercício recebem os dados atualizados, inclusive grupo,
+  // equipamento, séries, cargas/tempos e observações.
+  Object.values(state.workouts||{}).forEach(workout=>workout.forEach(ex=>{
+    if(ex!==e && String(ex.name||'').trim().toLocaleLowerCase('pt-BR')===oldKey){
+      Object.assign(ex,JSON.parse(JSON.stringify(e)));
+    }
+  }));
+}
+
 if(old.sets!==e.sets)
 clearChecks(editIndex);
 
 }
 
 save();
+
+// Atualiza imediatamente a lista suspensa compartilhada. Assim, um
+// equipamento recém-cadastrado aparece tanto ao adicionar quanto ao editar.
+renderEquipmentOptions(e.equipment);
 
 closeModal();
 
@@ -3414,8 +3643,11 @@ function replaceExercise(i){
   const seen=new Set();
   days.forEach(dayName=>{
     (state.workouts[dayName]||[]).forEach(ex=>{
-      const key=String(ex.name||'').trim().toLocaleLowerCase('pt-BR');
-      if(!key || key===String(current.name||'').trim().toLocaleLowerCase('pt-BR') || seen.has(key)) return;
+      const nameKey=String(ex.name||'').trim().toLocaleLowerCase('pt-BR');
+      const muscleKey=String(ex.muscle||'Outros').trim().toLocaleLowerCase('pt-BR');
+      const key=muscleKey+'::'+nameKey;
+      const currentKey=String(current.muscle||'Outros').trim().toLocaleLowerCase('pt-BR')+'::'+String(current.name||'').trim().toLocaleLowerCase('pt-BR');
+      if(!nameKey || key===currentKey || seen.has(key)) return;
       seen.add(key);
       catalog.push(JSON.parse(JSON.stringify(ex)));
     });
@@ -3503,6 +3735,7 @@ function chooseReplacement(index){
 
   recordUndo('Exercício substituído');
   state.workouts[day][i]=JSON.parse(JSON.stringify(selected));
+  if(isAerobicExercise(selected)) state.workouts[day][i].type='aerobico';
   // A troca mantém a posição, mas reinicia as marcações das séries.
   currentWeekData()[day+'_'+i]=[];
   closeReplaceModal();
@@ -3672,7 +3905,7 @@ r.readAsText(file);
 
 document.getElementById('undoBtn').onclick=undoLastAction;
 
-addBtn.onclick=()=>editExercise(null);
+addBtn.addEventListener('click',()=>editExercise(null));
 
 resetBtn.onclick=resetDay;
 
@@ -3874,6 +4107,7 @@ function refreshAllStyledSelects(){
 // ========================================
 
 setupStyledSelects();
+setupEquipmentPicker();
 render();
 
 </script>
