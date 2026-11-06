@@ -792,6 +792,1227 @@ gap:4px
 .exhead{gap:6px}
 
 }
+
+/* AJUSTES DE LAYOUT: painéis quadrados e controles compactos */
+.top-dashboard,
+.bottom-dashboard{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:12px;
+  align-items:stretch;
+  margin:14px 0;
+}
+
+.top-dashboard .summary{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin:0;
+  min-width:0;
+  align-content:center;
+}
+
+.top-dashboard .stat{
+  aspect-ratio:1 / 1;
+  min-height:0;
+  padding:8px 5px;
+  flex-direction:column;
+  gap:7px;
+  align-self:center;
+}
+
+.top-dashboard .stat b{
+  font-size:clamp(17px,3.8vw,25px);
+  line-height:1.1;
+}
+
+.top-dashboard .stat small{
+  font-size:clamp(9px,1.8vw,12px);
+  line-height:1.25;
+}
+
+.top-dashboard .workout-control,
+.bottom-dashboard .workout-control{
+  width:100%;
+  aspect-ratio:1 / 1;
+  margin:0;
+  min-width:0;
+}
+
+.workout-btn{
+  width:100%;
+  height:100%;
+  min-height:0;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  text-align:center;
+  white-space:normal;
+  line-height:1.25;
+  border-radius:15px;
+}
+
+.workout-label{
+  display:block;
+  max-width:100%;
+  font-size:clamp(11px,2.2vw,15px);
+  overflow-wrap:anywhere;
+}
+
+.workout-indicator{
+  display:block;
+  width:13px;
+  height:13px;
+  flex:0 0 13px;
+  border-radius:50%;
+  background:currentColor;
+  box-shadow:0 0 0 4px currentColor;
+  opacity:.22;
+}
+
+.workout-btn.start.active .workout-indicator{
+  background:var(--accent);
+  opacity:1;
+  animation:onlinePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes onlinePulse{
+  0%,100%{box-shadow:0 0 0 3px #d7ff0030,0 0 5px #d7ff0060;opacity:1}
+  50%{box-shadow:0 0 0 8px #d7ff000c,0 0 15px #d7ff00a0;opacity:.72}
+}
+
+.workout-btn:disabled .workout-indicator{opacity:.25}
+.workout-btn.finish:disabled .workout-indicator{opacity:.18}
+
+.progress-carousel{
+  overflow:hidden;
+  position:relative;
+  margin:12px 0 18px;
+  border-radius:13px;
+  touch-action:pan-y;
+  outline:none;
+}
+.progress-carousel:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:3px;
+}
+.progress-track{
+  display:flex;
+  width:200%;
+  transform:translateX(0);
+  transition:transform .28s ease;
+  will-change:transform;
+}
+.progress-slide{
+  flex:0 0 50%;
+  width:50%;
+  margin:0;
+  min-width:0;
+}
+.progress-pagination{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:0 0 10px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-top:0;
+  border-radius:0 0 13px 13px;
+  margin-top:-13px;
+  padding-top:10px;
+}
+.progress-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#66706a;
+}
+.progress-dot.active{background:var(--accent)}
+.progress-pagination small{
+  margin-left:4px;
+  color:var(--muted);
+  font-size:10px;
+}
+
+.exercise-meta{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:3px;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  line-height:1.4;
+  font-size:12px;
+}
+.exercise-meta span{display:block;min-width:0}
+.exercise-meta b{color:#c4ccc6;font-weight:700}
+
+.bottom-dashboard{
+  margin:18px 0;
+}
+.bottom-dashboard .toolbar{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-rows:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin:0;
+  min-width:0;
+  aspect-ratio:1 / 1;
+}
+.toolbar .icon-action{
+  width:100%;
+  height:100%;
+  min-height:0;
+  aspect-ratio:1 / 1;
+  padding:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:13px;
+}
+.icon-action svg{
+  width:clamp(23px,5vw,32px);
+  height:clamp(23px,5vw,32px);
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.icon-action.primary{color:#101010}
+.bottom-dashboard .finish-control{
+  align-self:center;
+}
+.bottom-dashboard .workout-btn.finish{
+  font-size:14px;
+}
+.bottom-dashboard .workout-btn.finish:disabled{
+  opacity:.72;
+}
+
+@media(max-width:600px){
+  .top-dashboard,.bottom-dashboard{gap:9px}
+  .top-dashboard .summary{gap:6px}
+  .top-dashboard .stat{padding:6px 3px;gap:5px;border-radius:10px}
+  .top-dashboard .stat small{font-size:9px}
+  .workout-btn{padding:7px;gap:9px;border-radius:12px}
+  .workout-indicator{width:11px;height:11px;flex-basis:11px}
+  .workout-label{font-size:10px;letter-spacing:.01em}
+  .toolbar{gap:6px}
+  .toolbar .icon-action{border-radius:10px}
+  .exercise-meta{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  .workout-indicator,.progress-track{animation:none!important;transition:none!important}
+}
+
+
+
+/* REFINO: botões menores, blocos alinhados e indicador de treino ativo */
+.top-dashboard .workout-control,
+.bottom-dashboard .workout-control {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+}
+
+.top-dashboard .workout-btn,
+.bottom-dashboard .workout-btn {
+  width: min(100%, 142px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  padding: 9px;
+  gap: 8px;
+  border-radius: 13px;
+  justify-self: center;
+  align-self: center;
+}
+
+.top-dashboard .workout-label,
+.bottom-dashboard .workout-label {
+  font-size: clamp(9px, 1.65vw, 12px);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.bottom-dashboard .toolbar {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  align-self: center;
+  justify-self: stretch;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+}
+
+.bottom-dashboard .toolbar .icon-action {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 6px;
+  display: grid;
+  place-items: center;
+}
+
+.bottom-dashboard .icon-action svg {
+  width: clamp(20px, 3.8vw, 27px);
+  height: clamp(20px, 3.8vw, 27px);
+}
+
+.bottom-dashboard .workout-btn.finish {
+  font-size: 12px;
+}
+
+.progress-pagination {
+  margin-top: 0;
+  padding: 15px 0 11px;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 13px 13px;
+}
+
+.workout-btn.start.active .workout-indicator {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border-radius: 50%;
+  background: var(--accent, #d7ff00);
+  opacity: 1;
+  animation: onlinePulse 1.8s ease-in-out infinite !important;
+  box-shadow: 0 0 0 3px #d7ff0030, 0 0 7px #d7ff0060;
+}
+
+@keyframes onlinePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 3px #d7ff0030, 0 0 7px #d7ff0060;
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 8px #d7ff0010, 0 0 15px #d7ff0090;
+    opacity: .78;
+  }
+}
+
+@media (max-width: 600px) {
+  .top-dashboard .workout-btn,
+  .bottom-dashboard .workout-btn {
+    width: min(100%, 112px);
+    padding: 7px;
+    gap: 7px;
+  }
+  .top-dashboard .workout-label,
+  .bottom-dashboard .workout-label {
+    font-size: 9px;
+  }
+  .bottom-dashboard .toolbar {
+    gap: 5px;
+  }
+  .bottom-dashboard .icon-action svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* O indicador online continua visível mesmo com preferência por movimento reduzido. */
+@media (prefers-reduced-motion: reduce) {
+  .workout-btn.start.active .workout-indicator {
+    animation: onlinePulse 1.8s ease-in-out infinite !important;
+  }
+}
+
+
+
+/* PROPORÇÃO FINAL DOS PAINÉIS: botões compactos e blocos sem áreas sobrando */
+:root {
+  --dashboard-control-size: clamp(72px, 19vw, 96px);
+}
+
+.top-dashboard,
+.bottom-dashboard {
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.top-dashboard .summary {
+  align-self: center;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.top-dashboard .stat {
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+}
+
+.top-dashboard .workout-control,
+.bottom-dashboard .workout-control {
+  width: var(--dashboard-control-size);
+  height: var(--dashboard-control-size);
+  aspect-ratio: 1 / 1;
+  justify-self: center;
+  align-self: center;
+}
+
+.top-dashboard .workout-btn,
+.bottom-dashboard .workout-btn {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  padding: 6px;
+  gap: 6px;
+  border-radius: 12px;
+}
+
+.top-dashboard .workout-label,
+.bottom-dashboard .workout-label {
+  font-size: clamp(8px, 1.55vw, 11px);
+  line-height: 1.15;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.bottom-dashboard .toolbar {
+  width: 100%;
+  height: var(--dashboard-control-size);
+  aspect-ratio: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  padding: 0;
+  margin: 0;
+}
+
+.bottom-dashboard .toolbar .icon-action {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  aspect-ratio: auto;
+  padding: 4px;
+  border-radius: 9px;
+}
+
+.bottom-dashboard .icon-action svg {
+  width: clamp(18px, 3.5vw, 24px);
+  height: clamp(18px, 3.5vw, 24px);
+}
+
+.bottom-dashboard .finish-control {
+  width: var(--dashboard-control-size);
+  height: var(--dashboard-control-size);
+  justify-self: center;
+  align-self: center;
+}
+
+.workout-btn.start.active .workout-indicator {
+  background: var(--accent, #d7ff00);
+  opacity: 1;
+  animation: onlinePulse 1.8s ease-in-out infinite !important;
+  box-shadow: 0 0 0 3px #d7ff0030, 0 0 8px #d7ff0070;
+}
+
+@media (max-width: 600px) {
+  :root {
+    --dashboard-control-size: clamp(68px, 19vw, 82px);
+  }
+  .top-dashboard,
+  .bottom-dashboard {
+    gap: 8px;
+  }
+  .top-dashboard .summary {
+    gap: 6px;
+  }
+  .top-dashboard .stat {
+    padding: 5px 3px;
+  }
+  .top-dashboard .stat b {
+    font-size: clamp(15px, 4vw, 20px);
+  }
+  .top-dashboard .stat small {
+    font-size: 8px;
+    line-height: 1.15;
+  }
+  .bottom-dashboard .toolbar {
+    gap: 4px;
+  }
+  .bottom-dashboard .toolbar .icon-action {
+    border-radius: 8px;
+  }
+  .bottom-dashboard .icon-action svg {
+    width: 20px;
+    height: 20px;
+  }
+  .top-dashboard .workout-label,
+  .bottom-dashboard .workout-label {
+    font-size: 8px;
+  }
+}
+
+
+
+/* AJUSTES DE PROPORÇÃO E CONTROLES */
+.top-dashboard {
+  align-items: stretch;
+}
+.top-dashboard .summary {
+  align-self: stretch;
+}
+.top-dashboard .workout-control {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: auto;
+  align-self: stretch;
+}
+.top-dashboard .workout-btn {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  min-height: 0;
+  border-radius: 13px;
+  padding: 10px;
+}
+
+/* O painel inferior usa a mesma proporção/altura do conjunto superior. */
+.bottom-dashboard {
+  align-items: stretch;
+}
+.bottom-dashboard .toolbar {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2.08 / 1;
+  align-self: stretch;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.bottom-dashboard .toolbar .icon-action {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+.bottom-dashboard .finish-control {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 2.08 / 1;
+  align-self: stretch;
+}
+.bottom-dashboard .workout-btn.finish {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  min-height: 0;
+  padding: 10px;
+}
+
+/* Campos de carga mais enxutos: a tabela deixa de reservar largura excessiva. */
+.sets-table {
+  width: min(100%, 270px);
+}
+.sets-head,
+.set-row {
+  grid-template-columns: 28px minmax(0, 1fr) 42px;
+  column-gap: 6px;
+}
+.set-done-btn {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.check-mark {
+  display: block;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.8;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+.exercise-done-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  flex-basis: 44px;
+}
+.exercise-done-btn .check-mark {
+  width: 25px;
+  height: 25px;
+}
+@media (max-width: 600px) {
+  .bottom-dashboard .toolbar {
+    aspect-ratio: 2.08 / 1;
+    gap: 6px;
+  }
+  .bottom-dashboard .finish-control {
+    aspect-ratio: 2.08 / 1;
+  }
+  .sets-table {
+    width: min(100%, 260px);
+  }
+  .set-done-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .exercise-done-btn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    flex-basis: 44px;
+  }
+}
+
+
+
+/* Texto dos botões principais com leitura mais confortável */
+.top-dashboard .workout-label,
+.bottom-dashboard .workout-label {
+  font-size: clamp(14px, 2.5vw, 18px);
+  font-weight: 800;
+  letter-spacing: .025em;
+}
+@media (max-width: 600px) {
+  .top-dashboard .workout-label,
+  .bottom-dashboard .workout-label {
+    font-size: clamp(12px, 3.1vw, 15px);
+  }
+}
+
+/* Seis ações em duas fileiras de três, sem coluna vertical alta. */
+.exercise {
+  grid-template-columns: minmax(0, 1fr) 138px;
+}
+.actions {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 38px);
+  grid-template-rows: repeat(2, 38px);
+  gap: 6px;
+  width: max-content;
+  padding-top: 14px;
+  align-self: start;
+  justify-content: end;
+}
+.iconbtn {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  flex: 0 0 38px;
+  font-size: 16px;
+}
+@media (max-width: 600px) {
+  .exercise {
+    grid-template-columns: minmax(0, 1fr) 132px;
+    column-gap: 7px;
+    padding: 12px;
+  }
+  .actions {
+    grid-template-columns: repeat(3, 36px);
+    grid-template-rows: repeat(2, 36px);
+    gap: 6px;
+  }
+  .iconbtn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    flex-basis: 36px;
+  }
+}
+
+
+
+/* Ações adaptáveis à altura do exercício:
+   até 3 séries = 2 fileiras de 3; acima de 3 = uma fileira de 6. */
+.exercise.compact-actions {
+  grid-template-columns: minmax(0, 1fr) 132px;
+}
+.exercise.compact-actions .actions {
+  grid-template-columns: repeat(3, 36px);
+  grid-template-rows: repeat(2, 36px);
+  gap: 6px;
+  width: max-content;
+}
+.exercise.single-row-actions {
+  grid-template-columns: minmax(0, 1fr) 222px;
+}
+.exercise.single-row-actions .actions {
+  grid-template-columns: repeat(6, 33px);
+  grid-template-rows: 36px;
+  gap: 3px;
+  width: max-content;
+  padding-top: 14px;
+}
+.exercise.single-row-actions .iconbtn {
+  width: 33px;
+  height: 36px;
+  min-width: 33px;
+  flex-basis: 33px;
+}
+@media (max-width: 600px) {
+  .exercise.compact-actions {
+    grid-template-columns: minmax(0, 1fr) 126px;
+  }
+  .exercise.compact-actions .actions {
+    grid-template-columns: repeat(3, 34px);
+    grid-template-rows: repeat(2, 34px);
+    gap: 5px;
+  }
+  .exercise.single-row-actions {
+    grid-template-columns: minmax(0, 1fr) 204px;
+  }
+  .exercise.single-row-actions .actions {
+    grid-template-columns: repeat(6, 30px);
+    grid-template-rows: 34px;
+    gap: 4px;
+  }
+  .exercise.single-row-actions .iconbtn {
+    width: 30px;
+    height: 34px;
+    min-width: 30px;
+    flex-basis: 30px;
+  }
+}
+
+
+
+/* Ações sempre em colunas verticais, sem fileiras horizontais. */
+.exercise.compact-actions {
+  grid-template-columns: minmax(0, 1fr) 82px;
+}
+.exercise.compact-actions .actions {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: repeat(2, 36px);
+  grid-template-rows: repeat(3, 36px);
+  gap: 6px;
+  width: 78px;
+  padding-top: 14px;
+  justify-content: end;
+  align-content: start;
+}
+.exercise.single-row-actions {
+  grid-template-columns: minmax(0, 1fr) 42px;
+}
+.exercise.single-row-actions .actions {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 42px;
+  padding-top: 14px;
+}
+.exercise.compact-actions .iconbtn,
+.exercise.single-row-actions .iconbtn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  flex: 0 0 36px;
+}
+.duplicate-icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+@media (max-width: 600px) {
+  .exercise.compact-actions {
+    grid-template-columns: minmax(0, 1fr) 78px;
+  }
+  .exercise.compact-actions .actions {
+    grid-template-columns: repeat(2, 34px);
+    grid-template-rows: repeat(3, 34px);
+    gap: 5px;
+    width: 73px;
+  }
+  .exercise.single-row-actions {
+    grid-template-columns: minmax(0, 1fr) 39px;
+  }
+  .exercise.single-row-actions .actions {
+    width: 39px;
+    gap: 5px;
+  }
+  .exercise.compact-actions .iconbtn,
+  .exercise.single-row-actions .iconbtn {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    flex-basis: 34px;
+  }
+}
+
+/* Janela de substituição com grupos musculares expansíveis e opções detalhadas. */
+.replace-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(5, 10, 8, .78);
+  backdrop-filter: blur(5px);
+}
+.replace-modal {
+  width: min(100%, 560px);
+  max-height: min(86vh, 760px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--text, #edf3ee);
+  background: linear-gradient(150deg, #202a24, #141b17);
+  border: 1px solid #43564a;
+  border-radius: 18px;
+  box-shadow: 0 24px 70px #0009;
+}
+.replace-modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid #35443b;
+}
+.replace-eyebrow {
+  color: var(--accent, #c7e58a);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+.replace-modal-header h2 {
+  margin: 5px 0 6px;
+  font-size: 21px;
+}
+.replace-modal-header p {
+  margin: 0;
+  color: #aebbb2;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.replace-close {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid #526458;
+  border-radius: 10px;
+  color: #e6eee8;
+  background: #29362e;
+  font-size: 23px;
+  cursor: pointer;
+}
+.replace-modal-body {
+  overflow-y: auto;
+  padding: 14px 16px;
+}
+.replace-hint {
+  margin: 0 0 12px;
+  color: #9eada2;
+  font-size: 12px;
+}
+.replace-group {
+  margin: 8px 0;
+  overflow: hidden;
+  border: 1px solid #35473c;
+  border-radius: 12px;
+  background: #1b251f;
+}
+.replace-group summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+.replace-group summary::-webkit-details-marker { display: none; }
+.replace-group-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 750;
+}
+.replace-group-count {
+  color: #9eada2;
+  font-size: 11px;
+}
+.replace-chevron {
+  color: var(--accent, #c7e58a);
+  font-size: 18px;
+  transition: transform .18s ease;
+}
+.replace-group[open] .replace-chevron { transform: rotate(180deg); }
+.replace-options {
+  display: grid;
+  gap: 8px;
+  padding: 0 9px 10px;
+}
+.replace-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #405247;
+  border-radius: 10px;
+  color: #edf3ee;
+  background: #26332b;
+  cursor: pointer;
+}
+.replace-option:hover {
+  border-color: #91ae79;
+  background: #2d3d32;
+}
+.replace-option-title {
+  font-size: 14px;
+  font-weight: 750;
+}
+.replace-option-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  color: #b4c0b7;
+  font-size: 11px;
+}
+.replace-option-details span {
+  display: inline-flex;
+  gap: 4px;
+}
+.replace-option-details b {
+  color: #8fa193;
+  font-weight: 650;
+}
+.replace-select-label {
+  align-self: flex-end;
+  color: var(--accent, #c7e58a);
+  font-size: 11px;
+  font-weight: 800;
+}
+.replace-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid #35443b;
+  color: #9eada2;
+  font-size: 11px;
+}
+.replace-cancel {
+  padding: 9px 14px;
+  border: 1px solid #526458;
+  border-radius: 9px;
+  color: #e6eee8;
+  background: #29362e;
+  font-weight: 700;
+  cursor: pointer;
+}
+@media (max-width: 480px) {
+  .replace-modal-backdrop { padding: 8px; }
+  .replace-modal { max-height: 92vh; border-radius: 15px; }
+  .replace-modal-header { padding: 16px 14px 13px; }
+  .replace-modal-body { padding: 11px; }
+}
+
+
+
+/* DISTRIBUIÇÃO HORIZONTAL DAS SÉRIES: aproveita o espaço livre antes dos ícones. */
+.exercise.single-row-actions .sets-table {
+  width: min(calc(100% + 28px), 300px);
+  max-width: none;
+}
+
+.sets-head,
+.set-row {
+  grid-template-columns: 28px minmax(0, 1fr) 44px;
+  column-gap: 12px;
+}
+
+.load-control {
+  gap: 10px;
+}
+
+.load-stepper {
+  flex-basis: 30px;
+}
+
+.set-done-btn {
+  width: 44px;
+  min-width: 44px;
+}
+
+@media (max-width: 600px) {
+  .exercise.single-row-actions .sets-table {
+    width: min(calc(100% + 20px), 280px);
+  }
+
+  .sets-head,
+  .set-row {
+    column-gap: 10px;
+  }
+
+  .load-control {
+    gap: 8px;
+  }
+}
+
+
+/* AJUSTE FINO: setas próximas à carga e respiro igual antes do OK. */
+.sets-head,
+.set-row {
+  column-gap: 12px; /* mesmo espaço entre número/carga e setas/OK */
+}
+
+.load-control {
+  gap: 3px; /* carga e setas trabalham juntas */
+  justify-content: flex-start;
+}
+
+.set-input {
+  flex: 0 1 62%;
+  width: 62%;
+  min-width: 0;
+}
+
+.load-stepper {
+  margin-left: 0;
+  flex: 0 0 30px;
+}
+
+@media (max-width: 600px) {
+  .sets-head,
+  .set-row {
+    column-gap: 12px;
+  }
+
+  .load-control {
+    gap: 3px;
+  }
+
+  .set-input {
+    flex-basis: 62%;
+    width: 62%;
+  }
+}
+
+
+/* AJUSTE: botão de conclusão do exercício levemente maior */
+.exercise-done-btn{
+  width:48px;
+  height:48px;
+  min-width:48px;
+  flex-basis:48px;
+}
+.exercise-done-btn .check-mark{
+  width:27px;
+  height:27px;
+}
+
+
+/* REFINO VISUAL: paginação mais compacta e integrada ao painel de progresso */
+.progress-pagination{
+  min-height:0;
+  box-sizing:border-box;
+  margin-top:-1px !important;
+  padding:7px 0 8px !important;
+  gap:7px;
+  border-top:0 !important;
+  border-radius:0 0 13px 13px;
+  background:var(--panel);
+}
+.progress-pagination small{
+  line-height:1.2;
+}
+
+
+/* REFINO: paginação inferior mais curta, centralizada e alinhada ao painel */
+.progress-pagination{
+  width:calc(100% - 24px);
+  margin-left:auto !important;
+  margin-right:auto !important;
+  box-sizing:border-box;
+  border-left:1px solid var(--line);
+  border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  border-radius:0 0 11px 11px;
+}
+
+
+/* REFINO FINAL: aba inferior mais estreita e um pouco mais baixa */
+.progress-pagination{
+  width:calc(100% - 40px);
+  padding:6px 0 5px !important;
+  min-height:0;
+  margin-top:-1px !important;
+  border-radius:0 0 10px 10px;
+}
+
+
+/* Seletor de nomes: digitação livre + seta para abrir o catálogo completo. */
+.exercise-name-picker{position:relative;display:flex;width:100%}
+.exercise-name-picker input{padding-right:46px}
+.exercise-name-toggle{
+  position:absolute;right:4px;top:4px;bottom:4px;width:36px;
+  border:0;border-left:1px solid #394040;border-radius:0 7px 7px 0;
+  color:var(--accent);background:#202724;font-size:19px;font-weight:800;cursor:pointer
+}
+.exercise-name-list{
+  position:absolute;z-index:30;top:calc(100% + 5px);left:0;right:0;
+  max-height:230px;overflow-y:auto;background:#151b18;border:1px solid #526458;
+  border-radius:10px;box-shadow:0 12px 28px #0009;padding:5px
+}
+.exercise-name-list[hidden]{display:none}
+.exercise-name-option{
+  display:block;width:100%;padding:10px 11px;text-align:left;
+  border:0;border-radius:7px;background:transparent;color:var(--text);
+  font:inherit;cursor:pointer
+}
+.exercise-name-option:hover,.exercise-name-option:focus{background:#2b3a30;outline:none}
+
+
+/* PADRÃO GLOBAL DAS LISTAS SUSPENSAS */
+.field select,
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  color: #f4f6f4;
+  background-color: #101514;
+  border: 1px solid #394743;
+  border-radius: 9px;
+  padding: 11px 42px 11px 12px;
+  font: inherit;
+}
+select option {
+  color: #f4f6f4;
+  background: #151b18;
+  font: inherit;
+}
+select:focus {
+  outline: none;
+  border-color: #526458;
+  box-shadow: 0 0 0 2px #c6ff0022;
+}
+
+/* A lista personalizada de nomes segue o mesmo padrão visual do anexo. */
+.exercise-name-list {
+  background: #151b18;
+  border: 1px solid #526458;
+  color: #f4f6f4;
+  font-family: inherit;
+}
+.exercise-name-option {
+  color: #f4f6f4;
+  font-family: inherit;
+}
+.exercise-name-option:hover,
+.exercise-name-option:focus {
+  background: #2b3a30;
+}
+
+
+/* CONFIRMAÇÃO PERSONALIZADA — título próprio em vez de "Essa página diz". */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: #000b;
+}
+.confirm-backdrop[hidden] { display: none; }
+.confirm-dialog {
+  width: min(420px, 100%);
+  padding: 20px;
+  color: #f4f6f4;
+  background: #171b1b;
+  border: 1px solid #526458;
+  border-radius: 15px;
+  box-shadow: 0 18px 48px #0009;
+}
+.confirm-dialog h2 { margin: 0 0 12px; font-size: 18px; }
+.confirm-dialog p { margin: 0; line-height: 1.5; color: #e1e7e2; }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 20px; }
+
+
+/* LISTAS SUSPENSAS CUSTOMIZADAS — aparência idêntica em todos os campos. */
+.styled-select { position:relative; width:100%; }
+.styled-select-native {
+  position:absolute !important;
+  width:1px !important; height:1px !important;
+  padding:0 !important; margin:-1px !important;
+  overflow:hidden !important; clip:rect(0,0,0,0) !important;
+  white-space:nowrap !important; border:0 !important;
+  opacity:0 !important; pointer-events:none !important;
+}
+.styled-select-trigger {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; width:100%; min-height:46px;
+  padding:0 12px 0 14px;
+  color:#f4f6f4; background:#101514;
+  border:1px solid #394743; border-radius:10px;
+  font:inherit; text-align:left; cursor:pointer;
+}
+.styled-select-trigger:focus-visible {
+  outline:none; border-color:#718276;
+  box-shadow:0 0 0 2px #c6ff0022;
+}
+.styled-select-arrow {
+  flex:0 0 0; width:0; height:0;
+  border-left:5px solid transparent;
+  border-right:5px solid transparent;
+  border-top:7px solid #c6ff00;
+  margin-left:auto;
+}
+.styled-select-menu {
+  position:absolute; z-index:120; top:calc(100% + 5px);
+  left:0; right:0; max-height:230px; overflow-y:auto;
+  padding:5px; background:#151b18;
+  border:1px solid #526458; border-radius:10px;
+  box-shadow:0 12px 28px #0009;
+}
+.styled-select-menu[hidden] { display:none; }
+.styled-select-option {
+  display:block; width:100%; padding:10px 11px;
+  border:0; border-radius:7px; background:transparent;
+  color:#f4f6f4; font:inherit; text-align:left; cursor:pointer;
+}
+.styled-select-option:hover,
+.styled-select-option:focus-visible {
+  outline:none; background:#2b3a30;
+}
+.styled-select-option[aria-selected="true"] {
+  background:#202b24;
+}
+.styled-select-empty {
+  padding:10px 11px; color:#aebbb2; font:inherit;
+}
+
 </style>
 </head>
 
@@ -815,103 +2036,93 @@ gap:4px
 
 <nav class="daynav" id="daynav"></nav>
 
-<div class="summary">
-<div class="stat">
-<b id="exerciseProgress">0/6</b>
-<small>Exercícios concluídos</small>
-</div>
-<div class="stat">
-<b id="setProgress">0/27</b>
-<small>Séries concluídas</small>
-</div>
+<!-- PROGRESSO DIÁRIO E SEMANAL: navegação por deslize -->
+<div class="progress-carousel" id="progressCarousel" aria-label="Progresso diário e semanal">
+  <div class="progress-track" id="progressTrack">
+    <section class="progress-panel progress-slide" aria-label="Progresso do dia">
+      <div class="progress-heading">
+        <strong>Progresso do dia</strong>
+        <span id="dailyPercent">0%</span>
+      </div>
+      <div class="progress"><i id="progressBar"></i></div>
+      <div class="progress-sub">Evolução das séries do treino selecionado.</div>
+    </section>
+
+    <section class="progress-panel progress-slide" aria-label="Progresso da semana">
+      <div class="progress-heading">
+        <strong>Progresso da semana</strong>
+        <span id="weeklyPercent">0%</span>
+      </div>
+      <div class="progress weekly"><i id="weeklyProgressBar"></i></div>
+      <div class="progress-sub" id="weeklyDescription">Séries concluídas de segunda a sábado.</div>
+    </section>
+  </div>
+  <div class="progress-pagination" aria-hidden="true">
+    <span class="progress-dot active"></span><span class="progress-dot"></span>
+    <small>Deslize para alternar</small>
+  </div>
 </div>
 
-<!-- BOTÃO INICIAR TREINO -->
+<div class="top-dashboard">
+  <div class="summary">
+    <div class="stat">
+      <b id="exerciseProgress">0/6</b>
+      <small>Exercícios concluídos</small>
+    </div>
+    <div class="stat">
+      <b id="setProgress">0/27</b>
+      <small>Séries concluídas</small>
+    </div>
+  </div>
 
-<div class="workout-control">
-<button
-id="startWorkoutBtn"
-class="workout-btn start"
-onclick="startWorkout()">
-▶ INICIAR TREINO
-</button>
-</div>
-
-<!-- PROGRESSO DO DIA -->
-
-<div class="progress-panel">
-<div class="progress-heading">
-<strong>Progresso do dia</strong>
-<span id="dailyPercent">0%</span>
-</div>
-
-<div class="progress">
-<i id="progressBar"></i>
-</div>
-
-<div class="progress-sub">
-Evolução das séries do treino selecionado.
-</div>
+  <div class="workout-control">
+    <button id="startWorkoutBtn" class="workout-btn start" onclick="startWorkout()">
+      <span class="workout-indicator" aria-hidden="true"></span>
+      <span class="workout-label">INICIAR TREINO</span>
+    </button>
+  </div>
 </div>
 
 <section id="exerciseList"></section>
 
-<!-- BOTÃO FINALIZAR TREINO -->
 
-<div class="workout-control">
-<button
-id="finishWorkoutBtn"
-class="workout-btn finish"
-onclick="finishWorkout()"
-disabled>
-✓ FINALIZAR TREINO
-</button>
+<div class="confirm-backdrop" id="resetConfirm" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="resetConfirmTitle">
+    <h2 id="resetConfirmTitle">Reiniciar exercício</h2>
+    <p>Desmarcar todas as séries concluídas deste treino nesta semana? As cargas e exercícios serão mantidos.</p>
+    <div class="confirm-actions">
+      <button type="button" class="btn" id="cancelResetBtn">Cancelar</button>
+      <button type="button" class="btn primary" id="confirmResetBtn">Reiniciar exercício</button>
+    </div>
+  </section>
 </div>
 
-<!-- BOTÕES DE GERENCIAMENTO -->
+<!-- GERENCIAMENTO E FINALIZAÇÃO -->
+<div class="bottom-dashboard">
+  <div class="toolbar" aria-label="Gerenciar treino">
+    <button class="btn primary icon-action" id="addBtn" title="Adicionar exercício" aria-label="Adicionar exercício">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <button class="btn icon-action" id="resetBtn" title="Reiniciar este treino" aria-label="Reiniciar este treino">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.8-2L20 12M4 12l2.6 5a7 7 0 0 0 11.8-2"/></svg>
+    </button>
+    <button class="btn icon-action" id="importBtn" title="Importar backup" aria-label="Importar backup">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m-4 4 4-4 4 4"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>
+    </button>
+    <button class="btn icon-action" id="exportBtn" title="Exportar backup" aria-label="Exportar backup">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+    </button>
+  </div>
 
-<div class="toolbar">
-
-<button class="btn primary" id="addBtn">
-＋ Adicionar exercício
-</button>
-
-<button class="btn" id="resetBtn">
-Reiniciar este treino
-</button>
-
-<button class="btn" id="exportBtn">
-Exportar backup
-</button>
-
-<button class="btn" id="importBtn">
-Importar backup
-</button>
-
-<input
-type="file"
-id="importFile"
-accept="application/json"
-hidden>
-
+  <div class="workout-control finish-control">
+    <button id="finishWorkoutBtn" class="workout-btn finish" onclick="finishWorkout()" disabled>
+      <span class="workout-indicator" aria-hidden="true"></span>
+      <span class="workout-label">FINALIZAR TREINO</span>
+    </button>
+  </div>
 </div>
 
-<!-- PROGRESSO DA SEMANA -->
-
-<div class="progress-panel">
-<div class="progress-heading">
-<strong>Progresso da semana</strong>
-<span id="weeklyPercent">0%</span>
-</div>
-
-<div class="progress weekly">
-<i id="weeklyProgressBar"></i>
-</div>
-
-<div class="progress-sub" id="weeklyDescription">
-Séries concluídas de segunda a sábado.
-</div>
-</div>
+<input type="file" id="importFile" accept="application/json" hidden>
 
 <div class="footer">
 Seus dados ficam salvos neste aparelho e navegador.
@@ -932,19 +2143,23 @@ Exporte um backup para levar suas alterações a outro dispositivo.
 
 <div class="field">
 <label>Nome do exercício</label>
-<input id="fName" required>
+<div class="exercise-name-picker" id="exerciseNamePicker">
+  <input id="fName" required autocomplete="off" aria-haspopup="listbox" aria-expanded="false">
+  <button type="button" class="exercise-name-toggle" id="exerciseNameToggle" aria-label="Mostrar exercícios cadastrados" aria-expanded="false">▾</button>
+  <div class="exercise-name-list" id="exerciseNameList" role="listbox" hidden></div>
+</div>
 </div>
 
 <div class="formrow">
 
 <div class="field">
 <label>Grupo muscular</label>
-<input id="fMuscle">
+<select id="fMuscle"></select>
 </div>
 
 <div class="field">
 <label>Equipamento</label>
-<input id="fEquipment">
+<select id="fEquipment"></select>
 </div>
 
 </div>
@@ -953,12 +2168,23 @@ Exporte um backup para levar suas alterações a outro dispositivo.
 
 <div class="field">
 <label>Execução</label>
-<input id="fExecution">
+<select id="fExecution">
+<option value="-">-</option>
+<option value="Bilateral">Bilateral</option>
+<option value="Unilateral">Unilateral</option>
+<option value="Simultâneo">Simultâneo</option>
+<option value="Alternado">Alternado</option>
+</select>
 </div>
 
 <div class="field">
 <label>Pegada</label>
-<input id="fGrip">
+<select id="fGrip">
+<option value="-">-</option>
+<option value="Supinada">Supinada</option>
+<option value="Pronada">Pronada</option>
+<option value="Neutra">Neutra</option>
+</select>
 </div>
 
 </div>
@@ -1402,13 +2628,13 @@ const finishBtn=document.getElementById(
 
 if(session.status==='idle'){
 
-startBtn.textContent='▶ INICIAR TREINO';
+startBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"></span><span class="workout-label">INICIAR TREINO</span>';
 
 startBtn.disabled=false;
 
 startBtn.classList.remove('active');
 
-finishBtn.textContent='✓ FINALIZAR TREINO';
+finishBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"></span><span class="workout-label">FINALIZAR TREINO</span>';
 
 finishBtn.disabled=true;
 
@@ -1416,13 +2642,13 @@ finishBtn.disabled=true;
 
 else if(session.status==='active'){
 
-startBtn.textContent='● TREINO EM ANDAMENTO';
+startBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"></span><span class="workout-label">TREINO EM ANDAMENTO</span>';
 
 startBtn.disabled=true;
 
 startBtn.classList.add('active');
 
-finishBtn.textContent='✓ FINALIZAR TREINO';
+finishBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"></span><span class="workout-label">FINALIZAR TREINO</span>';
 
 finishBtn.disabled=false;
 
@@ -1436,7 +2662,7 @@ startBtn.disabled=true;
 
 startBtn.classList.remove('active');
 
-finishBtn.textContent='✓ TREINO FINALIZADO';
+finishBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"></span><span class="workout-label">TREINO FINALIZADO</span>';
 
 finishBtn.disabled=true;
 
@@ -1577,7 +2803,7 @@ const checks=checksFor(day,i);
 
 return `
 
-<article class="exercise">
+<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'}">
 
 <div class="exercise-main">
 
@@ -1591,14 +2817,12 @@ Exerc. ${String(i+1).padStart(2,'0')} · ${esc(e.muscle)}
 
 <h3>${esc(e.name)}</h3>
 
-<div class="meta"
-title="${esc(e.equipment)} · ${esc(e.execution)} · Pegada: ${esc(e.grip)}${e.note?' · '+esc(e.note):''}">
-
-${esc(e.equipment)} ·
-${esc(e.execution)} ·
-Pegada: ${esc(e.grip)}
-${e.note?' · '+esc(e.note):''}
-
+<div class="meta exercise-meta"
+title="Equipamento: ${esc(e.equipment)} · Pegada: ${esc(e.grip)} · Execução: ${esc(e.execution)}${e.note?' · '+esc(e.note):''}">
+  <span><b>Equipamento:</b> ${esc(e.equipment)}</span>
+  <span><b>Pegada:</b> ${esc(e.grip)}</span>
+  <span><b>Execução:</b> ${esc(e.execution)}</span>
+  ${e.note?`<span><b>Observação:</b> ${esc(e.note)}</span>`:''}
 </div>
 
 </div>
@@ -1609,7 +2833,7 @@ class="exercise-done-btn ${Array.from({length:+e.sets||1},(_,j)=>checks[j]===tru
 onclick="toggleExercise(${i})"
 title="${Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Boolean)?'Desmarcar exercício':'Concluir todas as séries'}"
 aria-label="${Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Boolean)?'Desmarcar exercício':'Concluir todas as séries do exercício'}">
-✓
+<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5 9.2 18 20 6"/></svg>
 </button>
 
 </div>
@@ -1655,7 +2879,7 @@ class="set-done-btn ${checks[j]?'done':''}"
 aria-label="${checks[j]?'Desmarcar':'Marcar'} série ${j+1} como feita"
 onclick="toggleSet(${i},${j},${!checks[j]})">
 
-${checks[j]?'✓':'OK'}
+${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5 9.2 18 20 6"/></svg>`:'OK'}
 
 </button>
 
@@ -1670,37 +2894,12 @@ ${checks[j]?'✓':'OK'}
 
 <div class="actions">
 
-<button
-class="iconbtn"
-onclick="editExercise(${i})"
-title="Editar"
-aria-label="Editar">
-✎
-</button>
-
-<button
-class="iconbtn"
-onclick="moveExercise(${i},-1)"
-title="Subir"
-aria-label="Subir">
-↑
-</button>
-
-<button
-class="iconbtn"
-onclick="moveExercise(${i},1)"
-title="Descer"
-aria-label="Descer">
-↓
-</button>
-
-<button
-class="iconbtn"
-onclick="deleteExercise(${i})"
-title="Excluir"
-aria-label="Excluir">
-×
-</button>
+<button type="button" class="iconbtn" onclick="editExercise(${i})" title="Editar" aria-label="Editar">✎</button>
+<button type="button" class="iconbtn" onclick="duplicateExercise(${i})" title="Duplicar" aria-label="Duplicar"><svg class="duplicate-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7V4.8A1.8 1.8 0 0 1 9.8 3h9.4A1.8 1.8 0 0 1 21 4.8v11.4a1.8 1.8 0 0 1-1.8 1.8H17"/><path d="M4.8 7H14a1.8 1.8 0 0 1 1.8 1.8v10.4A1.8 1.8 0 0 1 14 21H4.8A1.8 1.8 0 0 1 3 19.2V8.8A1.8 1.8 0 0 1 4.8 7Z"/></svg></button>
+<button type="button" class="iconbtn" onclick="replaceExercise(${i})" title="Substituir" aria-label="Substituir">⇄</button>
+<button type="button" class="iconbtn" onclick="moveExercise(${i},-1)" title="Subir" aria-label="Subir">↑</button>
+<button type="button" class="iconbtn" onclick="moveExercise(${i},1)" title="Descer" aria-label="Descer">↓</button>
+<button type="button" class="iconbtn" onclick="deleteExercise(${i})" title="Excluir" aria-label="Excluir">×</button>
 
 </div>
 
@@ -1946,13 +3145,86 @@ i===null
 
 fName.value=e.name||'';
 
-fMuscle.value=e.muscle||'';
+// O campo aceita texto livre; a seta abre o catálogo completo de nomes cadastrados.
+const namePicker=document.getElementById('exerciseNamePicker');
+const nameToggle=document.getElementById('exerciseNameToggle');
+const nameList=document.getElementById('exerciseNameList');
+if(i===null){
+  namePicker.hidden=false;
+  fName.removeAttribute('list');
+  const catalogNames=[...new Set(
+    Object.values(state.workouts||{}).flat()
+      .map(ex=>String(ex.name||'').trim()).filter(Boolean)
+  )].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  nameList.innerHTML=catalogNames.length
+    ? catalogNames.map(name=>`<button type="button" class="exercise-name-option" role="option" data-exercise-name="${esc(name)}">${esc(name)}</button>`).join('')
+    : '<div class="exercise-name-option muted">Nenhum exercício cadastrado ainda</div>';
+  document.getElementById('exerciseNameList').hidden=true;
+  fName.setAttribute('aria-expanded','false');
+  document.getElementById('exerciseNameToggle').setAttribute('aria-expanded','false');
+}else{
+  // Em Editar exercício, mantém apenas o campo de texto simples:
+  // sem botão de seta e sem catálogo suspenso.
+  namePicker.hidden=false;
+  nameToggle.hidden=true;
+  nameList.hidden=true;
+  fName.removeAttribute('aria-haspopup');
+  fName.removeAttribute('aria-expanded');
+  fName.style.paddingRight='11px';
+}
+if(i===null){
+  nameToggle.hidden=false;
+  fName.setAttribute('aria-haspopup','listbox');
+  fName.style.paddingRight='';
+}
 
-fEquipment.value=e.equipment||'';
+// Grupos musculares disponíveis são reunidos de todos os exercícios cadastrados.
+const registeredMuscles=[...new Set(
+  Object.values(state.workouts||{}).flat()
+    .map(ex=>String(ex.muscle||'').trim())
+    .filter(Boolean)
+)].sort((a,b)=>a.localeCompare(b,'pt-BR'));
 
-fExecution.value=e.execution||'';
+const muscleOptions=[...registeredMuscles];
+if(e.muscle && !muscleOptions.includes(e.muscle)){
+  muscleOptions.push(e.muscle);
+  muscleOptions.sort((a,b)=>a.localeCompare(b,'pt-BR'));
+}
+fMuscle.innerHTML=muscleOptions
+  .map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
 
-fGrip.value=e.grip||'';
+// Equipamentos disponíveis são reunidos de todos os exercícios cadastrados.
+const registeredEquipment=[...new Set(
+  Object.values(state.workouts||{}).flat()
+    .map(ex=>String(ex.equipment||'').trim())
+    .filter(Boolean)
+)].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+
+const equipmentOptions=[...registeredEquipment];
+if(e.equipment && !equipmentOptions.includes(e.equipment)){
+  equipmentOptions.push(e.equipment);
+  equipmentOptions.sort((a,b)=>a.localeCompare(b,'pt-BR'));
+}
+fEquipment.innerHTML=equipmentOptions
+  .map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');
+
+// Preserva valores antigos que não estejam nas opções e deixa campos novos sem seleção.
+function preserveSelectValue(select,value){
+  const current=String(value||'');
+  if(current && !Array.from(select.options).some(option=>option.value===current)){
+    const option=document.createElement('option');
+    option.value=current;
+    option.textContent=current;
+    select.appendChild(option);
+  }
+  select.value=current;
+  if(!current) select.selectedIndex=-1;
+}
+preserveSelectValue(fMuscle,e.muscle);
+preserveSelectValue(fEquipment,e.equipment);
+preserveSelectValue(fExecution,e.execution);
+preserveSelectValue(fGrip,e.grip);
+refreshAllStyledSelects();
 
 fSets.value=e.sets||4;
 
@@ -1966,6 +3238,79 @@ renderLoadFields(e.loads||[],e.sets||4);
 modal.classList.add('open');
 
 }
+
+// Ao escolher um nome existente no campo de adicionar, replica seus dados e cargas.
+// Se o nome digitado não existir no catálogo, limpa os campos dependentes.
+function handleExerciseNameInput(){
+  if(editIndex!==null) return;
+  const typed=fName.value.trim();
+  const catalog=Object.values(state.workouts||{}).flat();
+  const match=typed
+    ? catalog.find(ex=>String(ex.name||'').trim().toLocaleLowerCase('pt-BR')===typed.toLocaleLowerCase('pt-BR'))
+    : null;
+
+  const setField=(select,value)=>{
+    const current=String(value??'').trim();
+    if(current && !Array.from(select.options).some(option=>option.value===current)){
+      const option=document.createElement('option');
+      option.value=current;
+      option.textContent=current;
+      select.appendChild(option);
+    }
+    select.value=current;
+    if(!current) select.selectedIndex=-1;
+  };
+
+  if(match){
+    setField(fMuscle,match.muscle);
+    setField(fEquipment,match.equipment);
+    setField(fExecution,match.execution||'-');
+    setField(fGrip,match.grip||'-');
+    refreshAllStyledSelects();
+    fSets.value=match.sets||4;
+    fNote.value=match.note||'';
+    renderLoadFields(match.loads||[],match.sets||4);
+  }else{
+    setField(fMuscle,'');
+    setField(fEquipment,'');
+    setField(fExecution,'');
+    setField(fGrip,'');
+    fSets.value=4;
+    fNote.value='';
+    renderLoadFields([],4);
+  }
+
+  document.getElementById('decreaseSetsBtn').disabled=(+fSets.value)<=1;
+  document.getElementById('increaseSetsBtn').disabled=(+fSets.value)>=20;
+}
+
+fName.addEventListener('input',handleExerciseNameInput);
+
+document.getElementById('exerciseNameToggle').addEventListener('click',()=>{
+  if(editIndex!==null) return;
+  const list=document.getElementById('exerciseNameList');
+  const opening=list.hidden;
+  list.hidden=!opening;
+  fName.setAttribute('aria-expanded',String(opening));
+  document.getElementById('exerciseNameToggle').setAttribute('aria-expanded',String(opening));
+  if(opening) list.scrollTop=0;
+});
+document.getElementById('exerciseNameList').addEventListener('click',event=>{
+  const option=event.target.closest('[data-exercise-name]');
+  if(!option) return;
+  fName.value=option.dataset.exerciseName;
+  document.getElementById('exerciseNameList').hidden=true;
+  fName.setAttribute('aria-expanded','false');
+  document.getElementById('exerciseNameToggle').setAttribute('aria-expanded','false');
+  fName.dispatchEvent(new Event('input',{bubbles:true}));
+});
+document.addEventListener('click',event=>{
+  if(!event.target.closest('#exerciseNamePicker')){
+    document.getElementById('exerciseNameList').hidden=true;
+    fName.setAttribute('aria-expanded','false');
+    document.getElementById('exerciseNameToggle').setAttribute('aria-expanded','false');
+  }
+});
 
 function closeModal(){
 
@@ -2031,6 +3376,141 @@ render();
 }
 
 // ========================================
+// DUPLICAR E SUBSTITUIR EXERCÍCIOS
+// ========================================
+
+function shiftChecksAfterInsert(i){
+  const data=currentWeekData();
+  const next={};
+  Object.keys(data).forEach(k=>{
+    if(!k.startsWith(day+'_')){
+      next[k]=data[k];
+      return;
+    }
+    const n=Number(k.slice(day.length+1));
+    if(!Number.isInteger(n)||n<=i) next[k]=data[k];
+    else next[day+'_'+(n+1)]=data[k];
+  });
+  state.weeklyChecks[weekKey()]=next;
+}
+
+function duplicateExercise(i){
+  const original=state.workouts[day][i];
+  if(!original) return;
+  recordUndo('Exercício duplicado');
+  const copy=JSON.parse(JSON.stringify(original));
+  state.workouts[day].splice(i+1,0,copy);
+  shiftChecksAfterInsert(i);
+  save();
+  render();
+}
+
+function replaceExercise(i){
+  const current=state.workouts[day][i];
+  if(!current) return;
+
+  // Catálogo vivo: reúne os exercícios cadastrados em todos os treinos.
+  const catalog=[];
+  const seen=new Set();
+  days.forEach(dayName=>{
+    (state.workouts[dayName]||[]).forEach(ex=>{
+      const key=String(ex.name||'').trim().toLocaleLowerCase('pt-BR');
+      if(!key || key===String(current.name||'').trim().toLocaleLowerCase('pt-BR') || seen.has(key)) return;
+      seen.add(key);
+      catalog.push(JSON.parse(JSON.stringify(ex)));
+    });
+  });
+
+  if(!catalog.length){
+    alert('Ainda não há outros exercícios cadastrados nos treinos para usar como substituição.');
+    return;
+  }
+
+  window.exerciseReplacementTarget=i;
+  window.exerciseReplacementCatalog=catalog;
+
+  const groups={};
+  catalog.forEach((ex,index)=>{
+    const muscle=String(ex.muscle||'Outros').trim()||'Outros';
+    (groups[muscle] ||= []).push({ex,index});
+  });
+
+  const groupMarkup=Object.entries(groups)
+    .sort((a,b)=>a[0].localeCompare(b[0],'pt-BR'))
+    .map(([muscle,items])=>`
+      <details class="replace-group">
+        <summary>
+          <span class="replace-group-name">${esc(muscle)}</span>
+          <span class="replace-group-count">${items.length} ${items.length===1?'exercício':'exercícios'}</span>
+          <span class="replace-chevron">⌄</span>
+        </summary>
+        <div class="replace-options">
+          ${items.map(({ex,index})=>`
+            <button type="button" class="replace-option" onclick="chooseReplacement(${index})">
+              <span class="replace-option-title">${esc(ex.name||'Exercício sem nome')}</span>
+              <span class="replace-option-details">
+                ${ex.equipment?`<span><b>Equipamento</b>${esc(ex.equipment)}</span>`:''}
+                ${ex.grip?`<span><b>Pegada</b>${esc(ex.grip)}</span>`:''}
+                ${ex.execution?`<span><b>Execução</b>${esc(ex.execution)}</span>`:''}
+                ${ex.sets?`<span><b>Séries</b>${esc(String(ex.sets))}</span>`:''}
+              </span>
+              <span class="replace-select-label">Selecionar</span>
+            </button>
+          `).join('')}
+        </div>
+      </details>
+    `).join('');
+
+  const modal=document.createElement('div');
+  modal.className='replace-modal-backdrop';
+  modal.id='exerciseReplaceModal';
+  modal.innerHTML=`
+    <section class="replace-modal" role="dialog" aria-modal="true" aria-labelledby="replaceModalTitle">
+      <header class="replace-modal-header">
+        <div>
+          <span class="replace-eyebrow">CATÁLOGO DE EXERCÍCIOS</span>
+          <h2 id="replaceModalTitle">Substituir exercício</h2>
+          <p>Escolha um exercício para entrar no lugar de <b>${esc(current.name)}</b>.</p>
+        </div>
+        <button type="button" class="replace-close" onclick="closeReplaceModal()" aria-label="Fechar">×</button>
+      </header>
+      <div class="replace-modal-body">
+        <p class="replace-hint">Toque em um grupo muscular para ver os exercícios disponíveis.</p>
+        ${groupMarkup}
+      </div>
+      <footer class="replace-modal-footer">
+        <span>${catalog.length} opções no catálogo</span>
+        <button type="button" class="replace-cancel" onclick="closeReplaceModal()">Cancelar</button>
+      </footer>
+    </section>
+  `;
+  modal.addEventListener('click',event=>{
+    if(event.target===modal) closeReplaceModal();
+  });
+  document.body.appendChild(modal);
+}
+
+function closeReplaceModal(){
+  document.getElementById('exerciseReplaceModal')?.remove();
+  window.exerciseReplacementTarget=null;
+  window.exerciseReplacementCatalog=null;
+}
+
+function chooseReplacement(index){
+  const i=window.exerciseReplacementTarget;
+  const selected=window.exerciseReplacementCatalog?.[index];
+  if(!selected || !Number.isInteger(i) || !state.workouts[day][i]) return;
+
+  recordUndo('Exercício substituído');
+  state.workouts[day][i]=JSON.parse(JSON.stringify(selected));
+  // A troca mantém a posição, mas reinicia as marcações das séries.
+  currentWeekData()[day+'_'+i]=[];
+  closeReplaceModal();
+  save();
+  render();
+}
+
+// ========================================
 // EXCLUIR E MOVER EXERCÍCIOS
 // ========================================
 
@@ -2079,13 +3559,17 @@ render();
 // ========================================
 
 function resetDay(){
+  const dialog=document.getElementById('resetConfirm');
+  dialog.hidden=false;
+}
 
-if(!confirm(
-'Desmarcar todas as séries concluídas deste treino nesta semana? As cargas e exercícios serão mantidos.'
-))
-return;
+function closeResetDialog(){
+  document.getElementById('resetConfirm').hidden=true;
+}
 
-recordUndo('Progresso do treino reiniciado');
+function confirmResetDay(){
+  closeResetDialog();
+  recordUndo('Progresso do treino reiniciado');
 const data=currentWeekData();
 
 // Zera as marcações das séries e também o estado da sessão.
@@ -2192,6 +3676,13 @@ addBtn.onclick=()=>editExercise(null);
 
 resetBtn.onclick=resetDay;
 
+document.getElementById('cancelResetBtn').onclick=closeResetDialog;
+document.getElementById('confirmResetBtn').onclick=confirmResetDay;
+document.getElementById('resetConfirm').addEventListener('click',event=>{
+  if(event.target.id==='resetConfirm') closeResetDialog();
+});
+
+
 exportBtn.onclick=exportData;
 
 importBtn.onclick=()=>importFile.click();
@@ -2236,9 +3727,153 @@ document.getElementById('increaseSetsBtn').onclick=()=>{
 };
 
 // ========================================
+// ALTERNÂNCIA ENTRE PROGRESSO DIÁRIO E SEMANAL
+// ========================================
+
+(function setupProgressSwipe(){
+  const carousel=document.getElementById('progressCarousel');
+  const track=document.getElementById('progressTrack');
+  const dots=carousel ? carousel.querySelectorAll('.progress-dot') : [];
+  if(!carousel || !track) return;
+
+  let activeSlide=0;
+  let startX=0;
+  let startY=0;
+
+  function showSlide(index){
+    activeSlide=Math.max(0,Math.min(1,index));
+    track.style.transform=`translateX(-${activeSlide*50}%)`;
+    dots.forEach((dot,i)=>dot.classList.toggle('active',i===activeSlide));
+  }
+
+  carousel.addEventListener('touchstart',event=>{
+    if(!event.touches || !event.touches.length) return;
+    startX=event.touches[0].clientX;
+    startY=event.touches[0].clientY;
+  },{passive:true});
+
+  carousel.addEventListener('touchend',event=>{
+    if(!event.changedTouches || !event.changedTouches.length) return;
+    const dx=event.changedTouches[0].clientX-startX;
+    const dy=event.changedTouches[0].clientY-startY;
+    if(Math.abs(dx)>45 && Math.abs(dx)>Math.abs(dy)) showSlide(activeSlide+(dx<0?1:-1));
+  },{passive:true});
+
+  carousel.addEventListener('keydown',event=>{
+    if(event.key==='ArrowLeft') showSlide(activeSlide-1);
+    if(event.key==='ArrowRight') showSlide(activeSlide+1);
+  });
+  carousel.tabIndex=0;
+  showSlide(0);
+})();
+
+
+// ========================================
+// LISTAS SUSPENSAS PADRONIZADAS (TODOS OS SELECTS)
+// ========================================
+function refreshStyledSelect(select){
+  const root=select.closest('.styled-select');
+  if(!root) return;
+  const trigger=root.querySelector('.styled-select-trigger');
+  const menu=root.querySelector('.styled-select-menu');
+  const selected=Array.from(select.options).find(option=>option.value===select.value && select.selectedIndex>=0);
+  trigger.querySelector('.styled-select-label').textContent=selected ? selected.textContent : 'Selecione';
+  menu.innerHTML='';
+  const options=Array.from(select.options);
+  if(!options.length){
+    const empty=document.createElement('div');
+    empty.className='styled-select-empty';
+    empty.textContent='Nenhuma opção disponível';
+    menu.appendChild(empty);
+  } else {
+    options.forEach((option,index)=>{
+      const item=document.createElement('button');
+      item.type='button';
+      item.className='styled-select-option';
+      item.textContent=option.textContent;
+      item.setAttribute('role','option');
+      item.setAttribute('aria-selected',String(select.selectedIndex===index));
+      item.disabled=option.disabled;
+      item.addEventListener('click',()=>{
+        select.selectedIndex=index;
+        select.dispatchEvent(new Event('input',{bubbles:true}));
+        select.dispatchEvent(new Event('change',{bubbles:true}));
+        refreshStyledSelect(select);
+        menu.hidden=true;
+        trigger.setAttribute('aria-expanded','false');
+        trigger.focus();
+      });
+      menu.appendChild(item);
+    });
+  }
+}
+
+function setupStyledSelects(){
+  document.querySelectorAll('select').forEach((select,index)=>{
+    if(select.closest('.styled-select')) return;
+    const root=document.createElement('div');
+    root.className='styled-select';
+    select.parentNode.insertBefore(root,select);
+    root.appendChild(select);
+    select.classList.add('styled-select-native');
+
+    const trigger=document.createElement('button');
+    trigger.type='button';
+    trigger.className='styled-select-trigger';
+    trigger.setAttribute('aria-haspopup','listbox');
+    trigger.setAttribute('aria-expanded','false');
+    trigger.innerHTML='<span class="styled-select-label"></span><span class="styled-select-arrow" aria-hidden="true"></span>';
+    const menu=document.createElement('div');
+    menu.className='styled-select-menu';
+    menu.hidden=true;
+    menu.setAttribute('role','listbox');
+    root.append(trigger,menu);
+
+    trigger.addEventListener('click',()=>{
+      const willOpen=menu.hidden;
+      document.querySelectorAll('.styled-select-menu').forEach(other=>other.hidden=true);
+      document.querySelectorAll('.styled-select-trigger').forEach(other=>other.setAttribute('aria-expanded','false'));
+      menu.hidden=!willOpen;
+      trigger.setAttribute('aria-expanded',String(willOpen));
+      if(willOpen) refreshStyledSelect(select);
+    });
+    trigger.addEventListener('keydown',event=>{
+      if(event.key==='ArrowDown' || event.key==='Enter' || event.key===' '){
+        event.preventDefault();
+        menu.hidden=false;
+        trigger.setAttribute('aria-expanded','true');
+        refreshStyledSelect(select);
+        menu.querySelector('.styled-select-option')?.focus();
+      }
+    });
+    menu.addEventListener('keydown',event=>{
+      if(event.key==='Escape'){
+        menu.hidden=true;
+        trigger.setAttribute('aria-expanded','false');
+        trigger.focus();
+      }
+    });
+    const observer=new MutationObserver(()=>refreshStyledSelect(select));
+    observer.observe(select,{childList:true,subtree:true,attributes:true});
+    refreshStyledSelect(select);
+  });
+}
+
+document.addEventListener('click',event=>{
+  if(event.target.closest('.styled-select')) return;
+  document.querySelectorAll('.styled-select-menu').forEach(menu=>menu.hidden=true);
+  document.querySelectorAll('.styled-select-trigger').forEach(trigger=>trigger.setAttribute('aria-expanded','false'));
+});
+
+function refreshAllStyledSelects(){
+  document.querySelectorAll('select').forEach(refreshStyledSelect);
+}
+
+// ========================================
 // INICIALIZAÇÃO
 // ========================================
 
+setupStyledSelects();
 render();
 
 </script>
