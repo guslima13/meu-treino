@@ -446,6 +446,7 @@ border-color:#829b89;
 color:#ffffff
 }
 .iconbtn:active{transform:scale(.96)}
+.iconbtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .iconbtn:focus-visible{
 outline:2px solid #8da85a;
 outline-offset:2px
@@ -557,6 +558,7 @@ touch-action:manipulation;
 }
 
 .load-stepper button:active{background:#45664f}
+.load-stepper button:disabled{opacity:.35;cursor:not-allowed}
 
 .set-done-btn{
 height:40px;
@@ -1946,6 +1948,8 @@ select:focus {
   padding: 18px;
   background: #000b;
 }
+/* A confirmação do catálogo fica acima do próprio modal de cadastro. */
+#catalogDeleteConfirm { z-index: 12000; }
 .confirm-backdrop[hidden] { display: none; }
 .confirm-dialog {
   width: min(420px, 100%);
@@ -1959,6 +1963,59 @@ select:focus {
 .confirm-dialog h2 { margin: 0 0 12px; font-size: 18px; }
 .confirm-dialog p { margin: 0; line-height: 1.5; color: #e1e7e2; }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 20px; }
+.move-day-options,.backup-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px}
+.move-day-options button{min-height:42px;font-weight:800}
+.move-day-options button:disabled{opacity:.3;cursor:not-allowed}
+.backup-actions{grid-template-columns:1fr 1fr}
+.info-catalog-dialog{width:min(560px,100%);max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain}
+.catalog-entry{display:grid;gap:6px;margin:13px 0}
+.catalog-entry label{font-size:12px;color:var(--muted);font-weight:800}
+.catalog-entry>div{display:flex;gap:8px}
+.catalog-entry input{min-width:0;flex:1;background:#0f1212;color:white;border:1px solid #394040;border-radius:9px;padding:11px;font:inherit}
+.catalog-entry .btn{white-space:nowrap}
+.catalog-feedback{min-height:0;margin:0;color:var(--accent);font-size:12px}
+.catalog-entry>div.catalog-list{display:grid;gap:6px;padding:8px;background:#101514;border:1px solid #303b35;border-radius:10px}
+.catalog-list[hidden]{display:none!important}
+.catalog-list-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 8px;border-bottom:1px solid #2d3732;font-size:13px}
+.catalog-list-item:last-child{border-bottom:0}
+.catalog-list-item span{min-width:0;overflow-wrap:anywhere}
+.catalog-list-item .btn{flex:0 0 auto;padding:6px 9px}
+.catalog-empty{padding:8px;color:var(--muted);font-size:12px}
+
+/* Catálogo geral de exercícios: destaque mantido em um bloco mais compacto. */
+.exercise-catalog-entry{
+  margin:12px 0 9px;
+  padding:8px;
+  border:1px solid #718b35;
+  border-radius:12px;
+  background:linear-gradient(135deg,#20291b,#171e18);
+  box-shadow:0 0 0 1px #d7ff0012,inset 0 1px 0 #ffffff0a;
+}
+.exercise-catalog-entry>label{display:none}
+.exercise-catalog-toggle{
+  width:100%;
+  min-height:40px;
+  justify-content:space-between;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  font-size:14px;
+  font-weight:900;
+  white-space:normal;
+}
+.exercise-catalog-arrow{font-size:20px;line-height:1}
+.exercise-catalog-entry .catalog-list{margin-top:5px}
+@media(max-width:480px){.catalog-entry>div:not(.catalog-list){flex-wrap:wrap}.catalog-entry>div:not(.catalog-list) input{flex-basis:100%}}
+
+@media(max-width:430px){.catalog-entry>div{align-items:stretch}.catalog-entry .btn{padding:9px}.move-day-options{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Modal de cadastro mais compacto no celular: aproxima Fechar e evita rolagem desnecessária. */
+.info-catalog-dialog{padding:14px 16px}
+.info-catalog-dialog>.confirm-actions{margin-top:14px}
+.info-catalog-dialog>.catalog-feedback{padding:0;line-height:1.2}
+@media(max-width:600px){.info-catalog-dialog{padding:12px}.info-catalog-dialog .catalog-entry{margin:9px 0}.info-catalog-dialog .exercise-catalog-entry{margin:13px 0 5px}}
+
 
 
 /* LISTAS SUSPENSAS CUSTOMIZADAS — aparência idêntica em todos os campos. */
@@ -2098,20 +2155,76 @@ select:focus {
   </section>
 </div>
 
+<div class="confirm-backdrop" id="deleteConfirm" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
+    <h2 id="deleteConfirmTitle">Excluir exercício</h2>
+    <p id="deleteConfirmMessage">Tem certeza de que deseja excluir este exercício?</p>
+    <div class="confirm-actions">
+      <button type="button" class="btn" id="cancelDeleteBtn">Cancelar</button>
+      <button type="button" class="btn primary" id="confirmDeleteBtn">Excluir exercício</button>
+    </div>
+  </section>
+</div>
+
+<div class="confirm-backdrop" id="catalogDeleteConfirm" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogDeleteConfirmTitle">
+    <h2 id="catalogDeleteConfirmTitle">Confirmar exclusão</h2>
+    <p id="catalogDeleteConfirmMessage">Quer realmente excluir este item do cadastro de informações?</p>
+    <div class="confirm-actions">
+      <button type="button" class="btn" id="cancelCatalogDeleteBtn">Cancelar</button>
+      <button type="button" class="btn primary" id="confirmCatalogDeleteBtn">Excluir</button>
+    </div>
+  </section>
+</div>
+
+<div class="confirm-backdrop" id="moveDayConfirm" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="moveDayTitle">
+    <h2 id="moveDayTitle">Mover para outro dia da semana</h2>
+    <p id="moveDayMessage"></p>
+    <div class="move-day-options" id="moveDayOptions"></div>
+    <div class="confirm-actions"><button type="button" class="btn" id="cancelMoveDayBtn">Cancelar</button></div>
+  </section>
+</div>
+
+<div class="confirm-backdrop" id="backupMenuConfirm" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="backupMenuTitle">
+    <h2 id="backupMenuTitle">Importar ou exportar dados dos treinos</h2>
+    <p>Escolha o que deseja fazer</p>
+    <div class="backup-actions">
+      <button type="button" class="btn" id="chooseImportBtn">Importar backup</button>
+      <button type="button" class="btn primary" id="chooseExportBtn">Exportar backup</button>
+    </div>
+    <div class="confirm-actions"><button type="button" class="btn" id="closeBackupMenuBtn">Fechar</button></div>
+  </section>
+</div>
+
+<div class="confirm-backdrop" id="infoCatalogModal" hidden>
+  <section class="confirm-dialog info-catalog-dialog" role="dialog" aria-modal="true" aria-labelledby="infoCatalogTitle">
+    <h2 id="infoCatalogTitle">Cadastro e exclusão de informações</h2>
+    <div class="catalog-entry"><label for="newMuscle">Grupo muscular</label><div><input id="newMuscle" type="text" placeholder="Novo grupo muscular"><button type="button" class="btn primary" data-catalog-add="muscle">Adicionar</button><button type="button" class="btn" data-catalog-list="muscle">Ver lista</button></div><div class="catalog-list" id="catalogList-muscle" hidden></div></div>
+    <div class="catalog-entry"><label for="newEquipment">Equipamento</label><div><input id="newEquipment" type="text" placeholder="Novo equipamento"><button type="button" class="btn primary" data-catalog-add="equipment">Adicionar</button><button type="button" class="btn" data-catalog-list="equipment">Ver lista</button></div><div class="catalog-list" id="catalogList-equipment" hidden></div></div>
+    <div class="catalog-entry"><label for="newExecution">Execução</label><div><input id="newExecution" type="text" placeholder="Nova execução"><button type="button" class="btn primary" data-catalog-add="execution">Adicionar</button><button type="button" class="btn" data-catalog-list="execution">Ver lista</button></div><div class="catalog-list" id="catalogList-execution" hidden></div></div>
+    <div class="catalog-entry"><label for="newGrip">Pegada</label><div><input id="newGrip" type="text" placeholder="Nova pegada"><button type="button" class="btn primary" data-catalog-add="grip">Adicionar</button><button type="button" class="btn" data-catalog-list="grip">Ver lista</button></div><div class="catalog-list" id="catalogList-grip" hidden></div></div>
+    <div class="catalog-entry exercise-catalog-entry"><div><button type="button" class="btn primary exercise-catalog-toggle" data-exercise-catalog-toggle><span aria-hidden="true">☷</span> Ver lista de exercícios <span class="exercise-catalog-arrow" aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="exerciseCatalogList" hidden></div></div>
+    <p class="catalog-feedback" id="catalogFeedback" aria-live="polite"></p>
+    <div class="confirm-actions"><button type="button" class="btn" id="closeInfoCatalogBtn">Fechar</button></div>
+  </section>
+</div>
+
 <!-- GERENCIAMENTO E FINALIZAÇÃO -->
 <div class="bottom-dashboard">
   <div class="toolbar" aria-label="Gerenciar treino">
     <button class="btn primary icon-action" id="addBtn" title="Adicionar exercício" aria-label="Adicionar exercício">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
     </button>
+    <button class="btn icon-action" id="infoCatalogBtn" title="Cadastro e exclusão de informações" aria-label="Cadastro e exclusão de informações">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M8 12h8M8 16h8"/></svg>
+    </button>
+    <button class="btn icon-action" id="backupMenuBtn" title="Importar ou exportar dados" aria-label="Importar ou exportar dados">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8m-3-3 3 3 3-3M12 21v-8m-3 3 3-3 3 3"/><path d="M5 5h3M16 19h3"/></svg>
+    </button>
     <button class="btn icon-action" id="resetBtn" title="Reiniciar este treino" aria-label="Reiniciar este treino">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.8-2L20 12M4 12l2.6 5a7 7 0 0 0 11.8-2"/></svg>
-    </button>
-    <button class="btn icon-action" id="importBtn" title="Importar backup" aria-label="Importar backup">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m-4 4 4-4 4 4"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>
-    </button>
-    <button class="btn icon-action" id="exportBtn" title="Exportar backup" aria-label="Exportar backup">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
     </button>
   </div>
 
@@ -2160,10 +2273,8 @@ Exporte um backup para levar suas alterações a outro dispositivo.
 
 <div class="field">
 <label>Equipamento</label>
-<div class="exercise-name-picker equipment-picker" id="equipmentAddField">
-  <input id="fEquipment" type="text" autocomplete="off" aria-haspopup="listbox" aria-expanded="false" placeholder="Digite ou selecione um equipamento">
-  <button type="button" class="exercise-name-toggle" id="equipmentToggle" aria-label="Mostrar equipamentos cadastrados" aria-expanded="false">▾</button>
-  <div class="exercise-name-list" id="equipmentList" role="listbox" hidden></div>
+<div id="equipmentAddField">
+  <select id="fEquipment"><option value="-">-</option></select>
 </div>
 <div id="equipmentEditField" hidden>
   <select id="fEquipmentEdit"><option value="-">-</option></select>
@@ -2176,23 +2287,12 @@ Exporte um backup para levar suas alterações a outro dispositivo.
 
 <div class="field">
 <label>Execução</label>
-<select id="fExecution">
-<option value="-">-</option>
-<option value="Bilateral">Bilateral</option>
-<option value="Unilateral">Unilateral</option>
-<option value="Simultâneo">Simultâneo</option>
-<option value="Alternado">Alternado</option>
-</select>
+<select id="fExecution"></select>
 </div>
 
 <div class="field">
 <label>Pegada</label>
-<select id="fGrip">
-<option value="-">-</option>
-<option value="Supinada">Supinada</option>
-<option value="Pronada">Pronada</option>
-<option value="Neutra">Neutra</option>
-</select>
+<select id="fGrip"></select>
 </div>
 
 </div>
@@ -2435,6 +2535,20 @@ x.checks=x.checks||{};
 x.notes=x.notes||{};
 x.weeklyChecks=x.weeklyChecks||{};
 x.sessions=x.sessions||{};
+x.catalogs=x.catalogs||{muscle:[],equipment:[],execution:[],grip:[]};
+['muscle','equipment','execution','grip'].forEach(key=>{if(!Array.isArray(x.catalogs[key])) x.catalogs[key]=[];});
+// Catálogo mestre independente dos treinos semanais. Migra os exercícios
+// existentes uma única vez e preserva itens mesmo quando saem de um dia.
+if(!Array.isArray(x.exerciseCatalog)) x.exerciseCatalog=[];
+const knownExerciseNames=new Set(x.exerciseCatalog.map(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')).filter(Boolean));
+Object.values(x.workouts||{}).flat().forEach(ex=>{
+  const name=String(ex?.name||'').trim();
+  const key=name.toLocaleLowerCase('pt-BR');
+  if(name && !knownExerciseNames.has(key)){
+    x.exerciseCatalog.push(JSON.parse(JSON.stringify(ex)));
+    knownExerciseNames.add(key);
+  }
+});
 
 if((x.progressVersion||0)<2){
 
@@ -2474,6 +2588,8 @@ checks:{},
 notes:{},
 weeklyChecks:{},
 sessions:{},
+catalogs:{muscle:[],equipment:[],execution:[],grip:[]},
+exerciseCatalog:[],
 progressVersion:2
 
 });
@@ -2886,17 +3002,17 @@ ${Array.from(
 ${j+1}
 </span>
 
-<div class="load-control">
+<div class="load-control ${isAbdominalExercise(e)?'abdominal-load':''}">
 <input
 class="set-input"
 aria-label="${isAerobicExercise(e)?'Tempo':'Carga'} da série ${j+1}"
-inputmode="${isAerobicExercise(e)?'numeric':'decimal'}"
+inputmode="${isAerobicExercise(e)?'numeric':(isAbdominalExercise(e)?'text':'decimal')}"
 maxlength="${isAerobicExercise(e)?5:undefined}"
 value="${esc(isAerobicExercise(e)?formatTimeValue((e.loads||[])[j]):((e.loads||[])[j]??''))}"
-oninput="${isAerobicExercise(e)?'formatTimeInput(this)':''}"
+oninput="${isAerobicExercise(e)?'formatTimeInput(this)':(isAbdominalExercise(e)?'toggleDisplayLoadStepper(this)':'')}"
 onblur="${isAerobicExercise(e)?'normalizeTimeInput(this)':''}"
 onchange="changeLoad(${i},${j},this.value)"
-placeholder="${isAerobicExercise(e)?'00:00':'Carga'}">
+placeholder="${isAerobicExercise(e)?'00:00':(isAbdominalExercise(e)?'Carga':'Carga')}">
 <div class="load-stepper" aria-label="${isAerobicExercise(e)?'Ajustar tempo em 10 minutos':'Ajustar carga em 1,25 kg'}">
 <button type="button" aria-label="${isAerobicExercise(e)?'Aumentar tempo em 10 minutos':'Aumentar carga em 1,25 kg'}"
 onpointerdown="event.preventDefault(); event.stopPropagation(); ${isAerobicExercise(e)?'adjustTimeStep':'adjustLoadStep'}(${i},${j},1,this)">▲</button>
@@ -2927,11 +3043,11 @@ ${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><pat
 <div class="actions">
 
 <button type="button" class="iconbtn" onclick="editExercise(${i})" title="Editar" aria-label="Editar">✎</button>
-<button type="button" class="iconbtn" onclick="duplicateExercise(${i})" title="Duplicar" aria-label="Duplicar"><svg class="duplicate-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7V4.8A1.8 1.8 0 0 1 9.8 3h9.4A1.8 1.8 0 0 1 21 4.8v11.4a1.8 1.8 0 0 1-1.8 1.8H17"/><path d="M4.8 7H14a1.8 1.8 0 0 1 1.8 1.8v10.4A1.8 1.8 0 0 1 14 21H4.8A1.8 1.8 0 0 1 3 19.2V8.8A1.8 1.8 0 0 1 4.8 7Z"/></svg></button>
-<button type="button" class="iconbtn" onclick="replaceExercise(${i})" title="Substituir" aria-label="Substituir">⇄</button>
+<button type="button" class="iconbtn" onclick="openMoveDayDialog(${i})" title="Mover para outro dia da semana" aria-label="Mover para outro dia da semana"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="13" height="16" rx="2"/><path d="M7 3v4M12 3v4M3 10h13M13 14h8m-3-3 3 3-3 3"/></svg></button>
+<button type="button" class="iconbtn" onclick="replaceExercise(${i})" title="Substituir exercício" aria-label="Substituir exercício"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13l-3-3m6 13H7l3 3"/><path d="M17 4l3 3-3 3M7 14l-3 3 3 3"/></svg></button>
 <button type="button" class="iconbtn" onclick="moveExercise(${i},-1)" title="Subir" aria-label="Subir">↑</button>
 <button type="button" class="iconbtn" onclick="moveExercise(${i},1)" title="Descer" aria-label="Descer">↓</button>
-<button type="button" class="iconbtn" onclick="deleteExercise(${i})" title="Excluir" aria-label="Excluir">×</button>
+<button type="button" class="iconbtn" onclick="deleteExercise(${i})" title="Excluir exercício" aria-label="Excluir exercício">×</button>
 
 </div>
 
@@ -2942,6 +3058,9 @@ ${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><pat
 }).join('')
 
 :'<div class="empty">Nenhum exercício neste treino. Use “Adicionar exercício” para começar.</div>';
+
+// Desativa as setas apenas quando a carga abdominal salva é texto.
+exerciseList.querySelectorAll('.abdominal-load .set-input').forEach(toggleDisplayLoadStepper);
 
 // ATUALIZA OS BOTÕES DE CONTROLE
 
@@ -3018,11 +3137,21 @@ function adjustTimeStep(i,j,direction,button){
   save();
 }
 
+function toggleDisplayLoadStepper(input){
+  const control=input?.closest('.load-control');
+  if(!control) return;
+  const value=String(input.value||'').trim();
+  const numeric=value==='' || /^[-+]?\d+(?:[,.]\d+)?$/.test(value);
+  control.querySelectorAll('.load-stepper button').forEach(button=>button.disabled=!numeric);
+}
+
 function adjustLoadStep(i,j,direction,button){
   const e=state.workouts[day][i];
   if(!e) return;
   e.loads=e.loads||[];
-  const current=String(e.loads[j]??'').trim();
+  const control=button ? button.closest('.load-control') : null;
+  const input=control ? control.querySelector('.set-input') : null;
+  const current=String(input?.value ?? e.loads[j] ?? '').trim();
 
   // Não tenta somar valores descritivos, como "Corpo" ou "1h".
   if(current!=='' && !/^[-+]?\d+(?:[,.]\d+)?$/.test(current)) return;
@@ -3037,8 +3166,6 @@ function adjustLoadStep(i,j,direction,button){
 
   // Atualiza o próprio campo da série clicada, sem depender de seletor
   // baseado na posição do exercício na página.
-  const control=button ? button.closest('.load-control') : null;
-  const input=control ? control.querySelector('.set-input') : null;
   if(input) input.value=formatted;
 
   // Realce breve ao usar as setas, sem focar o campo nem abrir o teclado.
@@ -3160,6 +3287,12 @@ function isAerobicExercise(ex){
   return /aer[oó]bic|cardio/.test(category);
 }
 
+function isAbdominalExercise(ex){
+  if(!ex) return false;
+  const category=String(ex.muscle||'').trim().toLocaleLowerCase('pt-BR');
+  return /abd[oô]men|abdominal/.test(category);
+}
+
 function parseTimeMinutes(value){
   const raw=String(value??'').trim().toLocaleLowerCase('pt-BR');
   if(!raw) return null;
@@ -3213,23 +3346,50 @@ function formatTimeValue(value){
   return minutes===null?'':formatTimeMinutes(minutes);
 }
 
-function renderLoadFields(loads,sets,aerobic=isAerobicExercise({muscle:fMuscle.value})){ 
+function renderLoadFields(loads,sets,aerobic=isAerobicExercise({muscle:fMuscle.value})){
   const container=document.getElementById('loadsBySet');
   if(!container) return;
   const count=Math.max(1,Math.min(20,Number(sets)||1));
+  // Nos formulários Adicionar/Editar, Abdômen usa somente campo de texto:
+  // sem setas, permitindo informar cargas em palavras ou números.
+  const abdominal=isAbdominalExercise({muscle:fMuscle.value});
   const label=document.getElementById('loadsLabel');
   if(label) label.textContent=aerobic?'Tempo de cada série':'Carga de cada série';
   container.innerHTML=Array.from({length:count},(_,index)=>`
     <div class="load-set-field">
       <label for="editLoad${index}">Série ${index+1}</label>
-      <input id="editLoad${index}" class="edit-load-input" type="text"
-        inputmode="${aerobic?'numeric':'decimal'}" maxlength="${aerobic?5:undefined}"
-        placeholder="${aerobic?'00:00':'Carga (kg)'}"
-        oninput="${aerobic?'formatTimeInput(this)':''}"
-        onblur="${aerobic?'normalizeTimeInput(this)':''}"
-        value="${esc(aerobic?formatTimeValue(loads[index]):(loads[index]??''))}">
+      <div class="load-control ${abdominal?'abdominal-load':''}">
+        <input id="editLoad${index}" class="edit-load-input set-input" type="text"
+          inputmode="${aerobic?'numeric':(abdominal?'text':'decimal')}" maxlength="${aerobic?5:undefined}"
+          placeholder="${aerobic?'00:00':(abdominal?'Carga':'Carga (kg)')}"
+          oninput="${aerobic?'formatTimeInput(this)':''}"
+          onblur="${aerobic?'normalizeTimeInput(this)':''}"
+          value="${esc(aerobic?formatTimeValue(loads[index]):(loads[index]??''))}">
+      </div>
     </div>
   `).join('');
+}
+
+function toggleEditLoadStepper(input){
+  const control=input?.closest('.load-control');
+  if(!control) return;
+  const value=String(input.value||'').trim();
+  const numeric=value==='' || /^[-+]?\d+(?:[,.]\d+)?$/.test(value);
+  control.querySelectorAll('.load-stepper button').forEach(button=>button.disabled=!numeric);
+}
+
+function adjustEditLoadStep(index,direction,button){
+  const control=button?.closest('.load-control');
+  const input=control?.querySelector('.edit-load-input');
+  if(!input) return;
+  const current=String(input.value||'').trim();
+  if(current!=='' && !/^[-+]?\d+(?:[,.]\d+)?$/.test(current)) return;
+  const numeric=current===''?0:Number(current.replace(',','.'));
+  const next=Math.max(0,Math.round((numeric+direction*1.25)*100)/100);
+  input.value=Number.isInteger(next)?String(next):String(next).replace('.',',');
+  toggleEditLoadStepper(input);
+  control.classList.add('adjusting');
+  setTimeout(()=>control.classList.remove('adjusting'),350);
 }
 
 function readLoadFields(){
@@ -3245,77 +3405,62 @@ function readLoadFields(){
     });
 }
 
-function getRegisteredEquipment(){
-  // A lista é compartilhada pelos menus Adicionar e Editar e é atualizada
-  // a partir de todos os exercícios salvos no treino.
-  const unique=new Map();
-  Object.values(state.workouts||{}).flat().forEach(ex=>{
-    const equipment=String(ex.equipment||'').trim();
-    if(!equipment || equipment==='-') return;
-    const key=equipment.toLocaleLowerCase('pt-BR');
-    if(!unique.has(key)) unique.set(key,equipment);
-  });
-  return [...unique.values()].sort((a,b)=>a.localeCompare(b,'pt-BR'));
-}
-
-function renderEquipmentOptions(selectedValue=''){
-  const list=document.getElementById('equipmentList');
-  if(!list) return;
-  const options=['-',...getRegisteredEquipment()];
-  const selected=String(selectedValue||'').trim();
-  if(selected && !options.some(item=>item.toLocaleLowerCase('pt-BR')===selected.toLocaleLowerCase('pt-BR'))){
-    options.push(selected);
-    options.sort((a,b)=>a.localeCompare(b,'pt-BR'));
+function upsertExerciseCatalog(exercise, oldName=''){
+  state.exerciseCatalog=Array.isArray(state.exerciseCatalog)?state.exerciseCatalog:[];
+  const oldKey=String(oldName||'').trim().toLocaleLowerCase('pt-BR');
+  const newName=String(exercise?.name||'').trim();
+  const newKey=newName.toLocaleLowerCase('pt-BR');
+  if(oldKey && oldKey!==newKey){
+    state.exerciseCatalog=state.exerciseCatalog.filter(item=>String(item?.name||'').trim().toLocaleLowerCase('pt-BR')!==oldKey);
   }
-  list.innerHTML=options.length
-    ? options.map(item=>`<button type="button" class="exercise-name-option" role="option" data-equipment="${esc(item)}">${esc(item)}</button>`).join('')
-    : '<div class="exercise-name-option muted">Nenhum equipamento cadastrado ainda</div>';
+  if(!newName) return;
+  const copy=JSON.parse(JSON.stringify(exercise));
+  const index=state.exerciseCatalog.findIndex(item=>String(item?.name||'').trim().toLocaleLowerCase('pt-BR')===newKey);
+  if(index>=0) state.exerciseCatalog[index]=copy;
+  else state.exerciseCatalog.push(copy);
 }
 
-function setupEquipmentPicker(){
-  const input=document.getElementById('fEquipment');
-  const toggle=document.getElementById('equipmentToggle');
-  const list=document.getElementById('equipmentList');
-  if(!input || input.dataset.pickerReady) return;
-  input.dataset.pickerReady='true';
-  toggle.addEventListener('click',()=>{
-    const opening=list.hidden;
-    renderEquipmentOptions(input.value);
-    list.hidden=!opening;
-    input.setAttribute('aria-expanded',String(opening));
-    toggle.setAttribute('aria-expanded',String(opening));
-  });
-  input.addEventListener('focus',()=>renderEquipmentOptions(input.value));
-  list.addEventListener('click',event=>{
-    const option=event.target.closest('[data-equipment]');
-    if(!option) return;
-    input.value=option.dataset.equipment;
-    list.hidden=true;
-    input.setAttribute('aria-expanded','false');
-    toggle.setAttribute('aria-expanded','false');
-  });
-  input.addEventListener('keydown',event=>{
-    if(event.key==='ArrowDown'){
-      event.preventDefault();
-      renderEquipmentOptions(input.value);
-      list.hidden=false;
-      input.setAttribute('aria-expanded','true');
-      toggle.setAttribute('aria-expanded','true');
-      list.querySelector('[data-equipment]')?.focus();
-    } else if(event.key==='Escape'){
-      list.hidden=true;
-      input.setAttribute('aria-expanded','false');
-      toggle.setAttribute('aria-expanded','false');
-    }
-  });
-  document.addEventListener('click',event=>{
-    if(!event.target.closest('#equipmentAddField')){
-      list.hidden=true;
-      input.setAttribute('aria-expanded','false');
-      toggle.setAttribute('aria-expanded','false');
-    }
+function getCatalogValues(category,includeDash=false){
+  const unique=new Map();
+  const add=value=>{
+    const item=String(value??'').trim();
+    if(!item || (item==='-' && !includeDash)) return;
+    const key=item.toLocaleLowerCase('pt-BR');
+    if(!unique.has(key)) unique.set(key,item);
+  };
+  (state.catalogs?.[category]||[]).forEach(add);
+  Object.values(state.workouts||{}).flat().forEach(ex=>add(ex?.[category]));
+  if(includeDash) add('-');
+  return [...unique.values()].sort((a,b)=>a==='-'?-1:b==='-'?1:a.localeCompare(b,'pt-BR'));
+}
+
+function populateCatalogSelect(select,category,selectedValue='',includeDash=false){
+  if(!select) return;
+  const options=getCatalogValues(category,includeDash);
+  const selected=String(selectedValue??'').trim();
+  if(selected && !options.some(v=>v.toLocaleLowerCase('pt-BR')===selected.toLocaleLowerCase('pt-BR'))) options.push(selected);
+  select.innerHTML=options.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');
+  select.value=selected;
+  if(selected && select.value!==selected){
+    const option=document.createElement('option');option.value=selected;option.textContent=selected;select.appendChild(option);select.value=selected;
+  }
+}
+
+function getRegisteredEquipment(){
+  return getCatalogValues('equipment',false);
+}
+
+function renderEquipmentOptions(){
+  const options=getCatalogValues('equipment',true);
+  [fEquipment,fEquipmentEdit].forEach(select=>{
+    if(!select) return;
+    const selected=select.value;
+    select.innerHTML=options.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');
+    select.value=selected;
   });
 }
+
+function setupEquipmentPicker(){ /* Equipamento agora é exclusivamente lista suspensa. */ }
 
 // Garante que o valor salvo exista no select antes de selecioná-lo.
 // Essa função é usada ao abrir os formulários de adicionar/editar.
@@ -3366,10 +3511,7 @@ const nameList=document.getElementById('exerciseNameList');
 if(i===null){
   namePicker.hidden=false;
   fName.removeAttribute('list');
-  const catalogNames=[...new Set(
-    Object.values(state.workouts||{}).flat()
-      .map(ex=>String(ex.name||'').trim()).filter(Boolean)
-  )].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const catalogNames=getAllExerciseNames();
   nameList.innerHTML=catalogNames.length
     ? catalogNames.map(name=>`<button type="button" class="exercise-name-option" role="option" data-exercise-name="${esc(name)}">${esc(name)}</button>`).join('')
     : '<div class="exercise-name-option muted">Nenhum exercício cadastrado ainda</div>';
@@ -3393,11 +3535,7 @@ if(i===null){
 }
 
 // Grupos musculares disponíveis são reunidos de todos os exercícios cadastrados.
-const registeredMuscles=[...new Set(
-  Object.values(state.workouts||{}).flat()
-    .map(ex=>String(ex.muscle||'').trim())
-    .filter(Boolean)
-)].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+const registeredMuscles=getCatalogValues('muscle',false);
 if(!registeredMuscles.some(m=>/aer[oó]bic|cardio/i.test(m))) registeredMuscles.push('Aeróbico');
 
 const muscleOptions=[...registeredMuscles];
@@ -3412,19 +3550,26 @@ fMuscle.innerHTML=muscleOptions
 equipmentAddField.hidden = i!==null;
 equipmentEditField.hidden = i===null;
 fEquipment.value=e.equipment||'-';
-renderEquipmentOptions(fEquipment.value);
-const equipmentOptions=['-',...getRegisteredEquipment()];
+const equipmentOptions=getCatalogValues('equipment',true);
 const currentEquipment=String(e.equipment||'-').trim()||'-';
 if(!equipmentOptions.some(item=>item.toLocaleLowerCase('pt-BR')===currentEquipment.toLocaleLowerCase('pt-BR'))){
   equipmentOptions.push(currentEquipment);
   equipmentOptions.sort((a,b)=>a==='-'?-1:b==='-'?1:a.localeCompare(b,'pt-BR'));
 }
+fEquipment.innerHTML=equipmentOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');
 fEquipmentEdit.innerHTML=equipmentOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');
+fEquipment.value=currentEquipment;
 fEquipmentEdit.value=currentEquipment;
+populateCatalogSelect(fExecution,'execution',e.execution||'-',true);
+populateCatalogSelect(fGrip,'grip',e.grip||'-',true);
+
+// No cadastro, os campos de seleção começam com o rótulo "Selecione".
+// Na edição, continuam mostrando os valores já salvos no exercício.
+if(i===null){
+  [fEquipment,fExecution,fGrip].forEach(select=>{ if(select) select.selectedIndex=-1; });
+}
 
 preserveSelectValue(fMuscle,e.muscle);
-preserveSelectValue(fExecution,e.execution);
-preserveSelectValue(fGrip,e.grip);
 refreshAllStyledSelects();
 
 fSets.value=e.sets||4;
@@ -3466,7 +3611,6 @@ function handleExerciseNameInput(){
         setField(fMuscle,match.muscle);
     fEquipment.value=match.equipment||'-';
     fEquipmentEdit.value=match.equipment||'-';
-    renderEquipmentOptions(fEquipment.value);
     setField(fExecution,match.execution||'-');
     setField(fGrip,match.grip||'-');
     refreshAllStyledSelects();
@@ -3477,7 +3621,6 @@ function handleExerciseNameInput(){
         setField(fMuscle,'');
     fEquipment.value='-';
     fEquipmentEdit.value='-';
-    renderEquipmentOptions(fEquipment.value);
     setField(fExecution,'');
     setField(fGrip,'');
     fSets.value=4;
@@ -3490,8 +3633,9 @@ function handleExerciseNameInput(){
 }
 
 fMuscle.addEventListener('change',()=>{
-  const current=readLoadFields();
-  renderLoadFields(current,fSets.value,isAerobicExercise({muscle:fMuscle.value}));
+  // Tempo e carga são unidades diferentes: ao trocar o grupo muscular,
+  // limpa os valores antigos e recria os campos no formato da nova categoria.
+  renderLoadFields([],fSets.value,isAerobicExercise({muscle:fMuscle.value}));
   refreshAllStyledSelects();
 });
 
@@ -3591,11 +3735,15 @@ clearChecks(editIndex);
 
 }
 
+upsertExerciseCatalog(e, old?.name||'');
 save();
 
-// Atualiza imediatamente a lista suspensa compartilhada. Assim, um
-// equipamento recém-cadastrado aparece tanto ao adicionar quanto ao editar.
-renderEquipmentOptions(e.equipment);
+// Mantém a lista de exclusão sincronizada imediatamente após adicionar,
+// editar ou renomear um exercício. A lista é derivada dos treinos salvos.
+renderExerciseCatalogList();
+
+// Atualiza imediatamente a lista suspensa compartilhada de equipamentos.
+renderEquipmentOptions();
 
 closeModal();
 
@@ -3629,6 +3777,7 @@ function duplicateExercise(i){
   recordUndo('Exercício duplicado');
   const copy=JSON.parse(JSON.stringify(original));
   state.workouts[day].splice(i+1,0,copy);
+  upsertExerciseCatalog(copy);
   shiftChecksAfterInsert(i);
   save();
   render();
@@ -3638,19 +3787,18 @@ function replaceExercise(i){
   const current=state.workouts[day][i];
   if(!current) return;
 
-  // Catálogo vivo: reúne os exercícios cadastrados em todos os treinos.
+  // O catálogo de substituição vem do cadastro mestre, não dos exercícios
+  // atualmente distribuídos nos dias da semana.
   const catalog=[];
   const seen=new Set();
-  days.forEach(dayName=>{
-    (state.workouts[dayName]||[]).forEach(ex=>{
-      const nameKey=String(ex.name||'').trim().toLocaleLowerCase('pt-BR');
-      const muscleKey=String(ex.muscle||'Outros').trim().toLocaleLowerCase('pt-BR');
-      const key=muscleKey+'::'+nameKey;
-      const currentKey=String(current.muscle||'Outros').trim().toLocaleLowerCase('pt-BR')+'::'+String(current.name||'').trim().toLocaleLowerCase('pt-BR');
-      if(!nameKey || key===currentKey || seen.has(key)) return;
-      seen.add(key);
-      catalog.push(JSON.parse(JSON.stringify(ex)));
-    });
+  (state.exerciseCatalog||[]).forEach(ex=>{
+    const nameKey=String(ex?.name||'').trim().toLocaleLowerCase('pt-BR');
+    const muscleKey=String(ex?.muscle||'Outros').trim().toLocaleLowerCase('pt-BR');
+    const key=muscleKey+'::'+nameKey;
+    const currentKey=String(current.muscle||'Outros').trim().toLocaleLowerCase('pt-BR')+'::'+String(current.name||'').trim().toLocaleLowerCase('pt-BR');
+    if(!nameKey || key===currentKey || seen.has(key)) return;
+    seen.add(key);
+    catalog.push(JSON.parse(JSON.stringify(ex)));
   });
 
   if(!catalog.length){
@@ -3747,24 +3895,32 @@ function chooseReplacement(index){
 // EXCLUIR E MOVER EXERCÍCIOS
 // ========================================
 
+let pendingDeleteIndex=null;
+
 function deleteExercise(i){
+  const exercise=state.workouts[day]?.[i];
+  if(!exercise) return;
+  pendingDeleteIndex=i;
+  document.getElementById('deleteConfirmMessage').textContent=
+    `Tem certeza de que deseja excluir o exercício "${exercise.name}" deste treino?`;
+  document.getElementById('deleteConfirm').hidden=false;
+}
 
-if(!confirm(
-'Excluir '+state.workouts[day][i].name+
-' deste treino?'
-))
-return;
+function closeDeleteDialog(){
+  document.getElementById('deleteConfirm').hidden=true;
+  pendingDeleteIndex=null;
+}
 
-recordUndo('Exercício excluído');
-state.workouts[day].splice(i,1);
-
-shiftChecksAfterDelete(i);
-
-save();
-
-render();
-
-
+function confirmDeleteExercise(){
+  const i=pendingDeleteIndex;
+  const exercise=state.workouts[day]?.[i];
+  closeDeleteDialog();
+  if(!exercise) return;
+  recordUndo('Exercício excluído');
+  state.workouts[day].splice(i,1);
+  shiftChecksAfterDelete(i);
+  save();
+  render();
 }
 
 function moveExercise(i,dir){
@@ -3786,6 +3942,194 @@ save();
 render();
 
 }
+
+// ========================================
+// MOVER EXERCÍCIO PARA OUTRO DIA
+// ========================================
+
+let pendingMoveIndex=null;
+
+function openMoveDayDialog(index){
+  const exercise=state.workouts[day]?.[index];
+  if(!exercise) return;
+  pendingMoveIndex=index;
+  document.getElementById('moveDayMessage').textContent=`Mover o exercício "${exercise.name}" para qual dia da semana?`;
+  const shortDays=['Seg','Ter','Qua','Qui','Sex','Sáb'];
+  document.getElementById('moveDayOptions').innerHTML=days.map((target,index)=>
+    `<button type="button" class="btn" data-target-day="${esc(target)}" ${target===day?'disabled aria-disabled="true"':''}>${shortDays[index]}</button>`
+  ).join('');
+  document.getElementById('moveDayConfirm').hidden=false;
+}
+
+function closeMoveDayDialog(){
+  document.getElementById('moveDayConfirm').hidden=true;
+  pendingMoveIndex=null;
+}
+
+function moveExerciseToDay(targetDay){
+  const index=pendingMoveIndex;
+  if(!Number.isInteger(index) || targetDay===day || !days.includes(targetDay)) return;
+  const source=state.workouts[day]||[];
+  const exercise=source[index];
+  if(!exercise) return;
+  recordUndo('Exercício movido para outro dia');
+  const checks=(currentWeekData()[day+'_'+index]||[]).slice();
+  source.splice(index,1);
+  shiftChecksAfterDelete(index);
+  const target=state.workouts[targetDay]||(state.workouts[targetDay]=[]);
+  const targetIndex=target.length;
+  target.push(exercise);
+  state.weeklyChecks=state.weeklyChecks||{};
+  state.weeklyChecks[weekKey()]=state.weeklyChecks[weekKey()]||{};
+  if(checks.length) state.weeklyChecks[weekKey()][targetDay+'_'+targetIndex]=checks;
+  else delete state.weeklyChecks[weekKey()][targetDay+'_'+targetIndex];
+  closeMoveDayDialog();
+  save();
+  render();
+}
+
+// ========================================
+// CADASTRO DE INFORMAÇÕES
+// ========================================
+
+function openInfoCatalog(){
+  document.getElementById('infoCatalogModal').hidden=false;
+  renderAllCatalogLists();
+}
+function closeInfoCatalog(){document.getElementById('infoCatalogModal').hidden=true;}
+
+const catalogLabels={muscle:'Grupo muscular',equipment:'Equipamento',execution:'Execução',grip:'Pegada'};
+function renderCatalogList(category){
+  const container=document.getElementById('catalogList-'+category);
+  if(!container) return;
+  const values=getCatalogValues(category,false);
+  container.innerHTML=values.length?values.map(value=>`
+    <div class="catalog-list-item"><span>${esc(value)}</span>
+      <button type="button" class="btn danger" data-catalog-delete="${category}" data-catalog-value="${esc(value)}">Excluir</button>
+    </div>`).join(''):'<div class="catalog-empty">Nenhuma opção cadastrada.</div>';
+}
+function getAllExerciseNames(){
+  const names=new Map();
+  (state.exerciseCatalog||[]).forEach(ex=>{
+    const name=String(ex?.name||'').trim();
+    if(name){const key=name.toLocaleLowerCase('pt-BR');if(!names.has(key)) names.set(key,name);}
+  });
+  return [...names.values()].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+}
+function renderExerciseCatalogList(){
+  const container=document.getElementById('exerciseCatalogList');
+  if(!container) return;
+  const names=getAllExerciseNames();
+  container.innerHTML=names.length?names.map(name=>`
+    <div class="catalog-list-item"><span>${esc(name)}</span>
+      <button type="button" class="btn danger" data-exercise-catalog-delete="${esc(name)}">Excluir</button>
+    </div>`).join(''):'<div class="catalog-empty">Nenhum exercício cadastrado.</div>';
+}
+function renderAllCatalogLists(){
+  Object.keys(catalogLabels).forEach(renderCatalogList);
+  renderExerciseCatalogList();
+}
+let pendingCatalogDelete=null;
+function requestCatalogDelete(type,details){
+  pendingCatalogDelete={type,...details};
+  const name=String(details.value??details.name??'').trim();
+  document.getElementById('catalogDeleteConfirmMessage').textContent=
+    `Quer realmente excluir "${name}" do cadastro de informações?`;
+  document.getElementById('catalogDeleteConfirm').hidden=false;
+}
+function closeCatalogDeleteDialog(){
+  document.getElementById('catalogDeleteConfirm').hidden=true;
+  pendingCatalogDelete=null;
+}
+function confirmCatalogDelete(){
+  const pending=pendingCatalogDelete;
+  closeCatalogDeleteDialog();
+  if(!pending) return;
+  if(pending.type==='category') performDeleteCatalogValue(pending.category,pending.value);
+  if(pending.type==='exercise') performDeleteExerciseFromGlobalCatalog(pending.name);
+}
+function deleteCatalogValue(category,value){
+  if(!catalogLabels[category] || !String(value).trim()) return;
+  requestCatalogDelete('category',{category,value});
+}
+function performDeleteCatalogValue(category,value){
+  if(!catalogLabels[category]) return;
+  const normalized=String(value).trim().toLocaleLowerCase('pt-BR');
+  if(!normalized) return;
+  recordUndo(`${catalogLabels[category]} excluído do cadastro`);
+  state.catalogs=state.catalogs||{};
+  state.catalogs[category]=(state.catalogs[category]||[]).filter(item=>String(item).trim().toLocaleLowerCase('pt-BR')!==normalized);
+  // Remove também valores antigos presentes nos exercícios, para que não reapareçam nos selects.
+  Object.values(state.workouts||{}).flat().forEach(ex=>{
+    if(String(ex?.[category]??'').trim().toLocaleLowerCase('pt-BR')===normalized){
+      ex[category]=category==='muscle'?'':'-';
+    }
+  });
+  save();
+  renderAllCatalogLists();
+  render();
+  document.getElementById('catalogFeedback').textContent=`"${value}" excluído do cadastro e das listas suspensas.`;
+}
+function shiftChecksForDayAfterDelete(dayName,index){
+  state.weeklyChecks=state.weeklyChecks||{};
+  Object.keys(state.weeklyChecks).forEach(week=>{
+    const data=state.weeklyChecks[week]||{};
+    const next={};
+    Object.keys(data).forEach(key=>{
+      if(!key.startsWith(dayName+'_')){next[key]=data[key];return;}
+      const n=Number(key.slice(dayName.length+1));
+      if(!Number.isInteger(n)||n<index) next[key]=data[key];
+      else if(n>index) next[dayName+'_'+(n-1)]=data[key];
+    });
+    state.weeklyChecks[week]=next;
+  });
+}
+function deleteExerciseFromGlobalCatalog(name){
+  if(!String(name).trim()) return;
+  requestCatalogDelete('exercise',{name});
+}
+function performDeleteExerciseFromGlobalCatalog(name){
+  const normalized=String(name).trim().toLocaleLowerCase('pt-BR');
+  if(!normalized) return;
+  recordUndo('Exercício excluído do cadastro geral');
+  state.exerciseCatalog=(state.exerciseCatalog||[]).filter(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')!==normalized);
+  days.forEach(dayName=>{
+    const list=state.workouts[dayName]||[];
+    for(let i=list.length-1;i>=0;i--){
+      if(String(list[i]?.name||'').trim().toLocaleLowerCase('pt-BR')===normalized){
+        list.splice(i,1);
+        shiftChecksForDayAfterDelete(dayName,i);
+      }
+    }
+  });
+  save();
+  renderAllCatalogLists();
+  render();
+  document.getElementById('catalogFeedback').textContent=`"${name}" excluído de todos os treinos e da lista de substituição.`;
+}
+
+function addCatalogValue(category){
+  const inputIds={muscle:'newMuscle',equipment:'newEquipment',execution:'newExecution',grip:'newGrip'};
+  const input=document.getElementById(inputIds[category]);
+  const value=String(input?.value||'').trim();
+  if(!value){document.getElementById('catalogFeedback').textContent='Digite uma opção antes de adicionar.';return;}
+  state.catalogs=state.catalogs||{muscle:[],equipment:[],execution:[],grip:[]};
+  state.catalogs[category]=state.catalogs[category]||[];
+  const exists=getCatalogValues(category,true).some(item=>item.toLocaleLowerCase('pt-BR')===value.toLocaleLowerCase('pt-BR'));
+  if(exists){document.getElementById('catalogFeedback').textContent='Essa opção já está cadastrada ou já existe em um exercício.';return;}
+  state.catalogs[category].push(value);
+  save();
+  input.value='';
+  document.getElementById('catalogFeedback').textContent=`"${value}" cadastrado com sucesso.`;
+  renderCatalogList(category);
+}
+
+// ========================================
+// MENU IMPORTAR / EXPORTAR
+// ========================================
+
+function openBackupMenu(){document.getElementById('backupMenuConfirm').hidden=false;}
+function closeBackupMenu(){document.getElementById('backupMenuConfirm').hidden=true;}
 
 // ========================================
 // REINICIAR TREINO
@@ -3914,11 +4258,50 @@ document.getElementById('confirmResetBtn').onclick=confirmResetDay;
 document.getElementById('resetConfirm').addEventListener('click',event=>{
   if(event.target.id==='resetConfirm') closeResetDialog();
 });
+document.getElementById('cancelDeleteBtn').onclick=closeDeleteDialog;
+document.getElementById('confirmDeleteBtn').onclick=confirmDeleteExercise;
+document.getElementById('deleteConfirm').addEventListener('click',event=>{
+  if(event.target.id==='deleteConfirm') closeDeleteDialog();
+});
+document.getElementById('cancelCatalogDeleteBtn').onclick=closeCatalogDeleteDialog;
+document.getElementById('confirmCatalogDeleteBtn').onclick=confirmCatalogDelete;
+document.getElementById('catalogDeleteConfirm').addEventListener('click',event=>{
+  if(event.target.id==='catalogDeleteConfirm') closeCatalogDeleteDialog();
+});
 
 
-exportBtn.onclick=exportData;
-
-importBtn.onclick=()=>importFile.click();
+document.getElementById('backupMenuBtn').onclick=openBackupMenu;
+document.getElementById('closeBackupMenuBtn').onclick=closeBackupMenu;
+document.getElementById('chooseExportBtn').onclick=()=>{closeBackupMenu();exportData();};
+document.getElementById('chooseImportBtn').onclick=()=>{closeBackupMenu();importFile.click();};
+document.getElementById('infoCatalogBtn').onclick=openInfoCatalog;
+document.getElementById('closeInfoCatalogBtn').onclick=closeInfoCatalog;
+document.querySelectorAll('[data-catalog-add]').forEach(button=>button.addEventListener('click',()=>addCatalogValue(button.dataset.catalogAdd)));
+document.getElementById('infoCatalogModal').addEventListener('click',event=>{
+  const listButton=event.target.closest('[data-catalog-list]');
+  if(listButton){
+    const category=listButton.dataset.catalogList;
+    const panel=document.getElementById('catalogList-'+category);
+    if(panel){panel.hidden=!panel.hidden;renderCatalogList(category);}
+    return;
+  }
+  const deleteButton=event.target.closest('[data-catalog-delete]');
+  if(deleteButton){deleteCatalogValue(deleteButton.dataset.catalogDelete,deleteButton.dataset.catalogValue);return;}
+  const exerciseToggle=event.target.closest('[data-exercise-catalog-toggle]');
+  if(exerciseToggle){
+    const panel=document.getElementById('exerciseCatalogList');
+    panel.hidden=!panel.hidden;
+    renderExerciseCatalogList();
+    return;
+  }
+  const exerciseDelete=event.target.closest('[data-exercise-catalog-delete]');
+  if(exerciseDelete) deleteExerciseFromGlobalCatalog(exerciseDelete.dataset.exerciseCatalogDelete);
+});
+document.getElementById('cancelMoveDayBtn').onclick=closeMoveDayDialog;
+document.getElementById('moveDayOptions').addEventListener('click',event=>{const button=event.target.closest('[data-target-day]');if(button&&!button.disabled) moveExerciseToDay(button.dataset.targetDay);});
+document.getElementById('moveDayConfirm').addEventListener('click',event=>{if(event.target.id==='moveDayConfirm') closeMoveDayDialog();});
+document.getElementById('backupMenuConfirm').addEventListener('click',event=>{if(event.target.id==='backupMenuConfirm') closeBackupMenu();});
+document.getElementById('infoCatalogModal').addEventListener('click',event=>{if(event.target.id==='infoCatalogModal') closeInfoCatalog();});
 
 importFile.onchange=e=>{
 
