@@ -5131,7 +5131,7 @@ function refreshStyledSelect(select){
         select.dispatchEvent(new Event('input',{bubbles:true}));
         select.dispatchEvent(new Event('change',{bubbles:true}));
         refreshStyledSelect(select);
-        menu.hidden=true;
+        closeStyledSelectMenu(menu);
         trigger.setAttribute('aria-expanded','false');
         trigger.focus();
       });
@@ -5147,7 +5147,7 @@ function refreshStyledSelect(select){
     });
     searchInput.addEventListener('keydown',event=>{
       if(event.key==='Escape'){
-        menu.hidden=true;
+        closeStyledSelectMenu(menu);
         trigger.setAttribute('aria-expanded','false');
         trigger.focus();
       }
@@ -5157,6 +5157,40 @@ function refreshStyledSelect(select){
       }
     });
   }
+}
+
+// Menus da janela de substituição são exibidos em uma camada no body,
+// evitando que os contêineres roláveis do modal cortem as opções no celular.
+function closeStyledSelectMenu(menu){
+  if(!menu) return;
+  menu.hidden=true;
+  if(menu.dataset.portal==='true'){
+    const root=menu._styledSelectRoot;
+    if(root) root.appendChild(menu);
+    menu.dataset.portal='';
+    menu._styledSelectRoot=null;
+    menu.style.position='';
+    menu.style.left='';
+    menu.style.top='';
+    menu.style.width='';
+    menu.style.maxHeight='';
+    menu.style.zIndex='';
+  }
+}
+function openDependencySelectMenu(select,root,trigger,menu){
+  const rect=trigger.getBoundingClientRect();
+  const gap=6;
+  const available=Math.max(120,window.innerHeight-rect.bottom-gap-14);
+  menu._styledSelectRoot=root;
+  menu.dataset.portal='true';
+  document.body.appendChild(menu);
+  menu.style.position='fixed';
+  menu.style.left=`${Math.max(8,rect.left)}px`;
+  menu.style.top=`${rect.bottom+gap}px`;
+  menu.style.width=`${rect.width}px`;
+  menu.style.maxHeight=`${Math.min(420,available)}px`;
+  menu.style.zIndex='15000';
+  menu.hidden=false;
 }
 
 function setupStyledSelects(){
@@ -5182,11 +5216,14 @@ function setupStyledSelects(){
 
     trigger.addEventListener('click',()=>{
       const willOpen=menu.hidden;
-      document.querySelectorAll('.styled-select-menu').forEach(other=>other.hidden=true);
+      document.querySelectorAll('.styled-select-menu').forEach(other=>closeStyledSelectMenu(other));
       document.querySelectorAll('.styled-select-trigger').forEach(other=>other.setAttribute('aria-expanded','false'));
-      menu.hidden=!willOpen;
+      if(willOpen){
+        refreshStyledSelect(select);
+        if(select.closest('#catalogDependencyList')) openDependencySelectMenu(select,root,trigger,menu);
+        else menu.hidden=false;
+      } else closeStyledSelectMenu(menu);
       trigger.setAttribute('aria-expanded',String(willOpen));
-      if(willOpen) refreshStyledSelect(select);
     });
     trigger.addEventListener('keydown',event=>{
       if(event.key==='ArrowDown' || event.key==='Enter' || event.key===' '){
@@ -5199,7 +5236,7 @@ function setupStyledSelects(){
     });
     menu.addEventListener('keydown',event=>{
       if(event.key==='Escape'){
-        menu.hidden=true;
+        closeStyledSelectMenu(menu);
         trigger.setAttribute('aria-expanded','false');
         trigger.focus();
       }
@@ -5211,10 +5248,21 @@ function setupStyledSelects(){
 }
 
 document.addEventListener('click',event=>{
-  if(event.target.closest('.styled-select')) return;
-  document.querySelectorAll('.styled-select-menu').forEach(menu=>menu.hidden=true);
+  if(event.target.closest('.styled-select') || event.target.closest('.styled-select-menu')) return;
+  document.querySelectorAll('.styled-select-menu').forEach(menu=>closeStyledSelectMenu(menu));
   document.querySelectorAll('.styled-select-trigger').forEach(trigger=>trigger.setAttribute('aria-expanded','false'));
 });
+window.addEventListener('resize',()=>{
+  document.querySelectorAll('.styled-select-menu[data-portal="true"]').forEach(menu=>{
+    const root=menu._styledSelectRoot;
+    const select=root?.querySelector('select');
+    const trigger=root?.querySelector('.styled-select-trigger');
+    if(select && trigger) openDependencySelectMenu(select,root,trigger,menu);
+  });
+});
+window.addEventListener('scroll',()=>{
+  document.querySelectorAll('.styled-select-menu[data-portal="true"]').forEach(menu=>closeStyledSelectMenu(menu));
+},{passive:true});
 
 function refreshAllStyledSelects(){
   document.querySelectorAll('select').forEach(refreshStyledSelect);
