@@ -1970,6 +1970,12 @@ select:focus {
 .catalog-list-item span{min-width:0;overflow-wrap:anywhere}
 .catalog-list-item .btn{flex:0 0 auto;padding:6px 9px}
 .catalog-empty{padding:8px;color:var(--muted);font-size:12px}
+.catalog-search{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid #394743;border-radius:9px;background:#0f1212;color:var(--muted)}
+.catalog-search svg{width:17px;height:17px;flex:0 0 17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.catalog-search input{flex:1;min-width:0;padding:0;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;color:var(--text);font:inherit}
+#catalogNotice{z-index:13000}
+#equipmentPrepositionDialog{z-index:13001}
+
 
 @media(max-width:480px){.catalog-entry>div:not(.catalog-list){flex-wrap:wrap}.catalog-entry>div:not(.catalog-list) input{flex-basis:100%}}
 
@@ -2078,11 +2084,13 @@ select:focus {
 .variation-existing-summary{display:grid;gap:9px;margin:0 0 17px}
 .variation-existing-item{padding:11px 12px;border:1px solid #35473c;border-radius:10px;background:#111815}
 .variation-existing-title{margin:0 0 30px;color:var(--accent);font-size:12px;font-weight:800}
-.variation-existing-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;font-size:12px;color:#c1cbc4;line-height:1.35}
-.variation-existing-grid b{color:#8fa193;font-weight:700}
+.variation-existing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 18px;font-size:12px;color:#c1cbc4;line-height:1.35}
+.variation-existing-field{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
+.variation-existing-field b{color:#8fa193;font-size:11px;font-weight:700;line-height:1.25}
+.variation-existing-field span{color:#e1e7e2;overflow-wrap:anywhere;line-height:1.35}
 .duplicate-variation-dialog .field{margin:10px 0}
 .duplicate-variation-dialog .confirm-actions{margin-top:18px}
-@media(max-width:480px){.duplicate-variation-dialog{padding:15px}.duplicate-variation-dialog .variation-intro{margin-bottom:13px}.variation-existing-grid{gap:7px 9px}}
+@media(max-width:480px){.duplicate-variation-dialog{padding:15px}.duplicate-variation-dialog .variation-intro{margin-bottom:13px}.variation-existing-grid{gap:12px 10px}.variation-existing-title{margin-bottom:26px}}
 
 </style>
 </head>
@@ -2199,6 +2207,30 @@ select:focus {
   </section>
 </div>
 
+<div class="confirm-backdrop" id="catalogNotice" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogNoticeTitle">
+    <h2 id="catalogNoticeTitle">Aviso</h2>
+    <p id="catalogNoticeMessage"></p>
+    <div class="confirm-actions"><button type="button" class="btn primary" id="closeCatalogNoticeBtn">OK</button></div>
+  </section>
+</div>
+
+<div class="confirm-backdrop" id="equipmentPrepositionDialog" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="equipmentPrepositionTitle">
+    <h2 id="equipmentPrepositionTitle">Qual preposição quer usar?</h2>
+    <p>Escolha como este equipamento deverá aparecer quando for necessário diferenciar exercícios com o mesmo nome.</p>
+    <div class="field"><label for="equipmentPrepositionChoice">Preposição</label>
+      <select id="equipmentPrepositionChoice">
+        <option value="na">na</option><option value="no">no</option><option value="com">com</option>
+      </select>
+    </div>
+    <div class="confirm-actions">
+      <button type="button" class="btn" id="cancelEquipmentPrepositionBtn">Cancelar</button>
+      <button type="button" class="btn primary" id="saveEquipmentPrepositionBtn">Salvar</button>
+    </div>
+  </section>
+</div>
+
 <div class="confirm-backdrop" id="catalogDeleteConfirm" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogDeleteConfirmTitle">
     <h2 id="catalogDeleteConfirmTitle">Confirmar exclusão</h2>
@@ -2241,7 +2273,13 @@ select:focus {
         <button type="button" class="btn primary" data-exercise-add>Adicionar</button>
         <button type="button" class="btn catalog-list-toggle" data-exercise-catalog-toggle aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button>
       </div>
-      <div class="catalog-list" id="exerciseCatalogList" hidden></div>
+      <div class="catalog-list exercise-catalog-list" id="exerciseCatalogList" hidden>
+        <label class="catalog-search" for="exerciseCatalogSearch">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+          <input id="exerciseCatalogSearch" type="search" placeholder="Pesquisar exercício..." autocomplete="off">
+        </label>
+        <div id="exerciseCatalogResults"></div>
+      </div>
     </div>
     <div class="catalog-entry"><label for="newMuscle">Grupo muscular</label><div><input id="newMuscle" type="text" placeholder="Novo grupo muscular"><button type="button" class="btn primary" data-catalog-add="muscle">Adicionar</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="muscle" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-muscle" hidden></div></div>
     <div class="catalog-entry"><label for="newEquipment">Equipamento</label><div><input id="newEquipment" type="text" placeholder="Novo equipamento"><button type="button" class="btn primary" data-catalog-add="equipment">Adicionar</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="equipment" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-equipment" hidden></div></div>
@@ -2510,7 +2548,7 @@ const initial = {
 // CONFIGURAÇÕES E ARMAZENAMENTO
 // ========================================
 
-const days=Object.keys(initial);
+const days=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 
 let day=days[0];
 let allExercisesCollapsed=false;
@@ -2571,6 +2609,10 @@ String(d.getDate()).padStart(2,'0');
 
 }
 
+function comparisonKey(value){
+  return String(value??'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
+}
+
 function normalizeState(x){
 
 if(!x||!x.workouts)
@@ -2581,11 +2623,12 @@ x.notes=x.notes||{};
 x.weeklyChecks=x.weeklyChecks||{};
 x.sessions=x.sessions||{};
 x.catalogs=x.catalogs||{muscle:[],equipment:[],execution:[],grip:[]};
+x.equipmentPrepositions=x.equipmentPrepositions||{};
 ['muscle','equipment','execution','grip'].forEach(key=>{if(!Array.isArray(x.catalogs[key])) x.catalogs[key]=[];});
 // Catálogo mestre independente dos treinos semanais. Migra os exercícios
 // existentes uma única vez e preserva itens mesmo quando saem de um dia.
 if(!Array.isArray(x.exerciseCatalog)) x.exerciseCatalog=[];
-const exerciseSignature=ex=>[ex?.name,ex?.muscle,ex?.execution,ex?.grip,ex?.equipment].map(v=>String(v??'').trim().toLocaleLowerCase('pt-BR')).join('|');
+const exerciseSignature=ex=>[ex?.name,ex?.muscle,ex?.execution,ex?.grip,ex?.equipment].map(v=>comparisonKey(v)).join('|');
 const knownExerciseNames=new Set(x.exerciseCatalog.map(exerciseSignature));
 Object.values(x.workouts||{}).flat().forEach(ex=>{
   const name=String(ex?.name||'').trim();
@@ -2635,6 +2678,7 @@ notes:{},
 weeklyChecks:{},
 sessions:{},
 catalogs:{muscle:[],equipment:[],execution:[],grip:[]},
+equipmentPrepositions:{},
 exerciseCatalog:[],
 progressVersion:2
 
@@ -3508,8 +3552,8 @@ function preserveExerciseDropdownValues(exercise){
     state.catalogs[category]=Array.isArray(state.catalogs[category])?state.catalogs[category]:[];
     const value=String(exercise[category]??'').trim();
     if(!value || value==='-') return;
-    const key=value.toLocaleLowerCase('pt-BR');
-    if(!state.catalogs[category].some(item=>String(item).trim().toLocaleLowerCase('pt-BR')===key)){
+    const key=comparisonKey(value);
+    if(!state.catalogs[category].some(item=>comparisonKey(item)===key)){
       state.catalogs[category].push(value);
     }
   });
@@ -3526,7 +3570,7 @@ function upsertExerciseCatalog(exercise, oldExercise=null){
   }
   if(!newName) return;
   const copy=JSON.parse(JSON.stringify(exercise));
-  const signature=item=>[item?.name,item?.muscle,item?.execution,item?.grip,item?.equipment].map(v=>String(v??'').trim().toLocaleLowerCase('pt-BR')).join('|');
+  const signature=item=>[item?.name,item?.muscle,item?.execution,item?.grip,item?.equipment].map(v=>comparisonKey(v)).join('|');
   const index=state.exerciseCatalog.findIndex(item=>signature(item)===signature(copy));
   if(index>=0) state.exerciseCatalog[index]=copy;
   else state.exerciseCatalog.push(copy);
@@ -3562,7 +3606,7 @@ function getCatalogValues(category,includeDash=false){
   const add=value=>{
     const item=String(value??'').trim();
     if(!item || (item==='-' && !includeDash)) return;
-    const key=item.toLocaleLowerCase('pt-BR');
+    const key=comparisonKey(item);
     if(!unique.has(key)) unique.set(key,item);
   };
   (state.catalogs?.[category]||[]).forEach(add);
@@ -3576,7 +3620,8 @@ function populateCatalogSelect(select,category,selectedValue='',includeDash=fals
   if(!select) return;
   const options=getCatalogValues(category,includeDash);
   const selected=String(selectedValue??'').trim();
-  if(selected && !options.some(v=>v.toLocaleLowerCase('pt-BR')===selected.toLocaleLowerCase('pt-BR'))) options.push(selected);
+  if(selected && !options.some(v=>comparisonKey(v)===comparisonKey(selected))) options.push(selected);
+  options.sort((a,b)=>a==='-'?-1:b==='-'?1:a.localeCompare(b,'pt-BR'));
   select.innerHTML=options.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');
   select.value=selected;
   if(selected && select.value!==selected){
@@ -3610,18 +3655,19 @@ function preserveSelectValue(select, value){
     option.value=desired;
     option.textContent=desired;
     select.appendChild(option);
+    Array.from(select.options).sort((a,b)=>a.value==='-'?-1:b.value==='-'?1:a.textContent.localeCompare(b.textContent,'pt-BR')).forEach(item=>select.appendChild(item));
   }
   select.value=desired;
 }
 
 function findExerciseWorkoutDay(exercise){
   if(!exercise) return '-';
-  const key=String(exercise.name||'').trim().toLocaleLowerCase('pt-BR');
+  const key=comparisonKey(exercise.name);
   if(!key) return '-';
   for(const dayName of days){
     const found=(state.workouts[dayName]||[]).some(item=>
-      String(item.name||'').trim().toLocaleLowerCase('pt-BR')===key &&
-      ['muscle','equipment','execution','grip'].every(k=>String(item[k]||'-').trim().toLocaleLowerCase('pt-BR')===String(exercise[k]||'-').trim().toLocaleLowerCase('pt-BR'))
+      comparisonKey(item.name)===key &&
+      ['muscle','equipment','execution','grip'].every(k=>comparisonKey(item[k]||'-')===comparisonKey(exercise[k]||'-'))
     );
     if(found) return dayName;
   }
@@ -3664,14 +3710,7 @@ if(i===null){
   fNameSelect.hidden=false;
   fNameSelect.required=true;
   if(nameSelectRoot) nameSelectRoot.hidden=false;
-  const activeVariants=new Set((state.workouts[day]||[]).map(exerciseVariationSignature));
-  exercisePickerVariants=getAllExerciseVariants();
-  const displayNames=getExerciseDisplayNames(exercisePickerVariants);
-  fNameSelect.innerHTML='<option value="" disabled selected>Selecione um exercício</option>'+
-    exercisePickerVariants.map((ex,index)=>{
-      const blocked=activeVariants.has(exerciseVariationSignature(ex));
-      return `<option value="${index}"${blocked?' disabled':''}>${esc(displayNames[index])}</option>`;
-    }).join('');
+  refreshExerciseNamePickerOptions();
   fNameSelect.value='';
   fName.value='';
   refreshStyledSelect(fNameSelect);
@@ -3688,7 +3727,7 @@ if(i===null){
 const registeredMuscles=getCatalogValues('muscle',false);
 if(!registeredMuscles.some(m=>/aer[oó]bic|cardio/i.test(m))) registeredMuscles.push('Aeróbico');
 
-const muscleOptions=[...registeredMuscles];
+const muscleOptions=[...registeredMuscles].sort((a,b)=>a.localeCompare(b,'pt-BR'));
 if(e.muscle && !muscleOptions.includes(e.muscle)){
   muscleOptions.push(e.muscle);
   muscleOptions.sort((a,b)=>a.localeCompare(b,'pt-BR'));
@@ -3700,7 +3739,7 @@ fMuscle.innerHTML=muscleOptions
 equipmentAddField.hidden = i!==null;
 equipmentEditField.hidden = i===null;
 fEquipment.value=e.equipment||'-';
-const equipmentOptions=getCatalogValues('equipment',true);
+const equipmentOptions=getCatalogValues('equipment',true).sort((a,b)=>a==='-'?-1:b==='-'?1:a.localeCompare(b,'pt-BR'));
 const currentEquipment=String(e.equipment||'-').trim()||'-';
 if(!equipmentOptions.some(item=>item.toLocaleLowerCase('pt-BR')===currentEquipment.toLocaleLowerCase('pt-BR'))){
   equipmentOptions.push(currentEquipment);
@@ -3728,7 +3767,7 @@ document.getElementById('decreaseSetsBtn').disabled=(+fSets.value)<=1;
 document.getElementById('increaseSetsBtn').disabled=(+fSets.value)>=20;
 
 fNote.value=e.note||'';
-if(fDay){ fDay.value=i===null?'-':day; fDay.closest('.field').hidden=i!==null; refreshStyledSelect(fDay); }
+if(fDay){ const weekdayOrder=['-','Segunda','Terça','Quarta','Quinta','Sexta','Sábado']; Array.from(fDay.options).sort((a,b)=>weekdayOrder.indexOf(a.value)-weekdayOrder.indexOf(b.value)).forEach(option=>fDay.appendChild(option)); fDay.value=i===null?'-':day; fDay.closest('.field').hidden=i!==null; refreshStyledSelect(fDay); }
 
 renderLoadFields(e.loads||[],e.sets||4,isAerobicExercise(e));
 
@@ -3753,6 +3792,7 @@ function handleExerciseNameInput(selectedVariant=null){
       option.value=current;
       option.textContent=current;
       select.appendChild(option);
+      Array.from(select.options).sort((a,b)=>a.value==='-'?-1:b.value==='-'?1:a.textContent.localeCompare(b.textContent,'pt-BR')).forEach(item=>select.appendChild(item));
     }
     select.value=current;
     if(!current) select.selectedIndex=-1;
@@ -3854,6 +3894,32 @@ loads:readLoadFields()
 };
 
 if(editIndex!==null && !old) return;
+if(editIndex!==null && old){
+  const proposedSignature=exerciseVariationSignature(e);
+  const oldSignature=exerciseVariationSignature(old);
+  const duplicateVariant=(state.exerciseCatalog||[]).some(item=>
+    exerciseVariationSignature(item)!==oldSignature &&
+    exerciseVariationSignature(item)===proposedSignature
+  );
+  if(duplicateVariant){
+    showCatalogNotice('Exercício já cadastrado','Essa combinação de nome e atributos já existe no cadastro. Altere pelo menos um atributo antes de salvar.');
+    return;
+  }
+}
+if(editIndex!==null && old && comparisonKey(e.name)!==comparisonKey(old.name)){
+  const duplicateName=(state.exerciseCatalog||[]).some(item=>
+    exerciseVariationSignature(item)!==exerciseVariationSignature(old) &&
+    comparisonKey(item?.name)===comparisonKey(e.name)
+  ) || Object.values(state.workouts||{}).flat().some(item=>
+    item!==old &&
+    exerciseVariationSignature(item)!==exerciseVariationSignature(old) &&
+    comparisonKey(item?.name)===comparisonKey(e.name)
+  );
+  if(duplicateName){
+    showCatalogNotice('Nome de exercício já cadastrado','Já existe um exercício com esse nome. Para criar outra versão, utilize a área de Cadastro e escolha atributos diferentes.');
+    return;
+  }
+}
 recordUndo(editIndex===null?(fDay?.value==='-'?'Exercício cadastrado':'Exercício adicionado'):'Exercício editado');
 
 // Registra os valores anteriores antes de qualquer alteração do exercício.
@@ -3971,9 +4037,13 @@ function replaceExercise(i){
     if(name && !catalogByName.has(nameKey)) catalogByName.set(nameKey,JSON.parse(JSON.stringify(ex)));
   });
   const currentKey=exerciseVariationSignature(current);
-  const catalog=[...catalogByName.entries()]
+  let catalog=[...catalogByName.entries()]
     .filter(([nameKey])=>nameKey!==currentKey)
     .map(([,ex])=>ex);
+  const initialLabels=getExerciseDisplayNames(catalog);
+  catalog=catalog.map((ex,index)=>({ex,label:initialLabels[index]}))
+    .sort((a,b)=>a.label.localeCompare(b.label,'pt-BR'))
+    .map(item=>item.ex);
 
   if(!catalog.length){
     alert('Ainda não há outros exercícios cadastrados nos treinos para usar como substituição.');
@@ -4188,8 +4258,9 @@ function renderCatalogList(category){
 }
 function exerciseVariationSignature(ex){
   return [ex?.name,ex?.muscle,ex?.equipment,ex?.execution,ex?.grip]
-    .map(v=>String(v??'').trim().toLocaleLowerCase('pt-BR')).join('|');
+    .map(v=>comparisonKey(v)).join('|');
 }
+let exercisePickerVariants=[];
 function getAllExerciseVariants(){
   const unique=new Map();
   // O cadastro mestre é a única fonte de exercícios disponíveis nas listas.
@@ -4200,9 +4271,43 @@ function getAllExerciseVariants(){
     const signature=exerciseVariationSignature(ex);
     if(!unique.has(signature)) unique.set(signature,JSON.parse(JSON.stringify(ex)));
   });
-  return [...unique.values()].sort((a,b)=>
-    String(a.name||'').localeCompare(String(b.name||''),'pt-BR')
-  );
+  const variants=[...unique.values()];
+  const labels=getExerciseDisplayNames(variants);
+  return variants.map((ex,index)=>({ex,label:labels[index]}))
+    .sort((a,b)=>a.label.localeCompare(b.label,'pt-BR'))
+    .map(item=>item.ex);
+}
+function equipmentPreposition(equipment){
+  const raw=String(equipment||'').trim();
+  if(!raw || raw==='-') return '';
+  const first=raw.split(/[\/\s]+/)[0].toLocaleLowerCase('pt-BR');
+  const normalized=raw.toLocaleLowerCase('pt-BR');
+  const saved=state.equipmentPrepositions||{};
+  const savedKey=Object.keys(saved).find(k=>k.toLocaleLowerCase('pt-BR')===normalized);
+  if(savedKey && ['na','no','com'].includes(saved[savedKey])) return saved[savedKey];
+  if(/^(máquina|maquina|máquinas|maquinas|polia|polias|esteira|esteiras)$/.test(first)) return 'na';
+  if(/^(banco|bancos|colchonete|colchonetes|leg|legpress|scott|scotts|smith|smiths|aparelho|aparelhos)$/.test(first) ||
+     normalized.startsWith('leg press')) return 'no';
+  if(/^(barra|barras|corda|cordas|halter|halteres)$/.test(first)) return 'com';
+  return 'com';
+}
+function refreshExerciseNamePickerOptions(){
+  const select=document.getElementById('fNameSelect');
+  if(!select) return;
+  const previousValue=select.value;
+  const previous=previousValue!=='' ? exercisePickerVariants[Number(previousValue)] : null;
+  const previousSignature=previous?exerciseVariationSignature(previous):'';
+  exercisePickerVariants=getAllExerciseVariants();
+  const labels=getExerciseDisplayNames(exercisePickerVariants);
+  const activeVariants=new Set((state.workouts[day]||[]).map(exerciseVariationSignature));
+  select.innerHTML='<option value="" disabled selected>Selecione um exercício</option>'+
+    exercisePickerVariants.map((ex,index)=>{
+      const blocked=activeVariants.has(exerciseVariationSignature(ex));
+      return `<option value="${index}"${blocked?' disabled':''}>${esc(labels[index])}</option>`;
+    }).join('');
+  const nextIndex=previousSignature?exercisePickerVariants.findIndex(ex=>exerciseVariationSignature(ex)===previousSignature):-1;
+  select.value=nextIndex>=0?String(nextIndex):'';
+  refreshStyledSelect(select);
 }
 function getExerciseDisplayNames(variants){
   const labels=variants.map(ex=>String(ex?.name||'').trim());
@@ -4219,40 +4324,35 @@ function getExerciseDisplayNames(variants){
   groups.forEach(indices=>{
     if(indices.length<2) return;
     const suffixes=new Map();
-    // Todos recebem o equipamento como sobrenome principal.
-    indices.forEach(index=>{
-      const equipment=value(variants[index],'equipment');
-      suffixes.set(index,equipment?`com ${equipment}`:'');
-    });
-    // Só quando o equipamento se repete é acrescentada a execução.
     const byEquipment=new Map();
     indices.forEach(index=>{
-      const key=value(variants[index],'equipment').toLocaleLowerCase('pt-BR');
-      if(!byEquipment.has(key)) byEquipment.set(key,[]);
-      byEquipment.get(key).push(index);
+      const equipment=value(variants[index],'equipment');
+      const equipmentKey=equipment.toLocaleLowerCase('pt-BR');
+      if(!byEquipment.has(equipmentKey)) byEquipment.set(equipmentKey,[]);
+      byEquipment.get(equipmentKey).push(index);
+      suffixes.set(index,equipment?`${equipmentPreposition(equipment)} ${equipment}`:'');
     });
+    // Quando o equipamento se repete, a execução passa a completar o sobrenome.
     byEquipment.forEach(sameEquipment=>{
       if(sameEquipment.length<2) return;
       sameEquipment.forEach(index=>{
         const execution=value(variants[index],'execution');
-        const base=suffixes.get(index);
-        suffixes.set(index,[base,execution].filter(Boolean).join(' '));
+        suffixes.set(index,[suffixes.get(index),execution].filter(Boolean).join(' '));
       });
-      // Se equipamento + execução ainda empatarem, usa grupo muscular e pegada
-      // apenas para desempatar os registros realmente coincidentes.
-      const bySuffix=new Map();
-      sameEquipment.forEach(index=>{
-        const key=(suffixes.get(index)||'').toLocaleLowerCase('pt-BR');
-        if(!bySuffix.has(key)) bySuffix.set(key,[]);
-        bySuffix.get(key).push(index);
-      });
-      bySuffix.forEach(tied=>{
-        if(tied.length<2) return;
-        tied.forEach(index=>{
-          const ex=variants[index];
-          const extra=[value(ex,'muscle'),value(ex,'grip')].filter(Boolean).join(' ');
-          if(extra) suffixes.set(index,[suffixes.get(index),extra].filter(Boolean).join(' '));
-        });
+    });
+    // Desempates finais apenas se equipamento e execução também coincidirem.
+    const bySuffix=new Map();
+    indices.forEach(index=>{
+      const key=(suffixes.get(index)||'').toLocaleLowerCase('pt-BR');
+      if(!bySuffix.has(key)) bySuffix.set(key,[]);
+      bySuffix.get(key).push(index);
+    });
+    bySuffix.forEach(tied=>{
+      if(tied.length<2) return;
+      tied.forEach(index=>{
+        const ex=variants[index];
+        const extra=[value(ex,'muscle'),value(ex,'grip')].filter(Boolean).join(' ');
+        if(extra) suffixes.set(index,[suffixes.get(index),extra].filter(Boolean).join(' '));
       });
     });
     indices.forEach(index=>{
@@ -4275,23 +4375,29 @@ function renderExerciseCatalogList(){
   if(!container) return;
   const variants=getAllExerciseVariants();
   const labels=getExerciseDisplayNames(variants);
-  container.innerHTML=variants.length?variants.map((ex,index)=>`
-    <div class="catalog-list-item"><span>${esc(labels[index])}</span>
+  const search=document.getElementById('exerciseCatalogSearch');
+  const results=document.getElementById('exerciseCatalogResults')||container;
+  const query=String(search?.value||'').trim().toLocaleLowerCase('pt-BR');
+  const visible=variants.map((ex,index)=>({ex,index,label:labels[index]}))
+    .filter(item=>!query || item.label.toLocaleLowerCase('pt-BR').includes(query))
+    .sort((a,b)=>a.label.localeCompare(b.label,'pt-BR'));
+  results.innerHTML=visible.length?visible.map(({label,index})=>`
+    <div class="catalog-list-item"><span>${esc(label)}</span>
       <button type="button" class="btn danger" data-exercise-catalog-delete="${index}">Excluir</button>
-    </div>`).join(''):'<div class="catalog-empty">Nenhum exercício cadastrado.</div>';
+    </div>`).join(''):`<div class="catalog-empty">${query?'Nenhum exercício encontrado.':'Nenhum exercício cadastrado.'}</div>`;
 }
 function addExerciseCatalogValue(){
   const input=document.getElementById('newExercise');
   const name=String(input?.value||'').trim();
   const feedback=document.getElementById('catalogFeedback');
   if(!name){
-    feedback.textContent='Informe o nome do exercício.';
+    showCatalogNotice('Aviso','Informe o nome do exercício.');
     return;
   }
   state.exerciseCatalog=Array.isArray(state.exerciseCatalog)?state.exerciseCatalog:[];
-  const normalized=name.toLocaleLowerCase('pt-BR');
-  const exists=(state.exerciseCatalog||[]).some(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')===normalized)
-    || Object.values(state.workouts||{}).flat().some(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')===normalized);
+  const normalized=comparisonKey(name);
+  const exists=(state.exerciseCatalog||[]).some(ex=>comparisonKey(ex?.name)===normalized)
+    || Object.values(state.workouts||{}).flat().some(ex=>comparisonKey(ex?.name)===normalized);
   if(exists){
     openExerciseVariation(name);
     return;
@@ -4318,21 +4424,21 @@ function normalizeVariationValue(value){
   return normalized||'-';
 }
 function variationValueKey(value){
-  return normalizeVariationValue(value).toLocaleLowerCase('pt-BR');
+  return comparisonKey(normalizeVariationValue(value));
 }
 function getExistingExerciseVariations(name){
-  const key=String(name||'').trim().toLocaleLowerCase('pt-BR');
+  const key=comparisonKey(name);
   const unique=new Map();
   [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{
-    if(String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')!==key) return;
+    if(comparisonKey(ex?.name)!==key) return;
     const signature=['muscle','equipment','execution','grip'].map(k=>variationValueKey(ex?.[k])).join('|');
     if(!unique.has(signature)) unique.set(signature,ex);
   });
   return [...unique.values()];
 }
 function openExerciseVariation(name){
-  pendingExerciseVariationName=name;
   const existing=getExistingExerciseVariations(name);
+  pendingExerciseVariationName=existing[0]?.name||name;
   const current=existing[existing.length-1]||{};
   const config=[
     ['variationMuscle','muscle'],
@@ -4346,10 +4452,10 @@ function openExerciseVariation(name){
     <div class="variation-existing-item">
       <p class="variation-existing-title">${existing.length>1?`Versão cadastrada ${index+1}`:'Requisitos já cadastrados'}</p>
       <div class="variation-existing-grid">
-        <span><b>Grupo muscular:</b> ${esc(normalizeVariationValue(ex.muscle))}</span>
-        <span><b>Equipamento:</b> ${esc(normalizeVariationValue(ex.equipment))}</span>
-        <span><b>Execução:</b> ${esc(normalizeVariationValue(ex.execution))}</span>
-        <span><b>Pegada:</b> ${esc(normalizeVariationValue(ex.grip))}</span>
+        <div class="variation-existing-field"><b>Grupo muscular</b><span>${esc(normalizeVariationValue(ex.muscle))}</span></div>
+        <div class="variation-existing-field"><b>Equipamento</b><span>${esc(normalizeVariationValue(ex.equipment))}</span></div>
+        <div class="variation-existing-field"><b>Execução</b><span>${esc(normalizeVariationValue(ex.execution))}</span></div>
+        <div class="variation-existing-field"><b>Pegada</b><span>${esc(normalizeVariationValue(ex.grip))}</span></div>
       </div>
     </div>
   `).join('');
@@ -4360,6 +4466,7 @@ function openExerciseVariation(name){
     if(!values.some(v=>v==='-')) values.unshift('-');
     const selected=normalizeVariationValue(current[key]);
     if(!values.some(v=>variationValueKey(v)===variationValueKey(selected))) values.push(selected);
+    values.sort((a,b)=>a==='-'?-1:b==='-'?1:a.localeCompare(b,'pt-BR'));
     select.innerHTML=values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
     select.value=values.find(v=>variationValueKey(v)===variationValueKey(selected))||'-';
   });
@@ -4388,7 +4495,7 @@ function saveExerciseVariation(){
     )
   );
   if(same){
-    document.getElementById('catalogFeedback').textContent='Escolha pelo menos uma opção diferente. Essa combinação já está cadastrada.';
+    showCatalogNotice('Variação já cadastrada','Escolha pelo menos um atributo diferente. Essa combinação já existe.');
     return;
   }
   state.exerciseCatalog=Array.isArray(state.exerciseCatalog)?state.exerciseCatalog:[];
@@ -4398,6 +4505,7 @@ function saveExerciseVariation(){
   renderAllCatalogLists();
   refreshAllStyledSelects();
   document.getElementById('newExercise').value='';
+  const search=document.getElementById('exerciseCatalogSearch'); if(search) search.value='';
   document.getElementById('catalogFeedback').textContent=`Variação de "${pendingExerciseVariationName}" cadastrada com sucesso.`;
   closeExerciseVariation();
 }
@@ -4405,6 +4513,7 @@ function saveExerciseVariation(){
 function renderAllCatalogLists(){
   Object.keys(catalogLabels).forEach(renderCatalogList);
   renderExerciseCatalogList();
+  refreshExerciseNamePickerOptions();
 }
 let pendingCatalogDelete=null;
 function requestCatalogDelete(type,details){
@@ -4431,14 +4540,14 @@ function deleteCatalogValue(category,value){
 }
 function performDeleteCatalogValue(category,value){
   if(!catalogLabels[category]) return;
-  const normalized=String(value).trim().toLocaleLowerCase('pt-BR');
+  const normalized=comparisonKey(value);
   if(!normalized) return;
   recordUndo(`${catalogLabels[category]} excluído do cadastro`);
   state.catalogs=state.catalogs||{};
-  state.catalogs[category]=(state.catalogs[category]||[]).filter(item=>String(item).trim().toLocaleLowerCase('pt-BR')!==normalized);
+  state.catalogs[category]=(state.catalogs[category]||[]).filter(item=>comparisonKey(item)!==normalized);
   // Esta tela é a única autorizada a excluir uma opção: remove-a de todas as fontes.
   [...Object.values(state.workouts||{}).flat(),...(state.exerciseCatalog||[])].forEach(ex=>{
-    if(String(ex?.[category]??'').trim().toLocaleLowerCase('pt-BR')===normalized){
+    if(comparisonKey(ex?.[category])===normalized){
       ex[category]=category==='muscle'?'':'-';
     }
   });
@@ -4482,23 +4591,61 @@ function performDeleteExerciseFromGlobalCatalog(signature,label){
   save();renderAllCatalogLists();refreshAllStyledSelects();render();
   document.getElementById('catalogFeedback').textContent=`Exercício "${label||'variação'}" excluído com sucesso.`;
 }
-function addCatalogValue(category){
+function showCatalogNotice(title,message){
+  document.getElementById('catalogNoticeTitle').textContent=title;
+  document.getElementById('catalogNoticeMessage').textContent=message;
+  document.getElementById('catalogNotice').hidden=false;
+}
+function closeCatalogNotice(){document.getElementById('catalogNotice').hidden=true;}
+let pendingEquipmentPrepositionValue='';
+function askEquipmentPreposition(value){
+  pendingEquipmentPrepositionValue=value;
+  document.getElementById('equipmentPrepositionChoice').value='com';
+  document.getElementById('equipmentPrepositionDialog').hidden=false;
+}
+function closeEquipmentPrepositionDialog(){
+  document.getElementById('equipmentPrepositionDialog').hidden=true;
+  pendingEquipmentPrepositionValue='';
+}
+function saveEquipmentPreposition(){
+  if(!pendingEquipmentPrepositionValue) return;
+  state.equipmentPrepositions=state.equipmentPrepositions||{};
+  state.equipmentPrepositions[pendingEquipmentPrepositionValue]=document.getElementById('equipmentPrepositionChoice').value;
+  save();
+  const value=pendingEquipmentPrepositionValue;
+  closeEquipmentPrepositionDialog();
+  finishAddCatalogValue('equipment',value);
+}
+function finishAddCatalogValue(category,value){
   const inputIds={muscle:'newMuscle',equipment:'newEquipment',execution:'newExecution',grip:'newGrip'};
   const input=document.getElementById(inputIds[category]);
-  const value=String(input?.value||'').trim();
-  if(!value){document.getElementById('catalogFeedback').textContent='Informe uma opção.';return;}
   state.catalogs=state.catalogs||{muscle:[],equipment:[],execution:[],grip:[]};
   state.catalogs[category]=state.catalogs[category]||[];
-  const exists=getCatalogValues(category,true).some(item=>item.toLocaleLowerCase('pt-BR')===value.toLocaleLowerCase('pt-BR'));
-  if(exists){document.getElementById('catalogFeedback').textContent='Essa opção já está cadastrada.';return;}
   state.catalogs[category].push(value);
   save();
-  input.value='';
+  if(input) input.value='';
   document.getElementById('catalogFeedback').textContent=`${catalogLabels[category]} "${value}" cadastrado com sucesso.`;
   renderCatalogList(category);
   refreshAllStyledSelects();
   renderAllCatalogLists();
   render();
+}
+
+function addCatalogValue(category){
+  const inputIds={muscle:'newMuscle',equipment:'newEquipment',execution:'newExecution',grip:'newGrip'};
+  const input=document.getElementById(inputIds[category]);
+  const value=String(input?.value||'').trim();
+  if(!value){showCatalogNotice('Aviso',`Informe uma opção para ${catalogLabels[category]}.`);return;}
+  const exists=getCatalogValues(category,true).some(item=>comparisonKey(item)===comparisonKey(value));
+  if(exists){
+    showCatalogNotice('Aviso',`Esse atributo já está cadastrado.`);
+    return;
+  }
+  if(category==='equipment'){
+    askEquipmentPreposition(value);
+    return;
+  }
+  finishAddCatalogValue(category,value);
 }
 
 // ========================================
@@ -4659,6 +4806,11 @@ document.getElementById('closeInfoCatalogBtn').onclick=closeInfoCatalog;
 document.querySelectorAll('[data-catalog-add]').forEach(button=>button.addEventListener('click',()=>addCatalogValue(button.dataset.catalogAdd)));
 document.querySelector('[data-exercise-add]').addEventListener('click',addExerciseCatalogValue);
 document.getElementById('newExercise').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addExerciseCatalogValue();}});
+document.getElementById('closeCatalogNoticeBtn').onclick=closeCatalogNotice;
+document.getElementById('cancelEquipmentPrepositionBtn').onclick=closeEquipmentPrepositionDialog;
+document.getElementById('saveEquipmentPrepositionBtn').onclick=saveEquipmentPreposition;
+document.getElementById('equipmentPrepositionDialog').addEventListener('click',event=>{if(event.target.id==='equipmentPrepositionDialog') closeEquipmentPrepositionDialog();});
+document.getElementById('exerciseCatalogSearch').addEventListener('input',renderExerciseCatalogList);
 document.getElementById('infoCatalogModal').addEventListener('click',event=>{
   const listButton=event.target.closest('[data-catalog-list]');
   if(listButton){
