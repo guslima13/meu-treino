@@ -2112,6 +2112,364 @@ select:focus {
 .duplicate-variation-dialog .confirm-actions{margin-top:18px}
 @media(max-width:480px){.duplicate-variation-dialog{padding:15px}.duplicate-variation-dialog .variation-intro{margin-bottom:13px}.variation-existing-grid{gap:12px 10px}.variation-existing-title{margin-bottom:26px}}
 
+
+
+/* NOVO LAYOUT DO PAINEL SUPERIOR: progresso recolhível, indicadores horizontais e iniciar treino em faixa larga. */
+.progress-overview {
+  width: 100%;
+  min-width: 0;
+  margin: 10px 0 0;
+}
+.progress-overview-toggle-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  min-height: 27px;
+  padding: 0 7px 5px 0;
+  box-sizing: border-box;
+}
+.progress-overview-toggle {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 23px;
+}
+.progress-overview-toggle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.progress-overview-content {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+.progress-overview-content[hidden] {
+  display: none !important;
+}
+.progress-overview .progress-carousel {
+  margin: 0;
+}
+.progress-overview .progress-panel {
+  margin: 0;
+}
+.progress-overview .progress-pagination {
+  margin-top: -1px !important;
+}
+.progress-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  width: 100%;
+  margin: 9px 0 0;
+}
+.progress-summary .stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  height: clamp(78px, 11vw, 112px);
+  min-height: 0;
+  padding: 9px 8px;
+  box-sizing: border-box;
+  aspect-ratio: auto;
+  border-radius: 12px;
+}
+.progress-summary .stat b {
+  font-size: clamp(17px, 2.6vw, 24px);
+  line-height: 1.05;
+}
+.progress-summary .stat small {
+  font-size: clamp(10px, 1.5vw, 12px);
+  line-height: 1.2;
+  text-align: center;
+}
+.top-dashboard {
+  display: block;
+  width: 100%;
+  margin: 9px 0 14px;
+}
+.top-dashboard .workout-control {
+  display: block;
+  width: 100%;
+  height: clamp(72px, 9vw, 102px);
+  min-width: 0;
+  margin: 0;
+  aspect-ratio: auto;
+}
+.top-dashboard .workout-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 12px 16px;
+  aspect-ratio: auto;
+  border-radius: 13px;
+  text-align: center;
+  white-space: nowrap;
+}
+.top-dashboard .workout-indicator {
+  display: block;
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+}
+.top-dashboard .workout-label {
+  display: inline-block;
+  max-width: 100%;
+  font-size: clamp(14px, 2.2vw, 18px);
+  line-height: 1.2;
+  text-align: center;
+}
+@media (max-width: 600px) {
+  .progress-overview {
+    margin-top: 8px;
+  }
+  .progress-overview-toggle-row {
+    min-height: 25px;
+    padding-right: 5px;
+    padding-bottom: 4px;
+  }
+  .progress-summary {
+    gap: 7px;
+    margin-top: 7px;
+  }
+  .progress-summary .stat {
+    height: 78px;
+    padding: 7px 5px;
+    gap: 4px;
+    border-radius: 10px;
+  }
+  .progress-summary .stat b {
+    font-size: clamp(16px, 4.5vw, 20px);
+  }
+  .progress-summary .stat small {
+    font-size: 9px;
+    line-height: 1.15;
+  }
+  .top-dashboard {
+    margin: 8px 0 12px;
+  }
+  .top-dashboard .workout-control {
+    height: 70px;
+  }
+  .top-dashboard .workout-btn {
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 11px;
+  }
+  .top-dashboard .workout-label {
+    font-size: clamp(13px, 3.6vw, 16px);
+  }
+  .top-dashboard .workout-indicator {
+    width: 11px;
+    height: 11px;
+    flex-basis: 11px;
+  }
+}
+
+
+
+/* REORGANIZAÇÃO DO PAINEL INFERIOR E DA ÁREA DE RESUMO */
+.progress-overview-toggle-row{display:block;width:100%;min-height:0;padding:0;margin:0 0 8px}
+.progress-overview-toggle{width:100%;min-height:36px;justify-content:center;border-radius:10px;font-family:inherit;font-size:12px;font-weight:700;line-height:1.2}
+.progress-overview-toggle span{flex:1 1 auto}
+.progress-overview-toggle svg{flex:0 0 14px}
+.progress-summary .stat{height:clamp(52px,7.4vw,74px);gap:3px;padding:6px 8px}
+.progress-summary .stat b{font-size:clamp(16px,2.4vw,22px)}
+.progress-summary .stat small{font-size:clamp(9px,1.4vw,11px)}
+.top-dashboard{margin:7px 0 12px}
+.top-dashboard .workout-control{height:clamp(48px,6vw,68px)}
+.top-dashboard .workout-btn{padding:7px 14px;gap:10px;border-radius:11px}
+.top-dashboard .workout-indicator{width:10px;height:10px;flex-basis:10px}
+.top-dashboard .workout-label{font-size:clamp(13px,2vw,16px)}
+.bottom-dashboard{display:flex;flex-direction:column;gap:9px;width:100%;margin:18px 0}
+.bottom-dashboard .workout-control,.bottom-dashboard .reset-control{display:block;width:100%;height:48px;min-width:0;margin:0;aspect-ratio:auto}
+.bottom-dashboard .workout-btn{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;width:100%;height:100%;min-height:0;padding:7px 14px;border-radius:11px;aspect-ratio:auto;font-size:14px}
+.bottom-dashboard .workout-btn .workout-indicator{width:10px;height:10px;flex:0 0 10px}
+.bottom-dashboard .reset-workout-btn{background:#382323;border:1px solid #804545;color:#ffbcbc;letter-spacing:.035em}
+.bottom-dashboard .reset-workout-btn:active{background:#4a2929}
+.bottom-dashboard .toolbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:1fr;gap:8px;width:100%;margin:0;min-width:0;aspect-ratio:auto}
+.bottom-dashboard .toolbar .icon-action{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%;height:78px;min-height:0;aspect-ratio:auto;padding:7px 3px;border-radius:12px;overflow:hidden}
+.bottom-dashboard .toolbar .icon-action svg{width:clamp(25px,4vw,33px);height:clamp(25px,4vw,33px);flex:0 0 auto}
+.bottom-dashboard .icon-action-label{display:block;max-width:100%;font-size:clamp(8px,1.2vw,11px);font-weight:750;line-height:1.1;text-align:center;overflow-wrap:anywhere}
+.bottom-dashboard #backupMenuBtn .icon-action-label{font-size:clamp(7px,1.05vw,10px)}
+
+.summary-page[hidden]{display:none!important}
+.summary-page{position:fixed;inset:0;z-index:1000;overflow-y:auto;overscroll-behavior:contain;background:radial-gradient(ellipse at 50% -20%,#242a1a 0%,var(--bg) 48%);padding:calc(16px + env(safe-area-inset-top)) max(12px,calc((100vw - 940px)/2)) calc(24px + env(safe-area-inset-bottom));}
+.summary-page-shell{width:100%;max-width:940px;margin:0 auto}
+.summary-page-topline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.summary-back-btn{min-height:36px;padding:7px 12px;border-radius:9px;font-weight:750}
+.summary-page h1{margin:4px 0 5px;font-size:clamp(27px,5vw,38px);line-height:1.12}
+.summary-page-intro{max-width:720px;margin:0 0 16px;color:var(--muted);font-size:13px}
+.summary-overview-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.summary-overview-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:68px;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;text-align:center}
+.summary-overview-card strong{font-size:22px;line-height:1.1}
+.summary-overview-card span{font-size:10px;color:var(--muted)}
+.summary-tabs{display:flex;gap:7px;overflow-x:auto;padding:3px 1px 10px;margin:0 0 8px;scrollbar-width:thin}
+.summary-tab{flex:0 0 auto;padding:9px 12px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--muted);font-family:inherit;font-size:12px;font-weight:700;line-height:1.2;white-space:nowrap;cursor:pointer}
+.summary-tab.active{background:var(--accent);border-color:var(--accent);color:#101010}
+.summary-content{min-width:0}
+.summary-section-heading{display:flex;align-items:end;justify-content:space-between;gap:10px;margin:10px 0 12px}
+.summary-section-heading h2{margin:0;font-size:19px}
+.summary-section-heading p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.summary-result-total{color:var(--accent);font-size:12px;font-weight:800;white-space:nowrap}
+.summary-day-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.summary-day-card,.summary-current-loads,.summary-chart-wrap,.summary-history-table-wrap,.summary-empty-state{min-width:0;padding:13px;background:linear-gradient(145deg,#1b1f1f,#141717);border:1px solid var(--line);border-radius:13px}
+.summary-day-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.summary-day-heading h3{margin:0;font-size:15px}
+.summary-day-heading span{color:var(--accent);font-size:11px;font-weight:800;white-space:nowrap}
+.summary-exercise-list{display:grid;gap:0}
+.summary-exercise-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #303636}
+.summary-exercise-row>div{min-width:0}
+.summary-exercise-row strong,.summary-exercise-row small{display:block;overflow-wrap:anywhere}
+.summary-exercise-row strong{font-size:12px}
+.summary-exercise-row small{margin-top:2px;color:var(--muted);font-size:10px}
+.summary-exercise-row>span{max-width:42%;color:#c2cbc5;font-size:10px;text-align:right;overflow-wrap:anywhere}
+.summary-empty-day{margin:5px 0 0;color:var(--muted);font-size:11px}
+.summary-distribution-list{display:grid;gap:13px;padding:15px;background:var(--panel);border:1px solid var(--line);border-radius:13px}
+.summary-distribution-label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.summary-distribution-label strong{font-size:13px;overflow-wrap:anywhere}
+.summary-distribution-label b{color:var(--accent);font-size:14px}
+.summary-bar-track{height:8px;overflow:hidden;border-radius:99px;background:#303636}
+.summary-bar-track i{display:block;height:100%;border-radius:99px;background:var(--accent)}
+.summary-empty-state{color:var(--muted);font-size:13px;line-height:1.5}
+.summary-load-filters{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:12px}
+.summary-load-filters label{display:grid;gap:5px;color:var(--muted);font-size:11px;font-weight:750}
+.summary-load-filters select,.summary-load-filters input{width:100%;min-width:0;min-height:40px;padding:8px 10px;border:1px solid #394040;border-radius:9px;background:#0f1212;color:var(--text);font:inherit;font-size:12px}
+.summary-current-loads{margin-bottom:10px}
+.summary-current-loads h3,.summary-chart-wrap h3,.summary-history-table-wrap h3{margin:0 0 8px;font-size:14px}
+.summary-current-load{display:flex;flex-direction:column;gap:7px;padding:9px 0;border-top:1px solid #303636}
+.summary-current-load>div:first-child strong,.summary-current-load>div:first-child small{display:block}
+.summary-current-load>div:first-child strong{font-size:12px}
+.summary-current-load>div:first-child small{margin-top:2px;color:var(--muted);font-size:10px}
+.summary-load-chips{display:flex;flex-wrap:wrap;gap:6px}
+.summary-load-chips span{padding:5px 8px;border:1px solid #39453c;border-radius:7px;background:#202923;color:#e6eee5;font-size:10px}
+.summary-chart-wrap{margin-bottom:10px}
+.summary-chart-wrap p{margin:-4px 0 8px;color:var(--muted);font-size:10px}
+.summary-load-chart{display:block;width:100%;height:auto;overflow:visible}
+.summary-chart-grid line{stroke:#343b38;stroke-width:1}
+.summary-chart-grid text,.summary-chart-labels text{fill:#9da5a1;font:11px system-ui,sans-serif}
+.summary-load-chart polyline{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.summary-load-chart circle{fill:var(--accent);stroke:#151919;stroke-width:2}
+.summary-history-table-wrap{margin-bottom:10px}
+.summary-history-list{display:grid;gap:0}
+.summary-history-row{display:grid;grid-template-columns:minmax(0,1.6fr) auto auto auto;align-items:center;gap:9px;padding:9px 0;border-top:1px solid #303636;font-size:11px}
+.summary-history-row span,.summary-history-row small{color:var(--muted)}
+.summary-history-row strong{font-size:10px}
+.summary-history-row b{color:var(--accent);font-size:12px;white-space:nowrap}
+.summary-page-footnote{margin:16px 0 0;color:var(--muted);font-size:10px;line-height:1.45}
+body.summary-page-open{overflow:hidden}
+@media(max-width:600px){
+  .progress-overview-toggle{min-height:34px;padding:4px 7px;gap:6px;font-size:11px}
+  .progress-overview-toggle svg{width:12px;height:12px;flex-basis:12px}
+  .progress-summary .stat{height:52px;padding:5px 3px;gap:2px;border-radius:9px}
+  .progress-summary .stat b{font-size:16px}
+  .progress-summary .stat small{font-size:9px}
+  .top-dashboard .workout-control{height:46px}
+  .top-dashboard .workout-btn{gap:8px;padding:6px 10px;border-radius:9px}
+  .top-dashboard .workout-label{font-size:12px}
+  .bottom-dashboard{gap:7px;margin:14px 0}
+  .bottom-dashboard .workout-control,.bottom-dashboard .reset-control{height:44px}
+  .bottom-dashboard .workout-btn{font-size:12px;border-radius:9px}
+  .bottom-dashboard .toolbar{gap:5px}
+  .bottom-dashboard .toolbar .icon-action{height:70px;gap:4px;padding:5px 2px;border-radius:9px}
+  .bottom-dashboard .toolbar .icon-action svg{width:27px;height:27px}
+  .bottom-dashboard .icon-action-label{font-size:8px;letter-spacing:-.02em}
+  .bottom-dashboard #backupMenuBtn .icon-action-label{font-size:7px}
+  .summary-page{padding:calc(12px + env(safe-area-inset-top)) 11px calc(18px + env(safe-area-inset-bottom))}
+  .summary-page-topline{align-items:center}
+  .summary-page-topline .eyebrow{font-size:9px;letter-spacing:.1em}
+  .summary-page-intro{font-size:12px}
+  .summary-overview-card{min-height:60px;padding:6px 3px}
+  .summary-overview-card strong{font-size:19px}
+  .summary-overview-card span{font-size:9px}
+  .summary-tabs{gap:6px}
+  .summary-tab{padding:8px 10px;font-size:11px}
+  .summary-day-list{grid-template-columns:1fr;gap:8px}
+  .summary-day-card{padding:11px}
+  .summary-load-filters{grid-template-columns:1fr 1fr}
+  .summary-load-filters label:first-child{grid-column:1/-1}
+  .summary-history-row{grid-template-columns:minmax(0,1.3fr) auto auto;gap:6px;font-size:10px}
+  .summary-history-row small{display:none}
+}
+
+
+/* AJUSTES DESTA VERSÃO: barras de recolhimento iguais e botões de treino levemente mais altos. */
+.progress-overview-toggle-row{min-height:0;padding:0;margin:0 0 7px}
+.progress-overview-toggle,
+.exercise-list-toolbar .exercise-list-toggle{height:30px;min-height:30px;padding:3px 10px;gap:8px;border-radius:9px;font-size:11px;line-height:1.1}
+.progress-overview-toggle{width:100%;flex:1 1 auto;justify-content:center}
+.progress-overview-toggle span,.exercise-list-toolbar .exercise-list-toggle span{flex:0 1 auto}
+.progress-overview-toggle svg,.exercise-list-toolbar .exercise-list-toggle svg{width:13px;height:13px;flex:0 0 13px}
+.top-dashboard .workout-control{height:55px}
+.bottom-dashboard .workout-control,.bottom-dashboard .reset-control{height:55px}
+.catalog-page[hidden]{display:none!important}
+.catalog-page{position:fixed;inset:0;z-index:1100;overflow-y:auto;overscroll-behavior:contain;background:radial-gradient(ellipse at 50% -20%,#242a1a 0%,var(--bg) 48%);padding:calc(16px + env(safe-area-inset-top)) max(12px,calc((100vw - 760px)/2)) calc(24px + env(safe-area-inset-bottom));}
+.catalog-page-shell{width:100%;max-width:760px;margin:0 auto}
+.catalog-page-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.catalog-page-topline .eyebrow{font-size:10px;letter-spacing:.12em}
+.catalog-page-topline .btn{min-height:36px;padding:7px 13px;border-radius:9px;font-weight:750}
+.catalog-page .info-catalog-dialog{width:100%;max-width:none;max-height:none;overflow:visible;padding:16px;background:linear-gradient(145deg,#1b1f1f,#141717);border:1px solid var(--line);border-radius:15px;box-shadow:0 12px 30px #0005}
+.catalog-page .info-catalog-dialog h1{margin:0 0 16px;font-size:clamp(23px,4vw,30px);line-height:1.15}
+.catalog-page .info-catalog-dialog .catalog-entry{margin:14px 0}
+.catalog-page .info-catalog-dialog .catalog-feedback{margin-top:6px}
+body.catalog-page-open{overflow:hidden}
+.summary-page-topline{justify-content:space-between}
+.summary-page-topline .eyebrow{order:0}
+.summary-page-topline .summary-back-btn{order:1}
+.summary-load-filters{grid-template-columns:minmax(0,1fr)}
+.summary-load-filters label:first-child{grid-column:auto}
+.summary-history-row{grid-template-columns:minmax(0,1.5fr) auto auto}
+.summary-history-row small{display:none}
+@media(max-width:600px){
+  .progress-overview-toggle,.exercise-list-toolbar .exercise-list-toggle{height:30px;min-height:30px;padding:3px 8px;font-size:10px;gap:6px}
+  .progress-overview-toggle svg,.exercise-list-toolbar .exercise-list-toggle svg{width:12px;height:12px;flex-basis:12px}
+  .top-dashboard .workout-control{height:51px}
+  .bottom-dashboard .workout-control,.bottom-dashboard .reset-control{height:51px}
+  .catalog-page{padding:calc(12px + env(safe-area-inset-top)) 11px calc(18px + env(safe-area-inset-bottom))}
+  .catalog-page .info-catalog-dialog{padding:12px}
+  .catalog-page .info-catalog-dialog .catalog-entry{margin:9px 0}
+  .catalog-page-topline .eyebrow{font-size:9px}
+  .summary-load-filters{grid-template-columns:1fr}
+  .summary-history-row{grid-template-columns:minmax(0,1fr) auto auto;gap:7px}
+}
+
+
+/* MOBILE: espaçamento simétrico acima e abaixo do botão Iniciar treino. */
+@media (max-width: 600px) {
+  .top-dashboard {
+    margin-top: 12px !important;
+  }
+}
+
+
+
+/* ESPAÇAMENTO INFERIOR: repetir a distância do fim dos exercícios até Finalizar. */
+.bottom-dashboard {
+  gap: 18px;
+}
+@media (max-width: 600px) {
+  .bottom-dashboard {
+    gap: 14px;
+  }
+}
+
+/* Mesmo peso tipográfico da barra inferior "Expandir todos". */
+.progress-overview-toggle {
+  font-weight: 600 !important;
+}
+
 </style>
 </head>
 
@@ -2135,45 +2493,60 @@ select:focus {
 
 <nav class="daynav" id="daynav"></nav>
 
-<!-- PROGRESSO DIÁRIO E SEMANAL: navegação por deslize -->
-<div class="progress-carousel" id="progressCarousel" aria-label="Progresso diário e semanal">
-  <div class="progress-track" id="progressTrack">
-    <section class="progress-panel progress-slide" aria-label="Progresso do dia">
-      <div class="progress-heading">
-        <strong>Progresso do dia</strong>
-        <span id="dailyPercent">0%</span>
-      </div>
-      <div class="progress"><i id="progressBar"></i></div>
-      <div class="progress-sub">Evolução das séries do treino selecionado.</div>
-    </section>
+<!-- RESUMO DO PROGRESSO: recolhível sem ocultar o botão de iniciar treino -->
+<section class="progress-overview" id="progressOverview" aria-label="Resumo do progresso">
+  <div class="progress-overview-toggle-row">
+    <button type="button" class="exercise-list-toggle progress-overview-toggle" id="progressOverviewToggle"
+      aria-label="Recolher progressos e indicadores" title="Recolher progressos e indicadores" aria-expanded="true"
+      aria-controls="progressOverviewContent" onclick="toggleProgressOverview()">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>
+      <span>Recolher progressos e indicadores</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>
+    </button>
+  </div>
 
-    <section class="progress-panel progress-slide" aria-label="Progresso da semana">
-      <div class="progress-heading">
-        <strong>Progresso da semana</strong>
-        <span id="weeklyPercent">0%</span>
+  <div id="progressOverviewContent" class="progress-overview-content">
+    <!-- PROGRESSO DIÁRIO E SEMANAL: navegação por deslize -->
+    <div class="progress-carousel" id="progressCarousel" aria-label="Progresso diário e semanal">
+      <div class="progress-track" id="progressTrack">
+        <section class="progress-panel progress-slide" aria-label="Progresso do dia">
+          <div class="progress-heading">
+            <strong>Progresso do dia</strong>
+            <span id="dailyPercent">0%</span>
+          </div>
+          <div class="progress"><i id="progressBar"></i></div>
+          <div class="progress-sub">Evolução das séries do treino selecionado.</div>
+        </section>
+
+        <section class="progress-panel progress-slide" aria-label="Progresso da semana">
+          <div class="progress-heading">
+            <strong>Progresso da semana</strong>
+            <span id="weeklyPercent">0%</span>
+          </div>
+          <div class="progress weekly"><i id="weeklyProgressBar"></i></div>
+          <div class="progress-sub" id="weeklyDescription">Séries concluídas de segunda a sábado.</div>
+        </section>
       </div>
-      <div class="progress weekly"><i id="weeklyProgressBar"></i></div>
-      <div class="progress-sub" id="weeklyDescription">Séries concluídas de segunda a sábado.</div>
-    </section>
+      <div class="progress-pagination" aria-hidden="true">
+        <span class="progress-dot active"></span><span class="progress-dot"></span>
+        <small>Deslize para alternar</small>
+      </div>
+    </div>
+
+    <div class="summary progress-summary">
+      <div class="stat">
+        <b id="exerciseProgress">0/6</b>
+        <small>Exercícios concluídos</small>
+      </div>
+      <div class="stat">
+        <b id="setProgress">0/27</b>
+        <small>Séries concluídas</small>
+      </div>
+    </div>
   </div>
-  <div class="progress-pagination" aria-hidden="true">
-    <span class="progress-dot active"></span><span class="progress-dot"></span>
-    <small>Deslize para alternar</small>
-  </div>
-</div>
+</section>
 
 <div class="top-dashboard">
-  <div class="summary">
-    <div class="stat">
-      <b id="exerciseProgress">0/6</b>
-      <small>Exercícios concluídos</small>
-    </div>
-    <div class="stat">
-      <b id="setProgress">0/27</b>
-      <small>Séries concluídas</small>
-    </div>
-  </div>
-
   <div class="workout-control">
     <button id="startWorkoutBtn" class="workout-btn start" onclick="startWorkout()">
       <span class="workout-indicator" aria-hidden="true"></span>
@@ -2300,9 +2673,11 @@ select:focus {
   </section>
 </div>
 
-<div class="confirm-backdrop" id="infoCatalogModal" hidden>
-  <section class="confirm-dialog info-catalog-dialog" role="dialog" aria-modal="true" aria-labelledby="infoCatalogTitle">
-    <h2 id="infoCatalogTitle">Cadastro e exclusão de informações</h2>
+<section class="catalog-page" id="infoCatalogModal" hidden aria-label="Cadastro e exclusão de informações">
+  <div class="catalog-page-shell">
+    <div class="catalog-page-topline"><span class="eyebrow">GERENCIAR INFORMAÇÕES</span><button type="button" class="btn" id="closeInfoCatalogBtn">Voltar</button></div>
+    <div class="confirm-dialog info-catalog-dialog">
+    <h1 id="infoCatalogTitle">Cadastro e exclusão de informações</h1>
     <div class="catalog-entry">
       <label for="newExercise">Exercício</label>
       <div>
@@ -2323,31 +2698,41 @@ select:focus {
     <div class="catalog-entry"><label for="newExecution">Execução</label><div><input id="newExecution" type="text" placeholder="Nova execução"><button type="button" class="btn primary" data-catalog-add="execution">Adicionar</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="execution" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-execution" hidden></div></div>
     <div class="catalog-entry"><label for="newGrip">Pegada</label><div><input id="newGrip" type="text" placeholder="Nova pegada"><button type="button" class="btn primary" data-catalog-add="grip">Adicionar</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="grip" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-grip" hidden></div></div>
     <p class="catalog-feedback" id="catalogFeedback" aria-live="polite"></p>
-    <div class="confirm-actions"><button type="button" class="btn" id="closeInfoCatalogBtn">Fechar</button></div>
-  </section>
-</div>
+    </div>
+  </div>
+</section>
 
 <!-- GERENCIAMENTO E FINALIZAÇÃO -->
 <div class="bottom-dashboard">
-  <div class="toolbar" aria-label="Gerenciar treino">
-    <button class="btn primary icon-action" id="addBtn" title="Adicionar exercício" aria-label="Adicionar exercício">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-    </button>
-    <button class="btn icon-action" id="infoCatalogBtn" title="Cadastro e exclusão de informações" aria-label="Cadastro e exclusão de informações">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M8 12h8M8 16h8"/></svg>
-    </button>
-    <button class="btn icon-action" id="backupMenuBtn" title="Importar ou exportar dados" aria-label="Importar ou exportar dados">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8m-3-3 3 3 3-3M12 21v-8m-3 3 3-3 3 3"/><path d="M5 5h3M16 19h3"/></svg>
-    </button>
-    <button class="btn icon-action" id="resetBtn" title="Reiniciar este treino" aria-label="Reiniciar este treino">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.8-2L20 12M4 12l2.6 5a7 7 0 0 0 11.8-2"/></svg>
-    </button>
-  </div>
-
   <div class="workout-control finish-control">
     <button id="finishWorkoutBtn" class="workout-btn finish" onclick="finishWorkout()" disabled>
       <span class="workout-indicator" aria-hidden="true"></span>
       <span class="workout-label">FINALIZAR TREINO</span>
+    </button>
+  </div>
+
+  <div class="reset-control">
+    <button class="workout-btn reset-workout-btn" id="resetBtn" title="Reiniciar este treino" aria-label="Reiniciar este treino" onclick="resetDay()">
+      <span class="workout-label">REINICIAR TREINO</span>
+    </button>
+  </div>
+
+  <div class="toolbar" aria-label="Gerenciar treino">
+    <button class="btn primary icon-action" id="addBtn" title="Adicionar exercício" aria-label="Adicionar exercício">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      <span class="icon-action-label">Adicionar</span>
+    </button>
+    <button class="btn icon-action" id="infoCatalogBtn" title="Cadastro e exclusão de informações" aria-label="Cadastro e exclusão de informações">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M8 12h8M8 16h8"/></svg>
+      <span class="icon-action-label">Cadastro</span>
+    </button>
+    <button class="btn icon-action" id="summaryBtn" title="Resumo geral dos treinos" aria-label="Resumo geral dos treinos">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/><path d="M16 6h4v4"/></svg>
+      <span class="icon-action-label">Resumo geral</span>
+    </button>
+    <button class="btn icon-action" id="backupMenuBtn" title="Importar ou exportar dados" aria-label="Importar ou exportar dados">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8m-3-3 3 3 3-3M12 21v-8m-3 3 3-3 3 3"/><path d="M5 5h3M16 19h3"/></svg>
+      <span class="icon-action-label">Importar/Exportar</span>
     </button>
   </div>
 </div>
@@ -2358,6 +2743,29 @@ select:focus {
 Seus dados ficam salvos neste aparelho e navegador.
 Exporte um backup para levar suas alterações a outro dispositivo.
 </div>
+
+<section class="summary-page" id="summaryPage" hidden aria-label="Resumo geral dos treinos">
+  <div class="summary-page-shell">
+    <div class="summary-page-topline">
+      <span class="eyebrow">VISÃO DOS TREINOS ATIVOS</span>
+      <button type="button" class="btn summary-back-btn" id="summaryBackBtn" aria-label="Voltar aos treinos">Voltar</button>
+    </div>
+    <h1>Resumo geral</h1>
+    <p class="summary-page-intro">Consulte como seus exercícios estão distribuídos de segunda a sábado e acompanhe as cargas registradas nas séries concluídas.</p>
+    <div class="summary-overview-cards" id="summaryOverviewCards"></div>
+    <nav class="summary-tabs" id="summaryTabs" aria-label="Filtros do resumo">
+      <button type="button" class="summary-tab active" data-summary-filter="days" aria-pressed="true">Dias da semana</button>
+      <button type="button" class="summary-tab" data-summary-filter="muscle" aria-pressed="false">Grupo muscular</button>
+      <button type="button" class="summary-tab" data-summary-filter="muscleSets" aria-pressed="false">Séries por grupo muscular</button>
+      <button type="button" class="summary-tab" data-summary-filter="equipment" aria-pressed="false">Equipamento</button>
+      <button type="button" class="summary-tab" data-summary-filter="execution" aria-pressed="false">Execução</button>
+      <button type="button" class="summary-tab" data-summary-filter="grip" aria-pressed="false">Pegada</button>
+      <button type="button" class="summary-tab" data-summary-filter="loads" aria-pressed="false">Evolução de carga</button>
+    </nav>
+    <div id="summaryContent" class="summary-content" aria-live="polite"></div>
+    <p class="summary-page-footnote">Este resumo considera somente os exercícios atualmente ativos nos treinos. Alterações feitas em Adicionar, Editar e Cadastro são refletidas automaticamente.</p>
+  </div>
+</section>
 
 </main>
 
@@ -2671,6 +3079,10 @@ if(x.equipmentPrepositions && Object.prototype.hasOwnProperty.call(x.equipmentPr
 // Catálogo mestre independente dos treinos semanais. Migra os exercícios
 // existentes uma única vez e preserva itens mesmo quando saem de um dia.
 if(!Array.isArray(x.exerciseCatalog)) x.exerciseCatalog=[];
+if(!Array.isArray(x.loadHistory)) x.loadHistory=[];
+const ensureExerciseId=ex=>{if(ex && typeof ex==='object' && !ex.id) ex.id='exercise_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);};
+Object.values(x.workouts||{}).flat().forEach(ensureExerciseId);
+x.exerciseCatalog.forEach(ensureExerciseId);
 const exerciseSignature=ex=>[ex?.name,ex?.muscle,ex?.execution,ex?.grip,ex?.equipment].map(v=>comparisonKey(v)).join('|');
 const knownExerciseNames=new Set(x.exerciseCatalog.map(exerciseSignature));
 Object.values(x.workouts||{}).flat().forEach(ex=>{
@@ -2720,6 +3132,7 @@ checks:{},
 notes:{},
 weeklyChecks:{},
 sessions:{},
+loadHistory:[],
 catalogs:{muscle:[],equipment:[],execution:[],grip:[]},
 equipmentPrepositions:{},
 exerciseCatalog:[],
@@ -2737,6 +3150,9 @@ localStorage.setItem(
 'smartWorkoutData',
 JSON.stringify(state)
 );
+
+const summaryPage=document.getElementById('summaryPage');
+if(summaryPage && !summaryPage.hidden && typeof renderSummaryPage==='function') renderSummaryPage();
 
 }
 
@@ -2958,6 +3374,20 @@ button.disabled=!canMarkProgress;
 // ========================================
 // RENDERIZAÇÃO
 // ========================================
+
+function toggleProgressOverview(){
+  const content=document.getElementById('progressOverviewContent');
+  const button=document.getElementById('progressOverviewToggle');
+  if(!content || !button) return;
+  const expanded=button.getAttribute('aria-expanded')==='true';
+  content.hidden=expanded;
+  button.setAttribute('aria-expanded',String(!expanded));
+  const label=expanded?'Expandir progressos e indicadores':'Recolher progressos e indicadores';
+  button.setAttribute('aria-label',label);
+  button.title=label;
+  const path=expanded?'m6 9 6 6 6-6':'m6 15 6-6 6 6';
+  button.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"/></svg><span>${label}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"/></svg>`;
+}
 
 function toggleAllExerciseDetails(){
   allExercisesCollapsed=!allExercisesCollapsed;
@@ -3260,6 +3690,28 @@ save();
 }
 
 // ========================================
+// HISTÓRICO DE CARGAS POR SÉRIE CONCLUÍDA
+// ========================================
+function recordLoadHistory(dayName,exercise,setIndex){
+  if(!exercise) return;
+  state.loadHistory=Array.isArray(state.loadHistory)?state.loadHistory:[];
+  state.loadHistory.push({
+    id:'load_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),
+    exerciseId:(exercise.id||(exercise.id='exercise_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9))),
+    exerciseName:String(exercise.name||'Exercício'),
+    muscle:String(exercise.muscle||''),
+    equipment:String(exercise.equipment||''),
+    execution:String(exercise.execution||''),
+    grip:String(exercise.grip||''),
+    day:dayName,
+    set:setIndex+1,
+    load:String((exercise.loads||[])[setIndex]??''),
+    date:(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})(),
+    timestamp:new Date().toISOString()
+  });
+}
+
+// ========================================
 // MARCAÇÃO DE SÉRIES
 // ========================================
 
@@ -3269,8 +3721,9 @@ if(getWorkoutStatus().status!=='active') return;
 
 
 const a=checksFor(day,i);
-
+const wasDone=a[j]===true;
 a[j]=v;
+if(v && !wasDone) recordLoadHistory(day,state.workouts[day][i],j);
 
 save();
 
@@ -3294,7 +3747,9 @@ const alreadyDone=Array.from(
 ).every(Boolean);
 
 for(let j=0;j<count;j++){
-checks[j]=!alreadyDone;
+  const wasDone=checks[j]===true;
+  checks[j]=!alreadyDone;
+  if(!alreadyDone && !wasDone) recordLoadHistory(day,exercise,j);
 }
 
 save();
@@ -4290,10 +4745,17 @@ function moveExerciseToDay(targetDay){
 // ========================================
 
 function openInfoCatalog(){
-  document.getElementById('infoCatalogModal').hidden=false;
+  const page=document.getElementById('infoCatalogModal');
+  page.hidden=false;
+  document.body.classList.add('catalog-page-open');
   renderAllCatalogLists();
+  page.scrollTop=0;
 }
-function closeInfoCatalog(){document.getElementById('infoCatalogModal').hidden=true;}
+function closeInfoCatalog(){
+  const page=document.getElementById('infoCatalogModal');
+  if(page) page.hidden=true;
+  document.body.classList.remove('catalog-page-open');
+}
 
 const catalogLabels={muscle:'Grupo muscular',equipment:'Equipamento',execution:'Execução',grip:'Pegada'};
 function renderCatalogList(category){
@@ -4955,6 +5417,18 @@ document.getElementById('closeBackupMenuBtn').onclick=closeBackupMenu;
 document.getElementById('chooseExportBtn').onclick=()=>{closeBackupMenu();exportData();};
 document.getElementById('chooseImportBtn').onclick=()=>{closeBackupMenu();importFile.click();};
 document.getElementById('infoCatalogBtn').onclick=openInfoCatalog;
+document.getElementById('summaryBtn').onclick=openSummaryPage;
+document.getElementById('summaryBackBtn').onclick=closeSummaryPage;
+document.getElementById('summaryTabs').addEventListener('click',event=>{
+  const button=event.target.closest('[data-summary-filter]');
+  if(!button) return;
+  activeSummaryFilter=button.dataset.summaryFilter;
+  renderSummaryPage();
+});
+document.getElementById('summaryContent').addEventListener('change',event=>{
+  if(event.target.id==='summaryLoadExercise') summaryLoadGroupIndex=event.target.value;
+  if(event.target.id==='summaryLoadExercise') renderSummaryPage();
+});
 document.getElementById('closeInfoCatalogBtn').onclick=closeInfoCatalog;
 document.querySelectorAll('[data-catalog-add]').forEach(button=>button.addEventListener('click',()=>addCatalogValue(button.dataset.catalogAdd)));
 document.querySelector('[data-exercise-add]').addEventListener('click',addExerciseCatalogValue);
@@ -5266,6 +5740,159 @@ window.addEventListener('scroll',()=>{
 
 function refreshAllStyledSelects(){
   document.querySelectorAll('select').forEach(refreshStyledSelect);
+}
+
+// ========================================
+// RESUMO GERAL DOS TREINOS ATIVOS
+// ========================================
+let activeSummaryFilter='days';
+let summaryLoadGroupIndex='0';
+
+function summaryExerciseSignature(ex){
+  return [ex?.name,ex?.muscle,ex?.equipment,ex?.execution,ex?.grip]
+    .map(value=>comparisonKey(value)).join('|');
+}
+
+function getActiveSummaryExercises(){
+  const groups=new Map();
+  days.forEach(dayName=>{
+    (state.workouts[dayName]||[]).forEach(ex=>{
+      const signature=summaryExerciseSignature(ex);
+      if(!groups.has(signature)) groups.set(signature,{signature,name:ex.name||'Exercício',muscle:ex.muscle||'-',equipment:ex.equipment||'-',execution:ex.execution||'-',grip:ex.grip||'-',ids:[],entries:[]});
+      const group=groups.get(signature);
+      if(ex.id && !group.ids.includes(ex.id)) group.ids.push(ex.id);
+      group.entries.push({day:dayName,exercise:ex});
+    });
+  });
+  return [...groups.values()].sort((a,b)=>String(a.name).localeCompare(String(b.name),'pt-BR'));
+}
+
+function summaryMetricCards(activeEntries){
+  const total=activeEntries.length;
+  const activeDays=days.filter(dayName=>(state.workouts[dayName]||[]).length>0).length;
+  const totalSets=activeEntries.reduce((sum,item)=>sum+(Number(item.exercise.sets)||1),0);
+  return `<div class="summary-overview-card"><strong>${total}</strong><span>exercícios ativos</span></div>
+    <div class="summary-overview-card"><strong>${activeDays}/6</strong><span>dias com treino</span></div>
+    <div class="summary-overview-card"><strong>${totalSets}</strong><span>séries planejadas</span></div>`;
+}
+
+function summaryDayMarkup(){
+  return `<div class="summary-section-heading"><div><h2>Distribuição por dia</h2><p>Exercícios que estão ativos em cada treino.</p></div></div>
+  <div class="summary-day-list">${days.map(dayName=>{
+    const list=state.workouts[dayName]||[];
+    return `<article class="summary-day-card"><div class="summary-day-heading"><h3>${esc(dayName)}</h3><span>${list.length} ${list.length===1?'exercício':'exercícios'}</span></div>
+      ${list.length?`<div class="summary-exercise-list">${list.map(ex=>`<div class="summary-exercise-row"><div><strong>${esc(ex.name||'Exercício')}</strong><small>${esc(ex.muscle||'Grupo muscular não informado')} · ${Number(ex.sets)||1} ${(Number(ex.sets)||1)===1?'série':'séries'}</small></div><span>${esc(ex.equipment||'-')}</span></div>`).join('')}</div>`:`<p class="summary-empty-day">Nenhum exercício ativo neste dia.</p>`}
+    </article>`;
+  }).join('')}</div>`;
+}
+
+function summaryDistributionMarkup(field,title,description){
+  const counts=new Map();
+  days.forEach(dayName=>(state.workouts[dayName]||[]).forEach(ex=>{
+    const label=String(ex[field]||'Não informado').trim()||'Não informado';
+    counts.set(label,(counts.get(label)||0)+1);
+  }));
+  const rows=[...counts.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'pt-BR'));
+  if(!rows.length) return `<div class="summary-section-heading"><div><h2>${title}</h2><p>${description}</p></div></div><div class="summary-empty-state">Ainda não há exercícios ativos para analisar.</div>`;
+  const max=Math.max(...rows.map(item=>item[1]),1);
+  return `<div class="summary-section-heading"><div><h2>${title}</h2><p>${description}</p></div><span class="summary-result-total">${rows.reduce((sum,item)=>sum+item[1],0)} no total</span></div>
+    <div class="summary-distribution-list">${rows.map(([label,count])=>`<div class="summary-distribution-row"><div class="summary-distribution-label"><strong>${esc(label)}</strong><b>${count}</b></div><div class="summary-bar-track"><i style="width:${(count/max*100).toFixed(1)}%"></i></div></div>`).join('')}</div>`;
+}
+
+function summaryMuscleSetsMarkup(){
+  const totals=new Map();
+  days.forEach(dayName=>(state.workouts[dayName]||[]).forEach(ex=>{
+    const label=String(ex.muscle||'Não informado').trim()||'Não informado';
+    const sets=Math.max(0,Number(ex.sets)||1);
+    const current=totals.get(label)||{sets:0,exercises:0};
+    current.sets+=sets;
+    current.exercises+=1;
+    totals.set(label,current);
+  }));
+  const rows=[...totals.entries()].sort((a,b)=>b[1].sets-a[1].sets||a[0].localeCompare(b[0],'pt-BR'));
+  if(!rows.length) return `<div class="summary-section-heading"><div><h2>Séries por grupo muscular</h2><p>Quantidade de séries planejadas nos exercícios ativos de cada grupo.</p></div></div><div class="summary-empty-state">Ainda não há exercícios ativos para analisar.</div>`;
+  const max=Math.max(...rows.map(([,value])=>value.sets),1);
+  const total=rows.reduce((sum,[,value])=>sum+value.sets,0);
+  return `<div class="summary-section-heading"><div><h2>Séries por grupo muscular</h2><p>Compare o volume de séries planejadas em cada grupo muscular.</p></div><span class="summary-result-total">${total} séries no total</span></div>
+    <div class="summary-distribution-list">${rows.map(([label,value])=>`<div class="summary-distribution-row"><div class="summary-distribution-label"><strong>${esc(label)} <small style="color:var(--muted);font-size:10px;font-weight:500">· ${value.exercises} ${value.exercises===1?'exercício':'exercícios'}</small></strong><b>${value.sets} ${value.sets===1?'série':'séries'}</b></div><div class="summary-bar-track"><i style="width:${(value.sets/max*100).toFixed(1)}%"></i></div></div>`).join('')}</div>`;
+}
+
+function summaryLoadValue(value){
+  const text=String(value??'').trim();
+  if(!text) return 'Não informada';
+  return /^[-+]?\d+(?:[,.]\d+)?$/.test(text)?text+' kg':text;
+}
+
+function summaryChartMarkup(history){
+  const points=history.map((item,index)=>({label:index===history.length-1?'Mais recente':'Anterior',value:Number(String(item.load).replace(',','.'))})).filter(point=>Number.isFinite(point.value));
+  if(!points.length) return '';
+  const width=700,height=205,left=54,right=24,top=20,bottom=38;
+  const min=Math.min(...points.map(p=>p.value)),max=Math.max(...points.map(p=>p.value));
+  const range=max-min||Math.max(Math.abs(max)*.08,1);
+  const x=i=>points.length===1?(left+width-right)/2:left+i*(width-left-right)/Math.max(points.length-1,1);
+  const y=value=>top+(max-value)/range*(height-top-bottom);
+  const coords=points.map((point,index)=>`${x(index).toFixed(1)},${y(point.value).toFixed(1)}`);
+  const yLabels=[0,.5,1].map(r=>{const value=max-r*range;const yy=top+r*(height-top-bottom);return `<text x="${left-9}" y="${yy+4}" text-anchor="end">${esc(Number(value.toFixed(2)).toLocaleString('pt-BR'))}</text><line x1="${left}" y1="${yy}" x2="${width-right}" y2="${yy}" />`;}).join('');
+  const xLabels=points.map((point,index)=>`<text x="${x(index)}" y="${height-10}" text-anchor="middle">${point.label}</text>`).join('');
+  const dots=points.map((point,index)=>`<circle cx="${x(index)}" cy="${y(point.value)}" r="5"><title>${point.label} · ${summaryLoadValue(point.value)}</title></circle>`).join('');
+  return `<div class="summary-chart-wrap"><h3>Comparação das últimas atualizações</h3><p>Comparação entre as duas confirmações mais recentes de séries concluídas.</p><svg class="summary-load-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Comparação entre a atualização anterior e a mais recente"><g class="summary-chart-grid">${yLabels}</g>${points.length>1?`<polyline points="${coords.join(' ')}" />`:''}${dots}<g class="summary-chart-labels">${xLabels}</g></svg></div>`;
+}
+
+function summaryLoadsMarkup(){
+  const groups=getActiveSummaryExercises();
+  if(!groups.length) return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Acompanhe as duas atualizações mais recentes das séries confirmadas.</p></div></div><div class="summary-empty-state">Adicione exercícios aos treinos para consultar as cargas atuais e começar a registrar sua evolução.</div>`;
+  const selectedIndex=Math.min(Math.max(Number(summaryLoadGroupIndex)||0,0),groups.length-1);
+  summaryLoadGroupIndex=String(selectedIndex);
+  const options=groups.map((group,index)=>`<option value="${index}" ${index===selectedIndex?'selected':''}>${esc(group.name)} · ${esc(group.muscle)} · ${esc(group.equipment)}</option>`).join('');
+  const group=groups[selectedIndex];
+  const ids=new Set(group.ids);
+  const history=(state.loadHistory||[]).filter(item=>ids.has(item.exerciseId)).sort((a,b)=>(new Date(a.timestamp).getTime()||0)-(new Date(b.timestamp).getTime()||0));
+  const recentHistory=history.slice(-2);
+  const currentEntries=group.entries;
+  const currentMarkup=currentEntries.map(({day:dayName,exercise})=>`<div class="summary-current-load"><div><strong>${esc(dayName)} · ${esc(exercise.name||'Exercício')}</strong><small>${esc(exercise.muscle||'-')} · ${esc(exercise.equipment||'-')}</small></div><div class="summary-load-chips">${Array.from({length:Number(exercise.sets)||1},(_,index)=>`<span>${index+1}: ${esc(summaryLoadValue((exercise.loads||[])[index]))}</span>`).join('')}</div></div>`).join('');
+  const historyMarkup=recentHistory.length?`<div class="summary-history-table-wrap"><h3>Últimas ${recentHistory.length} ${recentHistory.length===1?'atualização':'atualizações'}</h3><div class="summary-history-list">${[...recentHistory].reverse().map((item,index)=>`<div class="summary-history-row"><span>${index===0?'Mais recente':'Anterior'}</span><strong>Série ${Number(item.set)||'-'}</strong><b>${esc(summaryLoadValue(item.load))}</b></div>`).join('')}</div></div>`:`<div class="summary-empty-state">Ainda não há confirmações de séries para este exercício. Ao marcar uma série como OK, a carga será registrada. Ao atualizar a carga e confirmar novamente, a nova informação passa a compor as últimas atualizações.</div>`;
+  return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Veja as cargas atuais e compare somente as duas confirmações mais recentes.</p></div></div>
+    <div class="summary-load-filters"><label>Exercício<select id="summaryLoadExercise">${options}</select></label></div>
+    <section class="summary-current-loads"><h3>Cargas atuais nos treinos</h3>${currentMarkup}</section>
+    ${recentHistory.length?summaryChartMarkup(recentHistory):''}${historyMarkup}`;
+}
+
+function renderSummaryPage(){
+  const page=document.getElementById('summaryPage');
+  if(!page || page.hidden) return;
+  const activeEntries=days.flatMap(dayName=>(state.workouts[dayName]||[]).map(ex=>({day:dayName,exercise:ex})));
+  document.getElementById('summaryOverviewCards').innerHTML=summaryMetricCards(activeEntries);
+  document.querySelectorAll('[data-summary-filter]').forEach(button=>{
+    const active=button.dataset.summaryFilter===activeSummaryFilter;
+    button.classList.toggle('active',active);
+    button.setAttribute('aria-pressed',String(active));
+  });
+  const content=document.getElementById('summaryContent');
+  if(activeSummaryFilter==='days') content.innerHTML=summaryDayMarkup();
+  else if(activeSummaryFilter==='muscle') content.innerHTML=summaryDistributionMarkup('muscle','Exercícios por grupo muscular','Quantidade de exercícios ativos em cada grupo muscular.');
+  else if(activeSummaryFilter==='muscleSets') content.innerHTML=summaryMuscleSetsMarkup();
+  else if(activeSummaryFilter==='equipment') content.innerHTML=summaryDistributionMarkup('equipment','Uso de equipamentos','Quantidade de exercícios ativos por equipamento.');
+  else if(activeSummaryFilter==='execution') content.innerHTML=summaryDistributionMarkup('execution','Estilos de execução','Quantidade de exercícios ativos por tipo de execução.');
+  else if(activeSummaryFilter==='grip') content.innerHTML=summaryDistributionMarkup('grip','Distribuição de pegadas','Quantidade de exercícios ativos por estilo de pegada.');
+  else content.innerHTML=summaryLoadsMarkup();
+  setupStyledSelects();
+}
+
+function openSummaryPage(){
+  const page=document.getElementById('summaryPage');
+  if(!page) return;
+  page.hidden=false;
+  activeSummaryFilter='days';
+  summaryLoadGroupIndex='0';
+  renderSummaryPage();
+  page.scrollTop=0;
+  document.body.classList.add('summary-page-open');
+}
+
+function closeSummaryPage(){
+  const page=document.getElementById('summaryPage');
+  if(page) page.hidden=true;
+  document.body.classList.remove('summary-page-open');
 }
 
 // ========================================
