@@ -347,6 +347,12 @@ margin:12px 0;
 box-shadow:0 8px 24px #0003
 }
 
+.exercise.is-collapsed .sets-table,.exercise.is-collapsed .actions{display:none!important}
+.exercise-list-toolbar{display:flex;justify-content:stretch;align-items:center;width:100%;margin:0 0 8px}
+.exercise-list-toggle{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:34px;padding:4px 12px;border:1px solid #46564b;border-radius:10px;background:#202923;color:#d9e4dc;font:600 13px inherit;text-align:center;cursor:pointer}
+.exercise-list-toggle span{flex:0 1 auto;text-align:center}
+.exercise-list-toggle svg{flex:0 0 14px;width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
 .exercise-main{display:contents}
 
 .exhead{
@@ -1874,29 +1880,27 @@ gap:4px
 }
 
 
-/* Seletor de nomes: digitação livre + seta para abrir o catálogo completo. */
-.exercise-name-picker{position:relative;display:flex;width:100%}
-.exercise-name-picker input{padding-right:46px}
-.exercise-name-toggle{
-  position:absolute;right:4px;top:4px;bottom:4px;width:36px;
-  border:0;border-left:1px solid #394040;border-radius:0 7px 7px 0;
-  color:var(--accent);background:#202724;font-size:19px;font-weight:800;cursor:pointer
+/* Campo de nome: seleção exclusiva no modo Adicionar; texto livre apenas na edição. */
+#fNameSelect[hidden]{display:none!important}
+.field:has(#fNameSelect[hidden]) .styled-select{display:none!important}
+#fName[hidden]{display:none!important}
+.styled-select-option:disabled{
+  color:#77817b;
+  opacity:.38;
+  cursor:not-allowed;
+  background:transparent!important;
 }
-.exercise-name-list{
-  position:absolute;z-index:30;top:calc(100% + 5px);left:0;right:0;
-  max-height:230px;overflow-y:auto;background:#151b18;border:1px solid #526458;
-  border-radius:10px;box-shadow:0 12px 28px #0009;padding:5px
+.catalog-list-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
 }
-.exercise-name-list[hidden]{display:none}
-#equipmentAddField[hidden], #equipmentEditField[hidden]{display:none !important}
-.exercise-name-option{
-  display:block;width:100%;padding:10px 11px;text-align:left;
-  border:0;border-radius:7px;background:transparent;color:var(--text);
-  font:inherit;cursor:pointer
+.catalog-list-toggle span{
+  font-size:18px;
+  line-height:1;
+  transition:transform .18s ease;
 }
-.exercise-name-option:hover,.exercise-name-option:focus{background:#2b3a30;outline:none}
-
-
+.catalog-list-toggle[aria-expanded="true"] span{transform:rotate(180deg)}
 /* PADRÃO GLOBAL DAS LISTAS SUSPENSAS */
 .field select,
 select {
@@ -1920,23 +1924,6 @@ select:focus {
   box-shadow: 0 0 0 2px #c6ff0022;
 }
 
-/* A lista personalizada de nomes segue o mesmo padrão visual do anexo. */
-.exercise-name-list {
-  background: #151b18;
-  border: 1px solid #526458;
-  color: #f4f6f4;
-  font-family: inherit;
-}
-.exercise-name-option {
-  color: #f4f6f4;
-  font-family: inherit;
-}
-.exercise-name-option:hover,
-.exercise-name-option:focus {
-  background: #2b3a30;
-}
-
-
 /* CONFIRMAÇÃO PERSONALIZADA — título próprio em vez de "Essa página diz". */
 .confirm-backdrop {
   position: fixed;
@@ -1950,6 +1937,7 @@ select:focus {
 }
 /* A confirmação do catálogo fica acima do próprio modal de cadastro. */
 #catalogDeleteConfirm { z-index: 12000; }
+#duplicateExerciseDialog { z-index: 12001; }
 .confirm-backdrop[hidden] { display: none; }
 .confirm-dialog {
   width: min(420px, 100%);
@@ -1982,35 +1970,6 @@ select:focus {
 .catalog-list-item .btn{flex:0 0 auto;padding:6px 9px}
 .catalog-empty{padding:8px;color:var(--muted);font-size:12px}
 
-/* Lista de exercícios no topo do cadastro, sem halo ou destaque verde. */
-.exercise-catalog-entry{
-  order:0;
-  margin:0 0 14px;
-  padding:0;
-  border:0;
-  border-radius:0;
-  background:transparent;
-  box-shadow:none;
-}
-.exercise-catalog-entry>label{display:none}
-.exercise-catalog-toggle{
-  width:100%;
-  min-height:40px;
-  justify-content:space-between;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:8px 12px;
-  font-size:14px;
-  font-weight:800;
-  white-space:normal;
-  border:1px solid var(--accent);
-  background:var(--accent);
-  color:#101010;
-  box-shadow:none;
-}
-.exercise-catalog-arrow{font-size:20px;line-height:1}
-.exercise-catalog-entry .catalog-list{margin-top:5px}
 @media(max-width:480px){.catalog-entry>div:not(.catalog-list){flex-wrap:wrap}.catalog-entry>div:not(.catalog-list) input{flex-basis:100%}}
 
 @media(max-width:430px){.catalog-entry>div{align-items:stretch}.catalog-entry .btn{padding:9px}.move-day-options{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -2019,7 +1978,7 @@ select:focus {
 .info-catalog-dialog{padding:14px 16px}
 .info-catalog-dialog>.confirm-actions{margin-top:14px}
 .info-catalog-dialog>.catalog-feedback{padding:0;line-height:1.2}
-@media(max-width:600px){.info-catalog-dialog{padding:12px}.info-catalog-dialog .catalog-entry{margin:9px 0}.info-catalog-dialog .exercise-catalog-entry{margin:13px 0 5px}}
+@media(max-width:600px){.info-catalog-dialog{padding:12px}.info-catalog-dialog .catalog-entry{margin:9px 0}}
 
 
 
@@ -2054,12 +2013,16 @@ select:focus {
 }
 .styled-select-menu {
   position:absolute; z-index:120; top:calc(100% + 5px);
-  left:0; right:0; max-height:230px; overflow-y:auto;
+  left:0; right:0; max-height:min(420px, 58vh); overflow-y:auto;
   padding:5px; background:#151b18;
   border:1px solid #526458; border-radius:10px;
   box-shadow:0 12px 28px #0009;
 }
 .styled-select-menu[hidden] { display:none; }
+.styled-select-search{display:flex;align-items:center;gap:8px;padding:7px 8px 9px;position:sticky;top:-5px;background:#151b18;z-index:2;border-bottom:1px solid #394743;margin-bottom:4px}
+.styled-select-search svg{width:17px;height:17px;flex:0 0 17px;color:#c6ff00}
+.styled-select-search input{width:100%;min-width:0;background:#101514;color:#f4f6f4;border:1px solid #394743;border-radius:7px;padding:9px 10px;font:inherit;outline:none}
+.styled-select-search input:focus{border-color:#718276;box-shadow:0 0 0 2px #c6ff0022}
 .styled-select-option {
   display:block; width:100%; padding:10px 11px;
   border:0; border-radius:7px; background:transparent;
@@ -2071,6 +2034,13 @@ select:focus {
 }
 .styled-select-option[aria-selected="true"] {
   background:#202b24;
+}
+.styled-select-option:disabled,
+.styled-select-option[aria-disabled="true"]{
+  color:#77817b;
+  opacity:.38;
+  cursor:not-allowed;
+  background:transparent!important;
 }
 .styled-select-empty {
   padding:10px 11px; color:#aebbb2; font:inherit;
@@ -2146,6 +2116,13 @@ select:focus {
   </div>
 </div>
 
+<div class="exercise-list-toolbar">
+  <button type="button" id="toggleAllExercisesBtn" class="exercise-list-toggle" onclick="toggleAllExerciseDetails()" aria-expanded="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 7-5 5 5 5"/></svg>
+    <span>Recolher todos</span>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 7 5 5-5 5"/></svg>
+  </button>
+</div>
 <section id="exerciseList"></section>
 
 
@@ -2168,6 +2145,18 @@ select:focus {
       <button type="button" class="btn" id="cancelDeleteBtn">Cancelar</button>
       <button type="button" class="btn primary" id="confirmDeleteBtn">Excluir exercício</button>
     </div>
+  </section>
+</div>
+
+<div class="confirm-backdrop" id="duplicateExerciseDialog" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="duplicateExerciseTitle">
+    <h2 id="duplicateExerciseTitle">Criar variação do exercício</h2>
+    <p>Esse exercício já está cadastrado. Caso queira criar uma variação dele, selecione as opções que irão diferenciá-lo.</p>
+    <div class="field"><label>Grupo muscular</label><select id="variationMuscle"></select></div>
+    <div class="field"><label>Execução</label><select id="variationExecution"></select></div>
+    <div class="field"><label>Pegada</label><select id="variationGrip"></select></div>
+    <div class="field"><label>Equipamento</label><select id="variationEquipment"></select></div>
+    <div class="confirm-actions"><button type="button" class="btn" id="cancelVariationBtn">Cancelar</button><button type="button" class="btn primary" id="saveVariationBtn">Criar variação</button></div>
   </section>
 </div>
 
@@ -2206,11 +2195,19 @@ select:focus {
 <div class="confirm-backdrop" id="infoCatalogModal" hidden>
   <section class="confirm-dialog info-catalog-dialog" role="dialog" aria-modal="true" aria-labelledby="infoCatalogTitle">
     <h2 id="infoCatalogTitle">Cadastro e exclusão de informações</h2>
-    <div class="catalog-entry exercise-catalog-entry"><div><button type="button" class="btn primary exercise-catalog-toggle" data-exercise-catalog-toggle><span aria-hidden="true">☷</span> Ver lista de exercícios <span class="exercise-catalog-arrow" aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="exerciseCatalogList" hidden></div></div>
-    <div class="catalog-entry"><label for="newMuscle">Grupo muscular</label><div><input id="newMuscle" type="text" placeholder="Novo grupo muscular"><button type="button" class="btn primary" data-catalog-add="muscle">Adicionar</button><button type="button" class="btn" data-catalog-list="muscle">Ver lista</button></div><div class="catalog-list" id="catalogList-muscle" hidden></div></div>
-    <div class="catalog-entry"><label for="newEquipment">Equipamento</label><div><input id="newEquipment" type="text" placeholder="Novo equipamento"><button type="button" class="btn primary" data-catalog-add="equipment">Adicionar</button><button type="button" class="btn" data-catalog-list="equipment">Ver lista</button></div><div class="catalog-list" id="catalogList-equipment" hidden></div></div>
-    <div class="catalog-entry"><label for="newExecution">Execução</label><div><input id="newExecution" type="text" placeholder="Nova execução"><button type="button" class="btn primary" data-catalog-add="execution">Adicionar</button><button type="button" class="btn" data-catalog-list="execution">Ver lista</button></div><div class="catalog-list" id="catalogList-execution" hidden></div></div>
-    <div class="catalog-entry"><label for="newGrip">Pegada</label><div><input id="newGrip" type="text" placeholder="Nova pegada"><button type="button" class="btn primary" data-catalog-add="grip">Adicionar</button><button type="button" class="btn" data-catalog-list="grip">Ver lista</button></div><div class="catalog-list" id="catalogList-grip" hidden></div></div>
+    <div class="catalog-entry">
+      <label for="newExercise">Exercício</label>
+      <div>
+        <input id="newExercise" type="text" placeholder="Novo exercício">
+        <button type="button" class="btn primary" data-exercise-add>Adicionar</button>
+        <button type="button" class="btn catalog-list-toggle" data-exercise-catalog-toggle aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button>
+      </div>
+      <div class="catalog-list" id="exerciseCatalogList" hidden></div>
+    </div>
+    <div class="catalog-entry"><label for="newMuscle">Grupo muscular</label><div><input id="newMuscle" type="text" placeholder="Novo grupo muscular"><button type="button" class="btn primary" data-catalog-add="muscle">Adicionar</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="muscle" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-muscle" hidden></div></div>
+    <div class="catalog-entry"><label for="newEquipment">Equipamento</label><div><input id="newEquipment" type="text" placeholder="Novo equipamento"><button type="button" class="btn primary" data-catalog-add="equipment">Adicionar</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="equipment" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-equipment" hidden></div></div>
+    <div class="catalog-entry"><label for="newExecution">Execução</label><div><input id="newExecution" type="text" placeholder="Nova execução"><button type="button" class="btn primary" data-catalog-add="execution">Adicionar</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="execution" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-execution" hidden></div></div>
+    <div class="catalog-entry"><label for="newGrip">Pegada</label><div><input id="newGrip" type="text" placeholder="Nova pegada"><button type="button" class="btn primary" data-catalog-add="grip">Adicionar</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="grip" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-grip" hidden></div></div>
     <p class="catalog-feedback" id="catalogFeedback" aria-live="polite"></p>
     <div class="confirm-actions"><button type="button" class="btn" id="closeInfoCatalogBtn">Fechar</button></div>
   </section>
@@ -2262,11 +2259,10 @@ Exporte um backup para levar suas alterações a outro dispositivo.
 
 <div class="field">
 <label>Nome do exercício</label>
-<div class="exercise-name-picker" id="exerciseNamePicker">
-  <input id="fName" required autocomplete="off" aria-haspopup="listbox" aria-expanded="false">
-  <button type="button" class="exercise-name-toggle" id="exerciseNameToggle" aria-label="Mostrar exercícios cadastrados" aria-expanded="false">▾</button>
-  <div class="exercise-name-list" id="exerciseNameList" role="listbox" hidden></div>
-</div>
+<input id="fName" required autocomplete="off">
+<select id="fNameSelect" hidden required>
+  <option value="" disabled selected>Selecione um exercício</option>
+</select>
 </div>
 
 <div class="formrow">
@@ -2314,8 +2310,9 @@ Exporte um backup para levar suas alterações a outro dispositivo.
 </div>
 
 <div class="field">
-<label>Observação (opcional)</label>
-<input id="fNote">
+<label>Dia da semana</label>
+<select id="fDay"><option value="-">-</option><option value="Segunda">Segunda</option><option value="Terça">Terça</option><option value="Quarta">Quarta</option><option value="Quinta">Quinta</option><option value="Sexta">Sexta</option><option value="Sábado">Sábado</option></select>
+<input id="fNote" type="hidden">
 </div>
 
 </div>
@@ -2353,6 +2350,7 @@ Salvar exercício
 // navegadores móveis e WebViews e impedir a abertura dos modais.
 const modal = document.getElementById('modal');
 const fName = document.getElementById('fName');
+const fNameSelect = document.getElementById('fNameSelect');
 const fMuscle = document.getElementById('fMuscle');
 const fEquipment = document.getElementById('fEquipment');
 const fEquipmentEdit = document.getElementById('fEquipmentEdit');
@@ -2362,6 +2360,7 @@ const fExecution = document.getElementById('fExecution');
 const fGrip = document.getElementById('fGrip');
 const fSets = document.getElementById('fSets');
 const fNote = document.getElementById('fNote');
+const fDay = document.getElementById('fDay');
 const exerciseForm = document.getElementById('exerciseForm');
 const addBtn = document.getElementById('addBtn');
 const resetBtn = document.getElementById('resetBtn');
@@ -2475,6 +2474,7 @@ const initial = {
 const days=Object.keys(initial);
 
 let day=days[0];
+let allExercisesCollapsed=false;
 let editIndex=null;
 let state=loadState();
 
@@ -2545,10 +2545,11 @@ x.catalogs=x.catalogs||{muscle:[],equipment:[],execution:[],grip:[]};
 // Catálogo mestre independente dos treinos semanais. Migra os exercícios
 // existentes uma única vez e preserva itens mesmo quando saem de um dia.
 if(!Array.isArray(x.exerciseCatalog)) x.exerciseCatalog=[];
-const knownExerciseNames=new Set(x.exerciseCatalog.map(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')).filter(Boolean));
+const exerciseSignature=ex=>[ex?.name,ex?.muscle,ex?.execution,ex?.grip,ex?.equipment].map(v=>String(v??'').trim().toLocaleLowerCase('pt-BR')).join('|');
+const knownExerciseNames=new Set(x.exerciseCatalog.map(exerciseSignature));
 Object.values(x.workouts||{}).flat().forEach(ex=>{
   const name=String(ex?.name||'').trim();
-  const key=name.toLocaleLowerCase('pt-BR');
+  const key=exerciseSignature(ex);
   if(name && !knownExerciseNames.has(key)){
     x.exerciseCatalog.push(JSON.parse(JSON.stringify(ex)));
     knownExerciseNames.add(key);
@@ -2831,6 +2832,24 @@ button.disabled=!canMarkProgress;
 // RENDERIZAÇÃO
 // ========================================
 
+function toggleAllExerciseDetails(){
+  allExercisesCollapsed=!allExercisesCollapsed;
+  document.querySelectorAll('#exerciseList .exercise').forEach(card=>{
+    card.classList.toggle('is-collapsed',allExercisesCollapsed);
+  });
+  updateExerciseListToggle();
+}
+
+function updateExerciseListToggle(){
+  const button=document.getElementById('toggleAllExercisesBtn');
+  if(!button) return;
+  const label=button.querySelector('span');
+  if(label) label.textContent=allExercisesCollapsed?'Expandir todos':'Recolher todos';
+  button.setAttribute('aria-expanded',String(!allExercisesCollapsed));
+  const arrowPath=allExercisesCollapsed?'m6 9 6 6 6-6':'m6 15 6-6 6 6';
+  button.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${arrowPath}"/></svg><span>${allExercisesCollapsed?'Expandir todos':'Recolher todos'}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${arrowPath}"/></svg>`;
+}
+
 function render(){
 
 const dayLabel={
@@ -2954,7 +2973,7 @@ const checks=checksFor(day,i);
 
 return `
 
-<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'}">
+<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${allExercisesCollapsed?'is-collapsed':''}">
 
 <div class="exercise-main">
 
@@ -2977,6 +2996,7 @@ title="Equipamento: ${esc(e.equipment)} · Pegada: ${esc(e.grip)} · Execução:
 </div>
 
 </div>
+
 
 <button
 type="button"
@@ -3065,6 +3085,8 @@ ${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><pat
 :'<div class="empty">Nenhum exercício neste treino. Use “Adicionar exercício” para começar.</div>';
 
 // Desativa as setas apenas quando a carga abdominal salva é texto.
+updateExerciseListToggle();
+
 exerciseList.querySelectorAll('.abdominal-load .set-input').forEach(toggleDisplayLoadStepper);
 
 // ATUALIZA OS BOTÕES DE CONTROLE
@@ -3434,7 +3456,8 @@ function upsertExerciseCatalog(exercise, oldName=''){
   }
   if(!newName) return;
   const copy=JSON.parse(JSON.stringify(exercise));
-  const index=state.exerciseCatalog.findIndex(item=>String(item?.name||'').trim().toLocaleLowerCase('pt-BR')===newKey);
+  const signature=item=>[item?.name,item?.muscle,item?.execution,item?.grip,item?.equipment].map(v=>String(v??'').trim().toLocaleLowerCase('pt-BR')).join('|');
+  const index=state.exerciseCatalog.findIndex(item=>signature(item)===signature(copy));
   if(index>=0) state.exerciseCatalog[index]=copy;
   else state.exerciseCatalog.push(copy);
 }
@@ -3496,6 +3519,20 @@ function preserveSelectValue(select, value){
   select.value=desired;
 }
 
+function findExerciseWorkoutDay(exercise){
+  if(!exercise) return '-';
+  const key=String(exercise.name||'').trim().toLocaleLowerCase('pt-BR');
+  if(!key) return '-';
+  for(const dayName of days){
+    const found=(state.workouts[dayName]||[]).some(item=>
+      String(item.name||'').trim().toLocaleLowerCase('pt-BR')===key &&
+      ['muscle','equipment','execution','grip'].every(k=>String(item[k]||'-').trim().toLocaleLowerCase('pt-BR')===String(exercise[k]||'-').trim().toLocaleLowerCase('pt-BR'))
+    );
+    if(found) return dayName;
+  }
+  return '-';
+}
+
 function editExercise(i){
 
 if(i!==null && !state.workouts[day]?.[i]) return;
@@ -3524,37 +3561,35 @@ i===null
 :'Editar exercício';
 
 fName.value=e.name||'';
-
-// O campo aceita texto livre; a seta abre o catálogo completo de nomes cadastrados.
-const namePicker=document.getElementById('exerciseNamePicker');
-const nameToggle=document.getElementById('exerciseNameToggle');
-const nameList=document.getElementById('exerciseNameList');
+const nameSelectRoot=fNameSelect.closest('.styled-select');
 if(i===null){
-  namePicker.hidden=false;
-  fName.removeAttribute('list');
+  // Em Adicionar, o nome só pode ser escolhido entre os exercícios cadastrados.
+  fName.hidden=true;
+  fName.required=false;
+  fNameSelect.hidden=false;
+  fNameSelect.required=true;
+  if(nameSelectRoot) nameSelectRoot.hidden=false;
+  const activeNames=new Set((state.workouts[day]||[])
+    .map(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR'))
+    .filter(Boolean));
   const catalogNames=getAllExerciseNames();
-  nameList.innerHTML=catalogNames.length
-    ? catalogNames.map(name=>`<button type="button" class="exercise-name-option" role="option" data-exercise-name="${esc(name)}">${esc(name)}</button>`).join('')
-    : '<div class="exercise-name-option muted">Nenhum exercício cadastrado ainda</div>';
-  document.getElementById('exerciseNameList').hidden=true;
-  fName.setAttribute('aria-expanded','false');
-  document.getElementById('exerciseNameToggle').setAttribute('aria-expanded','false');
+  fNameSelect.innerHTML='<option value="" disabled selected>Selecione um exercício</option>'+
+    catalogNames.map(name=>{
+      const blocked=activeNames.has(name.toLocaleLowerCase('pt-BR'));
+      return `<option value="${esc(name)}"${blocked?' disabled':''}>${esc(name)}</option>`;
+    }).join('');
+  fNameSelect.value='';
+  fName.value='';
+  refreshStyledSelect(fNameSelect);
 }else{
-  // Em Editar exercício, mantém apenas o campo de texto simples:
-  // sem botão de seta e sem catálogo suspenso.
-  namePicker.hidden=false;
-  nameToggle.hidden=true;
-  nameList.hidden=true;
-  fName.removeAttribute('aria-haspopup');
-  fName.removeAttribute('aria-expanded');
-  fName.style.paddingRight='11px';
+  // Em Editar, mantém o campo de texto para permitir corrigir/renomear o exercício.
+  fName.hidden=false;
+  fName.required=true;
+  fNameSelect.hidden=true;
+  fNameSelect.required=false;
+  if(nameSelectRoot) nameSelectRoot.hidden=true;
+  fNameSelect.value='';
 }
-if(i===null){
-  nameToggle.hidden=false;
-  fName.setAttribute('aria-haspopup','listbox');
-  fName.style.paddingRight='';
-}
-
 // Grupos musculares disponíveis são reunidos de todos os exercícios cadastrados.
 const registeredMuscles=getCatalogValues('muscle',false);
 if(!registeredMuscles.some(m=>/aer[oó]bic|cardio/i.test(m))) registeredMuscles.push('Aeróbico');
@@ -3599,6 +3634,7 @@ document.getElementById('decreaseSetsBtn').disabled=(+fSets.value)<=1;
 document.getElementById('increaseSetsBtn').disabled=(+fSets.value)>=20;
 
 fNote.value=e.note||'';
+if(fDay){ fDay.value=i===null?'-':day; fDay.closest('.field').hidden=i!==null; refreshStyledSelect(fDay); }
 
 renderLoadFields(e.loads||[],e.sets||4,isAerobicExercise(e));
 
@@ -3613,7 +3649,7 @@ function handleExerciseNameInput(){
   const typed=fName.value.trim();
   const catalog=[...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()];
   const match=typed
-    ? catalog.find(ex=>String(ex.name||'').trim().toLocaleLowerCase('pt-BR')===typed.toLocaleLowerCase('pt-BR'))
+    ? [...catalog].reverse().find(ex=>String(ex.name||'').trim().toLocaleLowerCase('pt-BR')===typed.toLocaleLowerCase('pt-BR'))
     : null;
 
   const setField=(select,value)=>{
@@ -3661,31 +3697,14 @@ fMuscle.addEventListener('change',()=>{
 });
 
 fName.addEventListener('input',handleExerciseNameInput);
-
-document.getElementById('exerciseNameToggle').addEventListener('click',()=>{
-  if(editIndex!==null) return;
-  const list=document.getElementById('exerciseNameList');
-  const opening=list.hidden;
-  list.hidden=!opening;
-  fName.setAttribute('aria-expanded',String(opening));
-  document.getElementById('exerciseNameToggle').setAttribute('aria-expanded',String(opening));
-  if(opening) list.scrollTop=0;
-});
-document.getElementById('exerciseNameList').addEventListener('click',event=>{
-  const option=event.target.closest('[data-exercise-name]');
-  if(!option) return;
-  fName.value=option.dataset.exerciseName;
-  document.getElementById('exerciseNameList').hidden=true;
-  fName.setAttribute('aria-expanded','false');
-  document.getElementById('exerciseNameToggle').setAttribute('aria-expanded','false');
-  fName.dispatchEvent(new Event('input',{bubbles:true}));
-});
-document.addEventListener('click',event=>{
-  if(!event.target.closest('#exerciseNamePicker')){
-    document.getElementById('exerciseNameList').hidden=true;
-    fName.setAttribute('aria-expanded','false');
-    document.getElementById('exerciseNameToggle').setAttribute('aria-expanded','false');
-  }
+fNameSelect.addEventListener('change',()=>{
+  const selected=fNameSelect.selectedOptions[0];
+  if(!selected || selected.disabled || !fNameSelect.value) return;
+  fName.value=fNameSelect.value;
+  handleExerciseNameInput();
+  const chosen=[...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].reverse().find(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')===fName.value.trim().toLocaleLowerCase('pt-BR'));
+  if(fDay){ fDay.value=findExerciseWorkoutDay(chosen); refreshStyledSelect(fDay); }
+  refreshStyledSelect(fNameSelect);
 });
 
 function closeModal(){
@@ -3702,11 +3721,19 @@ const old=editIndex===null
 ?null
 :state.workouts[day][editIndex];
 
+if(editIndex===null){
+  const selectedName=String(fNameSelect.value||'').trim().toLocaleLowerCase('pt-BR');
+  if(!selectedName || (state.workouts[day]||[]).some(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')===selectedName)){
+    alert('Esse exercício já está ativo neste treino ou não foi selecionado.');
+    return;
+  }
+}
+
 const e={
 
 ...(old||{}),
 
-name:fName.value.trim(),
+name:String(editIndex===null?fNameSelect.value:fName.value).trim(),
 
 muscle:fMuscle.value.trim(),
 
@@ -3728,13 +3755,27 @@ loads:readLoadFields()
 };
 
 if(editIndex!==null && !old) return;
-recordUndo(editIndex===null?'Exercício adicionado':'Exercício editado');
+recordUndo(editIndex===null?(fDay?.value==='-'?'Exercício cadastrado':'Exercício adicionado'):'Exercício editado');
 
 // Registra os valores anteriores antes de qualquer alteração do exercício.
 if(old) preserveExerciseDropdownValues(old);
 
 if(editIndex===null){
-  state.workouts[day].push(e);
+  const targetDay=String(fDay?.value||'-');
+  // Ao selecionar um exercício já existente, a escolha do dia funciona como movimentação.
+  // Remove apenas a mesma variação (nome + grupo + execução + pegada + equipamento).
+  const sameVariant=item=>String(item?.name||'').trim().toLocaleLowerCase('pt-BR')===e.name.toLocaleLowerCase('pt-BR') &&
+    ['muscle','execution','grip','equipment'].every(k=>String(item?.[k]||'-').trim().toLocaleLowerCase('pt-BR')===String(e[k]||'-').trim().toLocaleLowerCase('pt-BR'));
+  days.forEach(dayName=>{
+    const list=state.workouts[dayName]||[];
+    for(let idx=list.length-1;idx>=0;idx--){
+      if(sameVariant(list[idx])){ list.splice(idx,1); shiftChecksForDayAfterDelete(dayName,idx); }
+    }
+  });
+  if(targetDay!=='-'){
+    state.workouts[targetDay]=state.workouts[targetDay]||[];
+    state.workouts[targetDay].push(e);
+  }
 }
 
 else{
@@ -3761,11 +3802,17 @@ clearChecks(editIndex);
 }
 
 upsertExerciseCatalog(e, old?.name||'');
+if(editIndex===null && fDay?.value==='-'){
+  save(); renderAllCatalogLists(); refreshAllStyledSelects(); renderEquipmentOptions(); closeModal();
+  document.getElementById('catalogFeedback')?.replaceChildren();
+  render(); return;
+}
 save();
 
 // Mantém a lista de exclusão sincronizada imediatamente após adicionar,
 // editar ou renomear um exercício. A lista é derivada dos treinos salvos.
-renderExerciseCatalogList();
+renderAllCatalogLists();
+refreshAllStyledSelects();
 
 // Atualiza imediatamente a lista suspensa compartilhada de equipamentos.
 renderEquipmentOptions();
@@ -3814,17 +3861,18 @@ function replaceExercise(i){
 
   // O catálogo de substituição vem do cadastro mestre, não dos exercícios
   // atualmente distribuídos nos dias da semana.
-  const catalog=[];
-  const seen=new Set();
-  (state.exerciseCatalog||[]).forEach(ex=>{
-    const nameKey=String(ex?.name||'').trim().toLocaleLowerCase('pt-BR');
-    const muscleKey=String(ex?.muscle||'Outros').trim().toLocaleLowerCase('pt-BR');
-    const key=muscleKey+'::'+nameKey;
-    const currentKey=String(current.muscle||'Outros').trim().toLocaleLowerCase('pt-BR')+'::'+String(current.name||'').trim().toLocaleLowerCase('pt-BR');
-    if(!nameKey || key===currentKey || seen.has(key)) return;
-    seen.add(key);
-    catalog.push(JSON.parse(JSON.stringify(ex)));
+  const catalogByName=new Map();
+  // Reúne o cadastro mestre e os exercícios salvos nos treinos para manter
+  // o catálogo de substituição sincronizado após inclusões e recadastros.
+  [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{
+    const name=String(ex?.name||'').trim();
+    const nameKey=[name,ex?.muscle,ex?.execution,ex?.grip,ex?.equipment].map(v=>String(v??'').trim().toLocaleLowerCase('pt-BR')).join('|');
+    if(name) catalogByName.set(nameKey,JSON.parse(JSON.stringify(ex)));
   });
+  const currentKey=[current.name,current.muscle,current.execution,current.grip,current.equipment].map(v=>String(v??'').trim().toLocaleLowerCase('pt-BR')).join('|');
+  const catalog=[...catalogByName.entries()]
+    .filter(([nameKey])=>nameKey!==currentKey)
+    .map(([,ex])=>ex);
 
   if(!catalog.length){
     alert('Ainda não há outros exercícios cadastrados nos treinos para usar como substituição.');
@@ -3838,8 +3886,9 @@ function replaceExercise(i){
   // Os grupos cadastrados também aparecem no catálogo, mesmo antes de receberem
   // um exercício. Os exercícios disponíveis continuam vindo apenas do catálogo mestre.
   getCatalogValues('muscle',false).forEach(muscle=>{groups[muscle]=[];});
+  groups.Outros ||= [];
   catalog.forEach((ex,index)=>{
-    const muscle=String(ex.muscle||'Outros').trim()||'Outros';
+    const muscle=String(ex.muscle||'').trim()||'Outros';
     (groups[muscle] ||= []).push({ex,index});
   });
 
@@ -4037,7 +4086,7 @@ function renderCatalogList(category){
 }
 function getAllExerciseNames(){
   const names=new Map();
-  (state.exerciseCatalog||[]).forEach(ex=>{
+  [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{
     const name=String(ex?.name||'').trim();
     if(name){const key=name.toLocaleLowerCase('pt-BR');if(!names.has(key)) names.set(key,name);}
   });
@@ -4052,6 +4101,68 @@ function renderExerciseCatalogList(){
       <button type="button" class="btn danger" data-exercise-catalog-delete="${esc(name)}">Excluir</button>
     </div>`).join(''):'<div class="catalog-empty">Nenhum exercício cadastrado.</div>';
 }
+function addExerciseCatalogValue(){
+  const input=document.getElementById('newExercise');
+  const name=String(input?.value||'').trim();
+  const feedback=document.getElementById('catalogFeedback');
+  if(!name){
+    feedback.textContent='Informe o nome do exercício.';
+    return;
+  }
+  state.exerciseCatalog=Array.isArray(state.exerciseCatalog)?state.exerciseCatalog:[];
+  const normalized=name.toLocaleLowerCase('pt-BR');
+  const exists=(state.exerciseCatalog||[]).some(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')===normalized)
+    || Object.values(state.workouts||{}).flat().some(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')===normalized);
+  if(exists){
+    openExerciseVariation(name);
+    return;
+  }
+  state.exerciseCatalog.push({
+    name,
+    muscle:'',
+    equipment:'-',
+    execution:'-',
+    grip:'-',
+    sets:4,
+    loads:[],
+    note:''
+  });
+  save();
+  input.value='';
+  renderAllCatalogLists();
+  refreshAllStyledSelects();
+  feedback.textContent=`Exercício "${name}" cadastrado com sucesso.`;
+}
+let pendingExerciseVariationName='';
+function openExerciseVariation(name){
+  pendingExerciseVariationName=name;
+  const existing=[...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].filter(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR'));
+  const current=existing[existing.length-1]||{};
+  const config=[['variationMuscle','muscle'],['variationExecution','execution'],['variationGrip','grip'],['variationEquipment','equipment']];
+  config.forEach(([id,key])=>{
+    const select=document.getElementById(id);
+    const values=getCatalogValues(key,true);
+    const selected=String(current[key]||'-');
+    if(!values.some(v=>v.toLocaleLowerCase('pt-BR')===selected.toLocaleLowerCase('pt-BR'))) values.push(selected);
+    select.innerHTML=values.map(v=>{const same=v.toLocaleLowerCase('pt-BR')===selected.toLocaleLowerCase('pt-BR');return `<option value="${esc(v)}"${same?' disabled':''}>${esc(v)}</option>`;}).join('');
+    select.value=values.find(v=>v.toLocaleLowerCase('pt-BR')!==selected.toLocaleLowerCase('pt-BR'))||'';
+  });
+  document.getElementById('duplicateExerciseDialog').hidden=false;
+  refreshAllStyledSelects();
+}
+function closeExerciseVariation(){document.getElementById('duplicateExerciseDialog').hidden=true;pendingExerciseVariationName='';}
+function saveExerciseVariation(){
+  if(!pendingExerciseVariationName) return;
+  const variation={name:pendingExerciseVariationName,muscle:document.getElementById('variationMuscle').value||'',execution:document.getElementById('variationExecution').value||'-',grip:document.getElementById('variationGrip').value||'-',equipment:document.getElementById('variationEquipment').value||'-',sets:4,loads:[],note:''};
+  const existing=[...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].filter(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')===pendingExerciseVariationName.toLocaleLowerCase('pt-BR'));
+  const same=existing.some(ex=>['muscle','execution','grip','equipment'].every(k=>String(ex?.[k]||'-').trim().toLocaleLowerCase('pt-BR')===String(variation[k]||'-').trim().toLocaleLowerCase('pt-BR')));
+  if(same){document.getElementById('catalogFeedback').textContent='Essa combinação já está cadastrada.';return;}
+  state.exerciseCatalog=Array.isArray(state.exerciseCatalog)?state.exerciseCatalog:[];
+  state.exerciseCatalog.push(variation); preserveExerciseDropdownValues(variation); save(); renderAllCatalogLists(); refreshAllStyledSelects();
+  document.getElementById('catalogFeedback').textContent=`Variação de "${pendingExerciseVariationName}" cadastrada com sucesso.`;
+  closeExerciseVariation();
+}
+
 function renderAllCatalogLists(){
   Object.keys(catalogLabels).forEach(renderCatalogList);
   renderExerciseCatalogList();
@@ -4095,7 +4206,7 @@ function performDeleteCatalogValue(category,value){
   save();
   renderAllCatalogLists();
   render();
-  document.getElementById('catalogFeedback').textContent=`"${value}" excluído do cadastro e das listas suspensas.`;
+  document.getElementById('catalogFeedback').textContent=`Opção "${value}" excluída com sucesso.`;
 }
 function shiftChecksForDayAfterDelete(dayName,index){
   state.weeklyChecks=state.weeklyChecks||{};
@@ -4119,6 +4230,17 @@ function performDeleteExerciseFromGlobalCatalog(name){
   const normalized=String(name).trim().toLocaleLowerCase('pt-BR');
   if(!normalized) return;
   recordUndo('Exercício excluído do cadastro geral');
+
+  // Antes de retirar o exercício, torna independentes seus dados complementares.
+  // Assim, grupo muscular, equipamento, execução e pegada permanecem cadastrados
+  // mesmo quando este era o último exercício que utilizava alguma dessas opções.
+  const matchingExercises=[
+    ...(state.exerciseCatalog||[]),
+    ...Object.values(state.workouts||{}).flat()
+  ].filter(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')===normalized);
+  matchingExercises.forEach(preserveExerciseDropdownValues);
+
+  // A exclusão do exercício não exclui nenhuma opção dos cadastros complementares.
   state.exerciseCatalog=(state.exerciseCatalog||[]).filter(ex=>String(ex?.name||'').trim().toLocaleLowerCase('pt-BR')!==normalized);
   days.forEach(dayName=>{
     const list=state.workouts[dayName]||[];
@@ -4131,23 +4253,24 @@ function performDeleteExerciseFromGlobalCatalog(name){
   });
   save();
   renderAllCatalogLists();
+  refreshAllStyledSelects();
   render();
-  document.getElementById('catalogFeedback').textContent=`"${name}" excluído de todos os treinos e da lista de substituição.`;
+  document.getElementById('catalogFeedback').textContent=`Exercício "${name}" excluído com sucesso.`;
 }
 
 function addCatalogValue(category){
   const inputIds={muscle:'newMuscle',equipment:'newEquipment',execution:'newExecution',grip:'newGrip'};
   const input=document.getElementById(inputIds[category]);
   const value=String(input?.value||'').trim();
-  if(!value){document.getElementById('catalogFeedback').textContent='Digite uma opção antes de adicionar.';return;}
+  if(!value){document.getElementById('catalogFeedback').textContent='Informe uma opção.';return;}
   state.catalogs=state.catalogs||{muscle:[],equipment:[],execution:[],grip:[]};
   state.catalogs[category]=state.catalogs[category]||[];
   const exists=getCatalogValues(category,true).some(item=>item.toLocaleLowerCase('pt-BR')===value.toLocaleLowerCase('pt-BR'));
-  if(exists){document.getElementById('catalogFeedback').textContent='Essa opção já está cadastrada ou já existe em um exercício.';return;}
+  if(exists){document.getElementById('catalogFeedback').textContent='Essa opção já está cadastrada.';return;}
   state.catalogs[category].push(value);
   save();
   input.value='';
-  document.getElementById('catalogFeedback').textContent=`"${value}" cadastrado com sucesso.`;
+  document.getElementById('catalogFeedback').textContent=`${catalogLabels[category]} "${value}" cadastrado com sucesso.`;
   renderCatalogList(category);
   refreshAllStyledSelects();
   renderAllCatalogLists();
@@ -4277,6 +4400,9 @@ r.readAsText(file);
 // EVENTOS DOS BOTÕES
 // ========================================
 
+document.getElementById('cancelVariationBtn').addEventListener('click',closeExerciseVariation);
+document.getElementById('saveVariationBtn').addEventListener('click',saveExerciseVariation);
+document.getElementById('duplicateExerciseDialog').addEventListener('click',event=>{if(event.target.id==='duplicateExerciseDialog') closeExerciseVariation();});
 document.getElementById('undoBtn').onclick=undoLastAction;
 
 addBtn.addEventListener('click',()=>editExercise(null));
@@ -4307,12 +4433,18 @@ document.getElementById('chooseImportBtn').onclick=()=>{closeBackupMenu();import
 document.getElementById('infoCatalogBtn').onclick=openInfoCatalog;
 document.getElementById('closeInfoCatalogBtn').onclick=closeInfoCatalog;
 document.querySelectorAll('[data-catalog-add]').forEach(button=>button.addEventListener('click',()=>addCatalogValue(button.dataset.catalogAdd)));
+document.querySelector('[data-exercise-add]').addEventListener('click',addExerciseCatalogValue);
+document.getElementById('newExercise').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addExerciseCatalogValue();}});
 document.getElementById('infoCatalogModal').addEventListener('click',event=>{
   const listButton=event.target.closest('[data-catalog-list]');
   if(listButton){
     const category=listButton.dataset.catalogList;
     const panel=document.getElementById('catalogList-'+category);
-    if(panel){panel.hidden=!panel.hidden;renderCatalogList(category);}
+    if(panel){
+      panel.hidden=!panel.hidden;
+      listButton.setAttribute('aria-expanded',String(!panel.hidden));
+      renderCatalogList(category);
+    }
     return;
   }
   const deleteButton=event.target.closest('[data-catalog-delete]');
@@ -4321,6 +4453,7 @@ document.getElementById('infoCatalogModal').addEventListener('click',event=>{
   if(exerciseToggle){
     const panel=document.getElementById('exerciseCatalogList');
     panel.hidden=!panel.hidden;
+    exerciseToggle.setAttribute('aria-expanded',String(!panel.hidden));
     renderExerciseCatalogList();
     return;
   }
@@ -4424,15 +4557,28 @@ function refreshStyledSelect(select){
   const menu=root.querySelector('.styled-select-menu');
   const selected=Array.from(select.options).find(option=>option.value===select.value && select.selectedIndex>=0);
   trigger.querySelector('.styled-select-label').textContent=selected ? selected.textContent : 'Selecione';
+  const isExercisePicker=select.id==='fNameSelect';
+  const previousSearch=isExercisePicker ? (menu.querySelector('.styled-select-search input')?.value||'') : '';
   menu.innerHTML='';
+  let searchInput=null;
+  if(isExercisePicker){
+    const searchWrap=document.createElement('div');
+    searchWrap.className='styled-select-search';
+    searchWrap.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg><input type="search" placeholder="Procurar exercício..." aria-label="Procurar exercício nesta lista">';
+    searchInput=searchWrap.querySelector('input');
+    searchInput.value=previousSearch;
+    menu.appendChild(searchWrap);
+  }
   const options=Array.from(select.options);
-  if(!options.length){
+  const filteredOptions=options.filter(option=>!isExercisePicker || !previousSearch || option.textContent.toLocaleLowerCase('pt-BR').includes(previousSearch.toLocaleLowerCase('pt-BR')));
+  if(!filteredOptions.length){
     const empty=document.createElement('div');
     empty.className='styled-select-empty';
     empty.textContent='Nenhuma opção disponível';
     menu.appendChild(empty);
   } else {
-    options.forEach((option,index)=>{
+    filteredOptions.forEach(option=>{
+      const index=options.indexOf(option);
       const item=document.createElement('button');
       item.type='button';
       item.className='styled-select-option';
@@ -4440,7 +4586,9 @@ function refreshStyledSelect(select){
       item.setAttribute('role','option');
       item.setAttribute('aria-selected',String(select.selectedIndex===index));
       item.disabled=option.disabled;
+      if(option.disabled) item.setAttribute('aria-disabled','true');
       item.addEventListener('click',()=>{
+        if(option.disabled) return;
         select.selectedIndex=index;
         select.dispatchEvent(new Event('input',{bubbles:true}));
         select.dispatchEvent(new Event('change',{bubbles:true}));
@@ -4450,6 +4598,25 @@ function refreshStyledSelect(select){
         trigger.focus();
       });
       menu.appendChild(item);
+    });
+  }
+  if(searchInput){
+    searchInput.addEventListener('input',()=>{
+      const value=searchInput.value;
+      refreshStyledSelect(select);
+      const nextInput=menu.querySelector('.styled-select-search input');
+      if(nextInput){nextInput.value=value;nextInput.focus();nextInput.setSelectionRange(value.length,value.length);}
+    });
+    searchInput.addEventListener('keydown',event=>{
+      if(event.key==='Escape'){
+        menu.hidden=true;
+        trigger.setAttribute('aria-expanded','false');
+        trigger.focus();
+      }
+      if(event.key==='Enter'){
+        const first=menu.querySelector('.styled-select-option:not(:disabled)');
+        if(first){event.preventDefault();first.click();}
+      }
     });
   }
 }
