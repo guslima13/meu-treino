@@ -1975,6 +1975,12 @@ select:focus {
 .catalog-search input{flex:1;min-width:0;padding:0;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;color:var(--text);font:inherit}
 #catalogNotice{z-index:13000}
 #equipmentPrepositionDialog{z-index:13001}
+#catalogEditDialog{z-index:13002}
+#catalogDependencyDialog{z-index:13003}
+.catalog-dependency-list{display:grid;gap:10px;margin-top:16px;max-height:48vh;overflow:auto}
+.catalog-dependency-row{display:grid;gap:6px;padding:10px;background:#101514;border:1px solid #303b35;border-radius:10px}
+.catalog-dependency-row label{font-size:13px;font-weight:800}
+.catalog-dependency-row select{width:100%}
 
 
 @media(max-width:480px){.catalog-entry>div:not(.catalog-list){flex-wrap:wrap}.catalog-entry>div:not(.catalog-list) input{flex-basis:100%}}
@@ -2055,11 +2061,24 @@ select:focus {
 
 
 
-/* Controle individual: seta à esquerda e check na posição original à direita. */
+/* Check permanece no cabeçalho; a seta fica logo acima da tabela de séries. */
 .exercise-head-controls{
-  position:absolute;top:15px;right:15px;display:flex;flex:0 0 auto;
-  flex-direction:row;align-items:flex-start;justify-content:flex-end;gap:26px;z-index:1;
+  position:absolute;top:15px;left:15px;right:15px;height:48px;display:block;z-index:1;
+  pointer-events:none;
 }
+.exercise-head-controls .exercise-done-btn{
+  position:absolute;top:0;right:0;pointer-events:auto;
+}
+.exercise-sets-area{
+  grid-column:1;grid-row:2;min-width:0;width:min(100%,300px);
+}
+.exercise-collapse-row{
+  display:flex;justify-content:flex-end;align-items:center;
+  padding-right:6px;margin:0 0 8px;min-height:23px;
+}
+.exercise-collapse-row .exercise-collapse-btn{pointer-events:auto;}
+.exercise.single-row-actions .exercise-sets-area{width:min(calc(100% + 28px),300px)}
+.exercise-sets-area .sets-table{width:100%;margin-top:0}
 .exhead>div:first-child{padding-right:132px;}
 .exercise-collapse-btn{
   display:inline-flex;align-items:center;justify-content:center;width:30px;height:23px;
@@ -2070,9 +2089,10 @@ select:focus {
 .exercise-collapse-btn:active{background:#35483b}
 .exercise-collapse-btn:focus-visible{outline:2px solid #8da85a;outline-offset:2px}
 @media(max-width:600px){
-  .exercise-head-controls{top:12px;right:12px;gap:26px;align-items:flex-start}
+  .exercise-head-controls{top:12px;left:12px;right:12px;height:48px}
+  .exercise-sets-area{width:min(100%,290px)}
+  .exercise.single-row-actions .exercise-sets-area{width:min(calc(100% + 20px),280px)}
   .exhead>div:first-child{padding-right:132px}
-  .exercise-collapse-btn{width:29px;height:22px}
 }
 
 
@@ -2107,7 +2127,7 @@ select:focus {
 
 <div class="hero">
 <div>
-<div class="eyebrow">Sua rotina, no seu ritmo</div>
+<div class="eyebrow">Olá, Gustavo!</div>
 <h1 id="dayTitle">Segunda-feira</h1>
 <div class="muted" id="dayMuscles"></div>
 </div>
@@ -2260,6 +2280,23 @@ select:focus {
       <button type="button" class="btn primary" id="chooseExportBtn">Exportar backup</button>
     </div>
     <div class="confirm-actions"><button type="button" class="btn" id="closeBackupMenuBtn">Fechar</button></div>
+  </section>
+</div>
+
+<div class="confirm-backdrop" id="catalogEditDialog" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogEditTitle">
+    <h2 id="catalogEditTitle">Editar opção cadastrada</h2>
+    <p>Altere o nome no campo abaixo.</p>
+    <div class="field" style="margin-top:14px"><label for="catalogEditInput">Novo nome</label><input id="catalogEditInput" type="text" autocomplete="off"></div>
+    <div class="confirm-actions"><button type="button" class="btn" id="cancelCatalogEditBtn">Cancelar</button><button type="button" class="btn primary" id="saveCatalogEditBtn">Salvar</button></div>
+  </section>
+</div>
+<div class="confirm-backdrop" id="catalogDependencyDialog" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogDependencyTitle" style="width:min(560px,100%);max-height:calc(100dvh - 24px);overflow:auto">
+    <h2 id="catalogDependencyTitle">Substituir opção nos exercícios</h2>
+    <p id="catalogDependencyMessage"></p>
+    <div class="catalog-dependency-list" id="catalogDependencyList"></div>
+    <div class="confirm-actions"><button type="button" class="btn" id="cancelCatalogDependencyBtn">Cancelar</button><button type="button" class="btn primary" id="saveCatalogDependencyBtn">Atualizar e excluir</button></div>
   </section>
 </div>
 
@@ -2456,7 +2493,7 @@ const initial = {
 
 {"muscle":"Costas","name":"Pulldown","equipment":"Polia/Barra Reta","execution":"Bilateral","grip":"Pronada","sets":4,"loads":["17,5","18,75","18,75","20"]},
 
-{"muscle":"Costas","name":"Remada Baixa Fechada","equipment":"Máq./Triângulo","execution":"Bilateral","grip":"Neutra","sets":4,"loads":["16","18","20","22"]},
+{"muscle":"Costas","name":"Remada Baixa Fechada","equipment":"Máquina Triângulo","execution":"Bilateral","grip":"Neutra","sets":4,"loads":["16","18","20","22"]},
 
 {"muscle":"Antebraços","name":"Rosca Punho","equipment":"Halter","execution":"Simultâneo","grip":"Supinada","sets":5,"loads":["10","10","12","12","14"]},
 
@@ -2625,6 +2662,12 @@ x.sessions=x.sessions||{};
 x.catalogs=x.catalogs||{muscle:[],equipment:[],execution:[],grip:[]};
 x.equipmentPrepositions=x.equipmentPrepositions||{};
 ['muscle','equipment','execution','grip'].forEach(key=>{if(!Array.isArray(x.catalogs[key])) x.catalogs[key]=[];});
+// Migra a nomenclatura antiga de equipamento em todos os dados persistidos.
+const oldEquipmentKey='Máq./Triângulo', newEquipmentName='Máquina Triângulo';
+x.catalogs.equipment=x.catalogs.equipment.map(v=>comparisonKey(v)===comparisonKey(oldEquipmentKey)?newEquipmentName:v);
+[...(Object.values(x.workouts||{}).flat()),...(x.exerciseCatalog||[])].forEach(ex=>{if(comparisonKey(ex?.equipment)===comparisonKey(oldEquipmentKey)) ex.equipment=newEquipmentName;});
+if(x.equipmentPrepositions && Object.prototype.hasOwnProperty.call(x.equipmentPrepositions,oldEquipmentKey)){x.equipmentPrepositions[newEquipmentName]=x.equipmentPrepositions[oldEquipmentKey];delete x.equipmentPrepositions[oldEquipmentKey];}
+
 // Catálogo mestre independente dos treinos semanais. Migra os exercícios
 // existentes uma única vez e preserva itens mesmo quando saem de um dia.
 if(!Array.isArray(x.exerciseCatalog)) x.exerciseCatalog=[];
@@ -3107,9 +3150,6 @@ title="Equipamento: ${esc(e.equipment)} · Pegada: ${esc(e.grip)} · Execução:
 
 
 <div class="exercise-head-controls">
-<button type="button" class="exercise-collapse-btn" onclick="toggleExerciseDetails(${i},this)" aria-expanded="${!exerciseCollapsed}" aria-label="${exerciseCollapsed?'Expandir este exercício':'Recolher este exercício'}" title="${exerciseCollapsed?'Expandir este exercício':'Recolher este exercício'}">
-<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${exerciseCollapsed?'m6 9 6 6 6-6':'m6 15 6-6 6 6'}"/></svg>
-</button>
 <button
 type="button"
 class="exercise-done-btn ${Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Boolean)?'done':''}"
@@ -3121,6 +3161,13 @@ aria-label="${Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Bool
 </div>
 
 </div>
+
+<div class="exercise-sets-area">
+  <div class="exercise-collapse-row">
+    <button type="button" class="exercise-collapse-btn" onclick="toggleExerciseDetails(${i},this)" aria-expanded="${!exerciseCollapsed}" aria-label="${exerciseCollapsed?'Expandir este exercício':'Recolher este exercício'}" title="${exerciseCollapsed?'Expandir este exercício':'Recolher este exercício'}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="${exerciseCollapsed?'m6 9 6 6 6-6':'m6 15 6-6 6 6'}"/></svg>
+    </button>
+  </div>
 
 <div class="sets-table">
 
@@ -3173,6 +3220,8 @@ ${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><pat
 
 `
 ).join('')}
+
+</div>
 
 </div>
 
@@ -4253,7 +4302,7 @@ function renderCatalogList(category){
   const values=getCatalogValues(category,false);
   container.innerHTML=values.length?values.map(value=>`
     <div class="catalog-list-item"><span>${esc(value)}</span>
-      <button type="button" class="btn danger" data-catalog-delete="${category}" data-catalog-value="${esc(value)}">Excluir</button>
+      <div style="display:flex;gap:6px"><button type="button" class="btn" data-catalog-edit="${category}" data-catalog-value="${esc(value)}">Editar</button><button type="button" class="btn danger" data-catalog-delete="${category}" data-catalog-value="${esc(value)}">Excluir</button></div>
     </div>`).join(''):'<div class="catalog-empty">Nenhuma opção cadastrada.</div>';
 }
 function exerciseVariationSignature(ex){
@@ -4383,7 +4432,7 @@ function renderExerciseCatalogList(){
     .sort((a,b)=>a.label.localeCompare(b.label,'pt-BR'));
   results.innerHTML=visible.length?visible.map(({label,index})=>`
     <div class="catalog-list-item"><span>${esc(label)}</span>
-      <button type="button" class="btn danger" data-exercise-catalog-delete="${index}">Excluir</button>
+      <div style="display:flex;gap:6px"><button type="button" class="btn" data-exercise-catalog-edit="${index}">Editar</button><button type="button" class="btn danger" data-exercise-catalog-delete="${index}">Excluir</button></div>
     </div>`).join(''):`<div class="catalog-empty">${query?'Nenhum exercício encontrado.':'Nenhum exercício cadastrado.'}</div>`;
 }
 function addExerciseCatalogValue(){
@@ -4477,6 +4526,7 @@ function openExerciseVariation(name){
 function closeExerciseVariation(){
   document.getElementById('duplicateExerciseDialog').hidden=true;
   pendingExerciseVariationName='';
+  if(document.getElementById('catalogEditDialog').hidden) pendingExerciseRename=null;
 }
 function saveExerciseVariation(){
   if(!pendingExerciseVariationName) return;
@@ -4489,6 +4539,16 @@ function saveExerciseVariation(){
     sets:4,loads:[],note:''
   };
   const existing=getExistingExerciseVariations(pendingExerciseVariationName);
+  if(pendingExerciseRename?.newName){
+    const original=pendingExerciseRename.original;
+    const sameAsOther=existing.some(ex=>exerciseVariationSignature(ex)!==pendingExerciseRename.signature && ['muscle','equipment','execution','grip'].every(k=>variationValueKey(ex?.[k])===variationValueKey(variation[k])));
+    if(sameAsOther){showCatalogNotice('Atributos já cadastrados','Escolha pelo menos um atributo diferente da outra versão para validar a alteração do nome.');return;}
+    recordUndo('Exercício renomeado e atributos atualizados');
+    const oldSig=pendingExerciseRename.signature;
+    [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{if(exerciseVariationSignature(ex)===oldSig)Object.assign(ex,{name:pendingExerciseRename.newName,muscle:variation.muscle,equipment:variation.equipment,execution:variation.execution,grip:variation.grip});});
+    pendingExerciseRename=null;closeExerciseVariation();save();renderAllCatalogLists();refreshAllStyledSelects();render();
+    document.getElementById('catalogFeedback').textContent=`Exercício renomeado para "${variation.name}" com atributos atualizados.`;return;
+  }
   const same=existing.some(ex=>
     ['muscle','equipment','execution','grip'].every(k=>
       variationValueKey(ex?.[k])===variationValueKey(variation[k])
@@ -4534,27 +4594,120 @@ function confirmCatalogDelete(){
   if(pending.type==='category') performDeleteCatalogValue(pending.category,pending.value);
   if(pending.type==='exercise') performDeleteExerciseFromGlobalCatalog(pending.signature,pending.label);
 }
+function getCatalogDependencyExercises(category,value){
+  const key=comparisonKey(value), unique=new Map();
+  [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{
+    if(comparisonKey(ex?.[category])!==key) return;
+    const sig=exerciseVariationSignature(ex);
+    if(!unique.has(sig)) unique.set(sig,JSON.parse(JSON.stringify(ex)));
+  });
+  return [...unique.entries()];
+}
 function deleteCatalogValue(category,value){
   if(!catalogLabels[category] || !String(value).trim()) return;
+  const dependencies=getCatalogDependencyExercises(category,value);
+  if(dependencies.length){openCatalogDependencyDialog(category,value,dependencies);return;}
   requestCatalogDelete('category',{category,value});
 }
-function performDeleteCatalogValue(category,value){
+function openCatalogDependencyDialog(category,value,dependencies){
+  pendingCatalogDependency={category,value,dependencies};
+  const noun=dependencies.length===1?'O exercício abaixo possui':'Os exercícios abaixo possuem';
+  const instruction=dependencies.length===1?'essa opção ativa em seu cadastro.':'essa opção ativa em seus cadastros.';
+  document.getElementById('catalogDependencyMessage').textContent=`Antes de excluir, confira: ${noun} ${instruction} Faça ${dependencies.length===1?'a substituição':'as substituições'} abaixo para continuar.`;
+  const options=getCatalogValues(category,false).filter(v=>comparisonKey(v)!==comparisonKey(value));
+  const list=document.getElementById('catalogDependencyList');
+  list.innerHTML=options.length?dependencies.map(([sig,ex],i)=>`<div class="catalog-dependency-row"><label for="catalogDependency_${i}">${esc(ex.name||'Exercício')}</label><select id="catalogDependency_${i}" data-dependency-signature="${esc(sig)}">${options.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select></div>`).join(''):'<div class="catalog-empty">Não há outras opções cadastradas para substituir. Cadastre uma nova opção antes de excluir esta.</div>';
+  document.getElementById('saveCatalogDependencyBtn').disabled=!options.length;
+  document.getElementById('catalogDependencyDialog').hidden=false;
+  // Os selects inseridos dinamicamente recebem o mesmo componente visual
+  // utilizado nas áreas Adicionar e Editar.
+  setupStyledSelects();
+  refreshAllStyledSelects();
+}
+let pendingCatalogDependency=null;
+function closeCatalogDependencyDialog(){document.getElementById('catalogDependencyDialog').hidden=true;document.getElementById('saveCatalogDependencyBtn').disabled=false;pendingCatalogDependency=null;}
+function saveCatalogDependencyChanges(){
+  const pending=pendingCatalogDependency;if(!pending)return;
+  const rows=[...document.querySelectorAll('#catalogDependencyList select')];
+  if(!rows.length || rows.length!==pending.dependencies.length || rows.some(row=>!row.value)){showCatalogNotice('Substituição necessária','Selecione uma opção para cada exercício antes de excluir. Se não houver outra opção, cadastre uma nova primeiro.');return;}
+  recordUndo(`${catalogLabels[pending.category]} substituído e excluído do cadastro`);
+  const replacements=new Map(rows.map(row=>[row.dataset.dependencySignature,row.value]));
+  [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{
+    const replacement=replacements.get(exerciseVariationSignature(ex));
+    if(replacement) ex[pending.category]=replacement;
+  });
+  const category=pending.category,value=pending.value;
+  closeCatalogDependencyDialog();
+  performDeleteCatalogValue(category,value,true);
+}
+function performDeleteCatalogValue(category,value,skipUndo=false){
   if(!catalogLabels[category]) return;
   const normalized=comparisonKey(value);
   if(!normalized) return;
-  recordUndo(`${catalogLabels[category]} excluído do cadastro`);
+  if(!skipUndo) recordUndo(`${catalogLabels[category]} excluído do cadastro`);
   state.catalogs=state.catalogs||{};
   state.catalogs[category]=(state.catalogs[category]||[]).filter(item=>comparisonKey(item)!==normalized);
-  // Esta tela é a única autorizada a excluir uma opção: remove-a de todas as fontes.
   [...Object.values(state.workouts||{}).flat(),...(state.exerciseCatalog||[])].forEach(ex=>{
-    if(comparisonKey(ex?.[category])===normalized){
-      ex[category]=category==='muscle'?'':'-';
-    }
+    if(comparisonKey(ex?.[category])===normalized) ex[category]=category==='muscle'?'':'-';
   });
-  save();
-  renderAllCatalogLists();
-  render();
+  save();renderAllCatalogLists();refreshAllStyledSelects();render();
   document.getElementById('catalogFeedback').textContent=`Opção "${value}" excluída com sucesso.`;
+}
+
+let pendingCatalogEdit=null;
+function openCatalogEdit(category,value){
+  pendingExerciseRename=null;
+  pendingCatalogEdit={category,value};
+  document.getElementById('catalogEditTitle').textContent=`Editar ${catalogLabels[category]}`;
+  document.getElementById('catalogEditInput').value=value;
+  document.getElementById('catalogEditDialog').hidden=false;
+  document.getElementById('catalogEditInput').focus();
+}
+function closeCatalogEdit(){document.getElementById('catalogEditDialog').hidden=true;pendingCatalogEdit=null;}
+function saveCatalogEdit(){
+  if(!pendingCatalogEdit)return;
+  const {category,value:oldValue}=pendingCatalogEdit;
+  const newValue=String(document.getElementById('catalogEditInput').value||'').trim();
+  if(!newValue){showCatalogNotice('Nome obrigatório','Digite um nome para continuar.');return;}
+  const duplicate=getCatalogValues(category,false).some(v=>comparisonKey(v)===comparisonKey(newValue)&&comparisonKey(v)!==comparisonKey(oldValue));
+  if(duplicate){showCatalogNotice('Opção já cadastrada',`Já existe uma opção com esse nome em ${catalogLabels[category]}.`);return;}
+  recordUndo(`${catalogLabels[category]} renomeado`);
+  state.catalogs[category]=(state.catalogs[category]||[]).map(v=>comparisonKey(v)===comparisonKey(oldValue)?newValue:v);
+  [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{if(comparisonKey(ex?.[category])===comparisonKey(oldValue))ex[category]=newValue;});
+  if(category==='equipment'&&state.equipmentPrepositions){const oldKey=Object.keys(state.equipmentPrepositions).find(k=>comparisonKey(k)===comparisonKey(oldValue));if(oldKey){state.equipmentPrepositions[newValue]=state.equipmentPrepositions[oldKey];delete state.equipmentPrepositions[oldKey];}}
+  closeCatalogEdit();save();renderAllCatalogLists();refreshAllStyledSelects();render();
+  document.getElementById('catalogFeedback').textContent=`${catalogLabels[category]} atualizado para "${newValue}".`;
+}
+let pendingExerciseRename=null;
+function openExerciseCatalogEdit(indexValue){
+  pendingCatalogEdit=null;
+  const variants=getAllExerciseVariants(),index=Number(indexValue),ex=variants[index];if(!ex)return;
+  pendingExerciseRename={signature:exerciseVariationSignature(ex),original:JSON.parse(JSON.stringify(ex))};
+  const editDialog=document.getElementById('catalogEditDialog');
+  document.getElementById('catalogEditTitle').textContent='Editar nome do exercício';
+  document.getElementById('catalogEditInput').value=ex.name||'';
+  editDialog.hidden=false;
+}
+function saveExerciseCatalogRename(){
+  if(!pendingExerciseRename)return false;
+  const newName=String(document.getElementById('catalogEditInput').value||'').trim();
+  if(!newName){showCatalogNotice('Nome obrigatório','Digite um nome para continuar.');return true;}
+  const original=pendingExerciseRename.original;
+  const collision=(state.exerciseCatalog||[]).some(ex=>comparisonKey(ex.name)===comparisonKey(newName)&&exerciseVariationSignature(ex)!==pendingExerciseRename.signature)
+    ||Object.values(state.workouts||{}).flat().some(ex=>comparisonKey(ex.name)===comparisonKey(newName)&&exerciseVariationSignature(ex)!==pendingExerciseRename.signature);
+  if(collision){
+    closeCatalogEdit();
+    pendingExerciseRename.newName=newName;
+    openExerciseVariation(newName);
+    const values={muscle:original.muscle,equipment:original.equipment,execution:original.execution,grip:original.grip};
+    [['variationMuscle','muscle'],['variationEquipment','equipment'],['variationExecution','execution'],['variationGrip','grip']].forEach(([id,key])=>{const el=document.getElementById(id);if([...el.options].some(o=>comparisonKey(o.value)===comparisonKey(values[key])))el.value=[...el.options].find(o=>comparisonKey(o.value)===comparisonKey(values[key])).value;});
+    refreshAllStyledSelects();return true;
+  }
+  recordUndo('Exercício renomeado no cadastro');
+  const oldSig=pendingExerciseRename.signature;
+  [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{if(exerciseVariationSignature(ex)===oldSig)ex.name=newName;});
+  closeCatalogEdit();pendingExerciseRename=null;save();renderAllCatalogLists();refreshAllStyledSelects();render();
+  document.getElementById('catalogFeedback').textContent=`Exercício renomeado para "${newName}".`;return true;
 }
 function shiftChecksForDayAfterDelete(dayName,index){
   state.weeklyChecks=state.weeklyChecks||{};
@@ -4807,6 +4960,11 @@ document.querySelectorAll('[data-catalog-add]').forEach(button=>button.addEventL
 document.querySelector('[data-exercise-add]').addEventListener('click',addExerciseCatalogValue);
 document.getElementById('newExercise').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addExerciseCatalogValue();}});
 document.getElementById('closeCatalogNoticeBtn').onclick=closeCatalogNotice;
+document.getElementById('cancelCatalogEditBtn').onclick=()=>{closeCatalogEdit();pendingExerciseRename=null;};
+document.getElementById('saveCatalogEditBtn').onclick=()=>{if(pendingExerciseRename)saveExerciseCatalogRename();else saveCatalogEdit();};
+document.getElementById('catalogEditInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('saveCatalogEditBtn').click();}});
+document.getElementById('cancelCatalogDependencyBtn').onclick=closeCatalogDependencyDialog;
+document.getElementById('saveCatalogDependencyBtn').onclick=saveCatalogDependencyChanges;
 document.getElementById('cancelEquipmentPrepositionBtn').onclick=closeEquipmentPrepositionDialog;
 document.getElementById('saveEquipmentPrepositionBtn').onclick=saveEquipmentPreposition;
 document.getElementById('equipmentPrepositionDialog').addEventListener('click',event=>{if(event.target.id==='equipmentPrepositionDialog') closeEquipmentPrepositionDialog();});
@@ -4823,6 +4981,8 @@ document.getElementById('infoCatalogModal').addEventListener('click',event=>{
     }
     return;
   }
+  const editButton=event.target.closest('[data-catalog-edit]');
+  if(editButton){openCatalogEdit(editButton.dataset.catalogEdit,editButton.dataset.catalogValue);return;}
   const deleteButton=event.target.closest('[data-catalog-delete]');
   if(deleteButton){deleteCatalogValue(deleteButton.dataset.catalogDelete,deleteButton.dataset.catalogValue);return;}
   const exerciseToggle=event.target.closest('[data-exercise-catalog-toggle]');
@@ -4833,6 +4993,8 @@ document.getElementById('infoCatalogModal').addEventListener('click',event=>{
     renderExerciseCatalogList();
     return;
   }
+  const exerciseEdit=event.target.closest('[data-exercise-catalog-edit]');
+  if(exerciseEdit){openExerciseCatalogEdit(exerciseEdit.dataset.exerciseCatalogEdit);return;}
   const exerciseDelete=event.target.closest('[data-exercise-catalog-delete]');
   if(exerciseDelete) deleteExerciseFromGlobalCatalog(exerciseDelete.dataset.exerciseCatalogDelete);
 });
