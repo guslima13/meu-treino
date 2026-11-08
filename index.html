@@ -2470,6 +2470,87 @@ body.catalog-page-open{overflow:hidden}
   font-weight: 600 !important;
 }
 
+/* Ajuste vertical: topo dos ícones alinhado ao topo da tabela de séries.
+   Mantém a coluna de ações na mesma posição horizontal. */
+.exercise .actions,
+.exercise.compact-actions .actions,
+.exercise.single-row-actions .actions {
+  padding-top: 31px;
+}
+
+/* Eleva em conjunto a área das séries, a seta de recolher e a coluna de ícones.
+   O deslocamento horizontal e o alinhamento entre tabela e primeiro ícone são preservados. */
+.exercise .exercise-sets-area,
+.exercise .actions {
+  transform: translateY(-14px);
+}
+
+/* Cartões recolhidos: reduz somente o espaço abaixo da seta, sem deslocá-la. */
+.exercise.is-collapsed {
+  padding-bottom: 4px;
+}
+.exercise.is-collapsed .exercise-collapse-row {
+  /* Encurta um pouco mais o cartão sem mover a seta: o ajuste atua
+     somente no espaço depois da linha que contém o botão. */
+  margin-bottom: -12px;
+}
+
+
+/* Seta de recolhimento um pouco mais alta nas duas posições,
+   sem alterar o espaço reservado nem os demais alinhamentos. */
+.exercise .exercise-collapse-row {
+  transform: translateY(-6px);
+}
+
+
+/* Mantém a seta exatamente na mesma altura nos estados expandido e recolhido.
+   A área das séries usa o deslocamento comum de -14px nos dois estados;
+   somente a coluna de ícones recebe o ajuste adicional quando expandida. */
+.exercise:not(.is-collapsed) .actions {
+  transform: translateY(-17px);
+}
+.exercise:not(.is-collapsed) .exercise-sets-area {
+  transform: translateY(-14px);
+}
+
+
+/* PADRONIZAÇÃO DA ÁREA DE SÉRIES:
+   exercícios com 1–3 séries usam exatamente a mesma largura da tabela
+   dos exercícios com mais séries; os ícones em duas colunas ficam
+   alinhados à direita do espaço reservado a eles. */
+.exercise.compact-actions .exercise-sets-area,
+.exercise.single-row-actions .exercise-sets-area {
+  width: min(calc(100% + 28px), 300px);
+}
+.exercise.compact-actions .actions {
+  justify-self: end;
+}
+@media (max-width: 600px) {
+  .exercise.compact-actions .exercise-sets-area,
+  .exercise.single-row-actions .exercise-sets-area {
+    width: min(calc(100% + 20px), 280px);
+  }
+}
+
+
+
+/* ALINHAMENTO PRECISO ENTRE TABELA, AÇÕES E SETA:
+   - topo da coluna de ícones coincide com o topo da tabela de séries;
+   - borda direita da seta coincide com a borda direita da tabela.
+   Mantém a posição horizontal da coluna de ícones e os tamanhos existentes. */
+.exercise:not(.is-collapsed) .actions {
+  padding-top: 34px !important;
+  transform: translateY(-17px) !important;
+}
+.exercise .exercise-collapse-row {
+  width: 100%;
+  padding-right: 0 !important;
+  box-sizing: border-box;
+}
+.exercise .exercise-collapse-btn {
+  margin-right: 0;
+}
+
 </style>
 </head>
 
