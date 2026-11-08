@@ -124,14 +124,16 @@ border-color:var(--accent);
 color:#111
 }
 .daybtn.completed{
-background:rgba(46, 160, 105, .18);
-border-color:rgba(46, 160, 105, .65);
-color:var(--text);
+background:rgba(46,160,105,.24);
+border-color:#2ea06a;
+color:#baf3d0;
 }
 .daybtn.completed.active{
-background:rgba(46, 160, 105, .30);
-border-color:rgba(46, 160, 105, .9);
-color:var(--text);
+/* Mantém a cor verde de conclusão e usa halo amarelo-limão apenas para seleção. */
+background:rgba(46,160,105,.24);
+border-color:#2ea06a;
+color:#baf3d0;
+box-shadow:0 0 0 2px var(--accent),0 0 9px color-mix(in srgb,var(--accent) 55%,transparent);
 }
 
 .summary{
@@ -2073,7 +2075,7 @@ select:focus {
   grid-column:1;grid-row:2;min-width:0;width:min(100%,300px);
 }
 .exercise-collapse-row{
-  display:flex;justify-content:flex-end;align-items:center;
+  display:flex;justify-content:flex-end;align-items:center;gap:7px;
   padding-right:6px;margin:0 0 8px;min-height:23px;
 }
 .exercise-collapse-row .exercise-collapse-btn{pointer-events:auto;}
@@ -2551,22 +2553,387 @@ body.catalog-page-open{overflow:hidden}
   margin-right: 0;
 }
 
+
+
+/* Reordenação: alça aparece somente com o card recolhido. */
+.exercise-drag-handle{
+  display:none;align-items:center;justify-content:center;
+  position:absolute;z-index:3;
+  width:25px;height:23px;
+  /* Centro horizontal coincide com o check; centro vertical coincide com a seta inferior. */
+  right:22.5px;bottom:23px;
+  margin:0;padding:0;border:1px solid #3b5140;border-radius:7px;
+  background:#202923;color:#c8d8cd;
+  cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;
+}
+.exercise-drag-handle svg{display:block;width:15px;height:17px;fill:currentColor}
+.exercise.is-collapsed .exercise-drag-handle{display:inline-flex}
+.exercise-drag-handle:active{color:var(--accent);border-color:var(--accent);cursor:grabbing}
+.exercise-drag-placeholder{
+  box-sizing:border-box;min-height:66px;margin:10px 0;
+  border:2px dashed var(--accent);border-radius:14px;
+  background:color-mix(in srgb,var(--accent) 9%,transparent);
+}
+.exercise-drag-floating{
+  position:fixed !important;z-index:2147483000 !important;
+  display:block !important;box-sizing:border-box !important;
+  margin:0 !important;pointer-events:none !important;
+  transform:scale(1.025) !important;transform-origin:top left !important;
+  transition:none !important;will-change:left,top;opacity:.99;
+  border:2px solid var(--accent) !important;
+  box-shadow:0 20px 50px #000c,0 0 0 3px color-mix(in srgb,var(--accent) 35%,transparent) !important;
+}
+body.exercise-drag-active{cursor:grabbing;user-select:none;-webkit-user-select:none}
+.exercise.exercise-drag-source{pointer-events:none !important}
+
+/* A posição final da alça é calculada a partir dos controles reais:
+   - mesmas bordas superior e inferior do botão expandir/recolher;
+   - centro horizontal da alça alinhado ao centro horizontal do check.
+   O botão de check não é reposicionado nem redimensionado. */
+.exercise-drag-handle {
+  width: 30px;
+  height: 23px;
+  right: 22.5px;
+  bottom: auto;
+  box-sizing: border-box;
+}
+
+
+/* AJUSTES DE NAVEGAÇÃO E CONTROLES */
+header{padding-top:10px;padding-bottom:10px}
+.header-bar{position:relative;display:flex;align-items:center;justify-content:space-between;min-height:34px;max-width:980px;margin:0 auto}
+header .brand{font-size:18px;font-weight:850;letter-spacing:.01em;color:var(--text)}
+.header-menu-trigger{display:inline-flex;align-items:center;justify-content:center;width:40px;height:38px;padding:7px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);cursor:pointer}
+.header-menu-trigger svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.header-menu{position:absolute;right:0;top:calc(100% + 9px);z-index:30;width:max-content;min-width:190px;max-width:calc(100vw - 28px);padding:7px;border:1px solid #46564b;border-radius:13px;background:#1b221e;box-shadow:0 14px 36px #0009}
+.header-menu[hidden]{display:none!important}
+.header-menu-item{display:flex;align-items:center;gap:11px;width:100%;min-height:44px;padding:9px 11px;border:0;border-radius:9px;background:transparent;color:var(--text);font:700 13px/1.2 inherit;text-align:left;cursor:pointer}
+.header-menu-item:hover,.header-menu-item:focus-visible{background:#2a362e;outline:none}
+.menu-item-icon{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;flex:0 0 25px;border-radius:7px;background:#2c3a30;color:var(--accent);font-size:18px;font-weight:800}
+main{padding-top:7px}
+.hero{margin:0 0 10px;align-items:flex-start}
+.hero h1{margin:0 0 4px}
+.daynav{margin-top:12px}
+.bottom-dashboard .toolbar{
+  grid-column:1 / -1;
+  width:100%;height:auto;min-height:0;aspect-ratio:auto;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-rows:1fr;gap:9px;margin:0;padding:0;
+}
+.bottom-dashboard .toolbar .icon-action{
+  width:100%;height:54px;min-height:54px;aspect-ratio:auto;
+  display:flex;flex-direction:row;align-items:center;justify-content:center;
+  gap:9px;padding:8px 12px;border-radius:11px;
+}
+.bottom-dashboard .toolbar .icon-action svg{width:20px;height:20px;flex:0 0 20px}
+.bottom-dashboard .toolbar .icon-action-label{font-size:12px;line-height:1.1;white-space:nowrap}
+.exercise-list-toolbar{justify-content:center;width:100%;margin:0 0 5px}
+.exercise-list-toggle.compact-collapse-toggle{
+  width:32px;min-width:32px;height:25px;min-height:25px;
+  padding:0;border:0;border-radius:7px;background:transparent;
+  color:var(--muted);gap:0;
+}
+.exercise-list-toggle.compact-collapse-toggle svg{
+  width:17px;height:17px;flex:0 0 17px;stroke-width:2.4;
+}
+.exercise-drag-handle{touch-action:none;cursor:grab}
+.exercise-drag-handle.press-pending{border-color:var(--accent);color:var(--accent);background:#29351d}
+.exercise-drag-handle.long-press-armed{border-color:var(--accent);color:var(--accent);cursor:grabbing;box-shadow:0 0 0 2px #d7ff0030}
+@media(max-width:600px){
+  header{padding-top:8px;padding-bottom:8px}
+  header .brand{font-size:17px}
+  main{padding-top:5px}
+  .hero{margin-bottom:8px}
+  .daynav{margin-top:10px}
+  .bottom-dashboard .toolbar{gap:7px}
+  .bottom-dashboard .toolbar .icon-action{height:50px;min-height:50px;padding:7px 8px;gap:7px}
+  .bottom-dashboard .toolbar .icon-action svg{width:18px;height:18px;flex-basis:18px}
+  .bottom-dashboard .toolbar .icon-action-label{font-size:11px}
+}
+
+
+
+/* REFINOS DE DIAGRAMAÇÃO SOLICITADOS */
+.header-menu-item{justify-content:flex-start;white-space:nowrap}
+.header-menu-item>span:last-child{flex:0 0 auto}
+
+#modal.modal.open{
+  display:block;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:calc(16px + env(safe-area-inset-top)) max(12px,calc((100vw - 760px)/2)) calc(22px + env(safe-area-inset-bottom));
+  background:radial-gradient(ellipse at 50% -20%,#242a1a 0%,var(--bg) 48%);
+  align-items:initial;
+  justify-content:initial;
+}
+.exercise-page-shell{width:100%;max-width:760px;margin:0 auto}
+.exercise-page-shell .catalog-page-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.exercise-page-shell .catalog-page-topline .btn{min-height:36px;padding:7px 13px;border-radius:9px;font-weight:750}
+#modal .dialog{
+  width:100%;max-width:none;max-height:none;overflow:visible;
+  padding:16px;background:linear-gradient(145deg,#1b1f1f,#141717);
+  border:1px solid var(--line);border-radius:15px;box-shadow:0 12px 30px #0005;
+}
+#modal .dialog h2{margin:0 0 14px;font-size:clamp(23px,4vw,30px);line-height:1.15}
+body.exercise-page-open{overflow:hidden}
+@media(max-width:600px){
+  #modal.modal.open{padding:calc(12px + env(safe-area-inset-top)) 11px calc(16px + env(safe-area-inset-bottom))}
+  #modal .dialog{padding:12px}
+  #modal .field{margin:7px 0;gap:4px}
+  #modal .field input,#modal .field select{padding:9px}
+  #modal .styled-select-trigger{min-height:41px}
+  #modal .modalactions{margin-top:11px}
+  .exercise-page-shell .catalog-page-topline{margin-bottom:9px}
+  .exercise-page-shell .catalog-page-topline .eyebrow{font-size:9px}
+
+  /* Cadastro: mantém os controles na mesma linha e reduz a rolagem vertical. */
+  .catalog-page .info-catalog-dialog{padding:10px}
+  .catalog-page .info-catalog-dialog h1{margin-bottom:10px}
+  .catalog-page .info-catalog-dialog .catalog-entry{margin:7px 0;gap:4px}
+  .catalog-page .catalog-entry>div:not(.catalog-list){flex-wrap:nowrap;align-items:center;gap:5px}
+  .catalog-page .catalog-entry>div:not(.catalog-list) input{flex:1 1 0;flex-basis:0;min-width:0;padding:8px;font-size:12px}
+  .catalog-page .catalog-entry .btn{padding:7px 8px;font-size:11px}
+  .catalog-page .catalog-entry .catalog-list-toggle{padding-left:7px;padding-right:7px}
+  .catalog-page .info-catalog-dialog .catalog-feedback{margin-top:3px}
+}
+
+/* Menos respiro em torno da seta e proporção mais uniforme da área das séries. */
+.exercise .exercise-collapse-row{min-height:19px;margin-bottom:4px;transform:translateY(-5px)}
+.exercise.is-collapsed .exercise-collapse-row{margin-bottom:-8px}
+.exercise.compact-actions .actions{
+  grid-template-rows:repeat(3,32px);
+  gap:4px;
+  padding-top:10px;
+}
+.exercise.compact-actions .iconbtn{
+  width:32px;height:32px;min-width:32px;flex-basis:32px;
+}
+.exercise.compact-actions .exercise-sets-area{transform:translateY(-10px)}
+.exercise.compact-actions .sets-table .set-row{min-height:60px}
+.exercise.compact-actions{padding-bottom:8px}
+@media(max-width:600px){
+  .exercise.compact-actions .actions{grid-template-rows:repeat(3,30px);gap:4px;padding-top:9px}
+  .exercise.compact-actions .iconbtn{width:30px;height:30px;min-width:30px;flex-basis:30px}
+  .exercise.compact-actions .exercise-sets-area{transform:translateY(-9px)}
+  .exercise.compact-actions{padding-bottom:7px}
+}
+
+
+
+/* AJUSTES FINOS DESTA REVISÃO */
+/* Editar volta a ser um modal flutuante; Adicionar continua como página. */
+#modal.edit-mode.modal.open{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:16px;
+  background:#000b;
+}
+#modal.edit-mode .exercise-page-shell{
+  width:min(520px,100%);
+  max-width:520px;
+  margin:auto;
+}
+#modal.edit-mode .exercise-page-shell>.catalog-page-topline{display:none}
+#modal.edit-mode .dialog{
+  width:100%;
+  max-width:520px;
+  max-height:min(90vh,900px);
+  overflow-y:auto;
+  padding:18px;
+  background:#171b1b;
+  border:1px solid #414949;
+  border-radius:18px;
+  box-shadow:0 18px 48px #0009;
+}
+#modal.edit-mode .dialog h2{font-size:20px;margin:0 0 14px}
+@media(max-width:600px){
+  #modal.edit-mode.modal.open{padding:12px}
+  #modal.edit-mode .dialog{padding:14px;max-height:calc(100dvh - 24px)}
+}
+
+/* No Cadastro, os campos ocupam uma linha e os dois comandos ficam abaixo. */
+.catalog-page .catalog-entry>div:not(.catalog-list){
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:7px;
+  align-items:stretch;
+}
+.catalog-page .catalog-entry>div:not(.catalog-list) input{
+  grid-column:1 / -1;
+  width:100%;
+  min-width:0;
+}
+.catalog-page .catalog-entry>div:not(.catalog-list) .btn{
+  width:100%;
+  justify-content:center;
+}
+@media(max-width:600px){
+  .catalog-page .catalog-entry>div:not(.catalog-list){
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:6px;
+  }
+  .catalog-page .catalog-entry>div:not(.catalog-list) input{
+    grid-column:1 / -1;
+    flex:none;
+    width:100%;
+    padding:9px;
+    font-size:13px;
+  }
+  .catalog-page .catalog-entry>div:not(.catalog-list) .btn{
+    width:100%;
+    padding:8px 7px;
+    font-size:11px;
+  }
+}
+
+/* Aproxima a seta global do botão Iniciar e do primeiro card. */
+.top-dashboard{margin-bottom:2px !important}
+.exercise-list-toolbar{
+  height:17px;
+  min-height:17px;
+  margin:0 0 2px !important;
+  padding:0;
+  line-height:1;
+}
+.exercise-list-toggle.compact-collapse-toggle{
+  width:28px;
+  min-width:28px;
+  height:17px;
+  min-height:17px;
+  padding:0;
+  margin:0;
+}
+.exercise-list-toggle.compact-collapse-toggle svg{width:14px;height:14px;flex-basis:14px}
+#exerciseList>.exercise:first-child{margin-top:4px !important}
+
+/* Pequeno respiro entre a saudação e o dia da semana. */
+.hero h1{margin-bottom:7px !important}
+
+/* O rodapé interno dos cards mantém a mesma distância em todos os exercícios. */
+.exercise,
+.exercise.compact-actions,
+.exercise.single-row-actions{
+  padding-bottom:10px !important;
+}
+.exercise.is-collapsed{padding-bottom:10px !important}
+
+
+/* REFINO FINAL DE ALINHAMENTO E ESPAÇAMENTO */
+/* Pequena zona de segurança entre o botão Iniciar e a seta global. */
+.top-dashboard{margin-bottom:7px !important}
+.exercise-list-toolbar{
+  height:21px !important;
+  min-height:21px !important;
+  margin:0 0 3px !important;
+  padding:0 !important;
+  align-items:center;
+}
+.exercise-list-toggle.compact-collapse-toggle{
+  width:30px !important;
+  min-width:30px !important;
+  height:21px !important;
+  min-height:21px !important;
+  padding:0 !important;
+}
+.exercise-list-toggle.compact-collapse-toggle svg{
+  width:16px !important;
+  height:16px !important;
+  flex-basis:16px !important;
+}
+#exerciseList>.exercise:first-child{margin-top:3px !important}
+
+/* A seta de expandir/recolher e a alça de mover compartilham a mesma
+   altura e as mesmas bordas em todos os cards. A função JS equaliza
+   a altura dos cabeçalhos antes de posicionar a alça. */
+.exercise .exercise-collapse-row{
+  min-height:23px !important;
+  height:23px !important;
+  margin:0 0 4px !important;
+  transform:translateY(-6px) !important;
+}
+.exercise .exercise-collapse-btn{
+  width:30px !important;
+  height:23px !important;
+  min-height:23px !important;
+  box-sizing:border-box;
+}
+.exercise-drag-handle{
+  width:30px !important;
+  height:23px !important;
+  box-sizing:border-box;
+}
+
+/* Em cards com até três séries, quatro ações ocupam duas fileiras.
+   Isso impede que a coluna de botões aumente artificialmente a altura
+   do card de Corrida e cria uma base inferior consistente. */
+.exercise.compact-actions .actions{
+  grid-template-rows:repeat(2,30px) !important;
+  grid-auto-rows:30px !important;
+  gap:4px !important;
+  padding-top:17px !important;
+  transform:none !important;
+  align-content:start;
+}
+.exercise.compact-actions .iconbtn{
+  width:30px !important;
+  height:30px !important;
+  min-width:30px !important;
+  flex-basis:30px !important;
+}
+.exercise:not(.is-collapsed) .actions{
+  padding-top:17px !important;
+  transform:none !important;
+}
+.exercise,
+.exercise.compact-actions,
+.exercise.single-row-actions,
+.exercise.is-collapsed{
+  padding-bottom:8px !important;
+}
+@media(max-width:600px){
+  .top-dashboard{margin-bottom:7px !important}
+  .exercise-list-toolbar{height:21px !important;min-height:21px !important;margin-bottom:3px !important}
+  .exercise.compact-actions .actions{grid-template-rows:repeat(2,29px) !important;grid-auto-rows:29px !important;gap:4px !important;padding-top:17px !important}
+  .exercise.compact-actions .iconbtn{width:29px !important;height:29px !important;min-width:29px !important;flex-basis:29px !important}
+}
+
 </style>
 </head>
 
 <body>
 
 <header>
-<div class="brand">
-<i class="mark"></i> MEU <span>TREINO</span>
-</div>
+  <div class="header-bar">
+    <div class="brand">Olá, Gustavo!</div>
+    <button type="button" class="header-menu-trigger" id="headerMenuTrigger"
+      aria-label="Abrir menu" aria-expanded="false" aria-controls="headerMenu">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <nav class="header-menu" id="headerMenu" hidden aria-label="Menu principal">
+      <button type="button" class="header-menu-item" onclick="closeHeaderMenu();editExercise(null)">
+        <span class="menu-item-icon">＋</span><span>Adicionar</span>
+      </button>
+      <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openInfoCatalog()">
+        <span class="menu-item-icon">▤</span><span>Cadastro</span>
+      </button>
+      <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openSummaryPage()">
+        <span class="menu-item-icon">▥</span><span>Resumo geral</span>
+      </button>
+      <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openBackupMenu()">
+        <span class="menu-item-icon">⇅</span><span>Importar e exportar</span>
+      </button>
+    </nav>
+  </div>
 </header>
 
 <main>
 
 <div class="hero">
 <div>
-<div class="eyebrow">Olá, Gustavo!</div>
 <h1 id="dayTitle">Segunda-feira</h1>
 <div class="muted" id="dayMuscles"></div>
 </div>
@@ -2605,7 +2972,7 @@ body.catalog-page-open{overflow:hidden}
             <span id="weeklyPercent">0%</span>
           </div>
           <div class="progress weekly"><i id="weeklyProgressBar"></i></div>
-          <div class="progress-sub" id="weeklyDescription">Séries concluídas de segunda a sábado.</div>
+          <div class="progress-sub" id="weeklyDescription">Séries concluídas de domingo a sábado.</div>
         </section>
       </div>
       <div class="progress-pagination" aria-hidden="true">
@@ -2637,10 +3004,10 @@ body.catalog-page-open{overflow:hidden}
 </div>
 
 <div class="exercise-list-toolbar">
-  <button type="button" id="toggleAllExercisesBtn" class="exercise-list-toggle" onclick="toggleAllExerciseDetails()" aria-expanded="true">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 7-5 5 5 5"/></svg>
-    <span>Recolher todos</span>
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 7 5 5-5 5"/></svg>
+  <button type="button" id="toggleAllExercisesBtn" class="exercise-list-toggle compact-collapse-toggle"
+    onclick="toggleAllExerciseDetails()" aria-expanded="true"
+    aria-label="Recolher todos os exercícios" title="Recolher todos os exercícios">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
   </button>
 </div>
 <section id="exerciseList"></section>
@@ -2807,14 +3174,6 @@ body.catalog-page-open{overflow:hidden}
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M8 12h8M8 16h8"/></svg>
       <span class="icon-action-label">Cadastro</span>
     </button>
-    <button class="btn icon-action" id="summaryBtn" title="Resumo geral dos treinos" aria-label="Resumo geral dos treinos">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/><path d="M16 6h4v4"/></svg>
-      <span class="icon-action-label">Resumo geral</span>
-    </button>
-    <button class="btn icon-action" id="backupMenuBtn" title="Importar ou exportar dados" aria-label="Importar ou exportar dados">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8m-3-3 3 3 3-3M12 21v-8m-3 3 3-3 3 3"/><path d="M5 5h3M16 19h3"/></svg>
-      <span class="icon-action-label">Importar/Exportar</span>
-    </button>
   </div>
 </div>
 
@@ -2852,8 +3211,12 @@ Exporte um backup para levar suas alterações a outro dispositivo.
 
 <!-- MODAL DE EXERCÍCIO -->
 
-<div class="modal" id="modal">
-
+<div class="modal" id="modal" aria-label="Adicionar ou editar exercício">
+<div class="exercise-page-shell">
+  <div class="catalog-page-topline">
+    <span class="eyebrow" id="exercisePageEyebrow">GERENCIAR TREINO</span>
+    <button type="button" class="btn" onclick="closeModal()">Voltar</button>
+  </div>
 <div class="dialog">
 
 <h2 id="modalTitle">Editar exercício</h2>
@@ -2938,6 +3301,7 @@ Salvar exercício
 </div>
 
 </form>
+</div>
 </div>
 </div>
 
@@ -3123,16 +3487,14 @@ function undoLastAction(){
 
 
 function weekKey(){
-
-const d=new Date();
-const weekday=(d.getDay()+6)%7;
-
-d.setDate(d.getDate()-weekday);
-
-return d.getFullYear()+'-'+
-String(d.getMonth()+1).padStart(2,'0')+'-'+
-String(d.getDate()).padStart(2,'0');
-
+  // O ciclo semanal começa no domingo (getDay() === 0).
+  // Todas as marcações da semana ficam vinculadas à data desse domingo.
+  const d=new Date();
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate()-d.getDay());
+  return d.getFullYear()+'-'+
+    String(d.getMonth()+1).padStart(2,'0')+'-'+
+    String(d.getDate()).padStart(2,'0');
 }
 
 function comparisonKey(value){
@@ -3379,6 +3741,20 @@ render();
 
 }
 
+function isDayWorkoutCompleted(targetDay){
+  const exercises=state.workouts[targetDay]||[];
+  if(!exercises.length) return false;
+  const checks=weekData();
+  return exercises.every((exercise,index)=>{
+    const setCount=+exercise.sets||1;
+    const completed=checks[targetDay+'_'+index];
+    for(let setIndex=0;setIndex<setCount;setIndex++){
+      if(completed?.[setIndex]!==true) return false;
+    }
+    return true;
+  });
+}
+
 function getWorkoutStatusForDay(targetDay){
 state.sessions=state.sessions||{};
 const currentWeek=weekKey();
@@ -3501,12 +3877,57 @@ function toggleExerciseDetails(index,button){
 function updateExerciseListToggle(){
   const button=document.getElementById('toggleAllExercisesBtn');
   if(!button) return;
-  const label=button.querySelector('span');
-  if(label) label.textContent=allExercisesCollapsed?'Expandir todos':'Recolher todos';
   button.setAttribute('aria-expanded',String(!allExercisesCollapsed));
+  const label=allExercisesCollapsed?'Expandir todos os exercícios':'Recolher todos os exercícios';
+  button.setAttribute('aria-label',label);
+  button.title=label;
   const arrowPath=allExercisesCollapsed?'m6 9 6 6 6-6':'m6 15 6-6 6 6';
-  button.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${arrowPath}"/></svg><span>${allExercisesCollapsed?'Expandir todos':'Recolher todos'}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${arrowPath}"/></svg>`;
+  button.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${arrowPath}"/></svg>`;
 }
+
+function alignExerciseDragHandles(){
+  const cards=[...document.querySelectorAll('#exerciseList .exercise')];
+
+  // Todos os cabeçalhos passam a reservar a altura do maior cabeçalho visível.
+  // Assim, a seta Expandir e a alça Mover ocupam a mesma coordenada vertical
+  // em todos os cards, mesmo quando algum exercício tem menos informações.
+  cards.forEach(card=>{
+    const head=card.querySelector('.exhead');
+    if(head) head.style.minHeight='';
+  });
+  const maxHeadHeight=cards.reduce((max,card)=>{
+    const head=card.querySelector('.exhead');
+    return head ? Math.max(max,head.getBoundingClientRect().height) : max;
+  },0);
+  cards.forEach(card=>{
+    const head=card.querySelector('.exhead');
+    if(head && maxHeadHeight) head.style.minHeight=`${maxHeadHeight}px`;
+  });
+
+  cards.forEach(card=>{
+    const check=card.querySelector('.exercise-head-controls .exercise-done-btn');
+    const collapse=card.querySelector('.exercise-collapse-btn');
+    const handle=card.querySelector('.exercise-drag-handle');
+    if(!check || !collapse || !handle) return;
+
+    const cardRect=card.getBoundingClientRect();
+    const checkRect=check.getBoundingClientRect();
+    const collapseRect=collapse.getBoundingClientRect();
+    const handleWidth=handle.getBoundingClientRect().width || 30;
+
+    // Centro horizontal da alça = centro horizontal do botão de check.
+    const checkCenterX=checkRect.left + checkRect.width/2;
+    const rightOffset=cardRect.right - checkCenterX - handleWidth/2;
+
+    // As bordas superior e inferior da alça coincidem com as da seta.
+    handle.style.right=`${rightOffset}px`;
+    handle.style.top=`${collapseRect.top - cardRect.top}px`;
+    handle.style.bottom='auto';
+    handle.style.height=`${collapseRect.height}px`;
+  });
+}
+
+window.addEventListener('resize',alignExerciseDragHandles);
 
 function render(){
 
@@ -3542,7 +3963,7 @@ muscleGroups.length
 document.getElementById('daynav').innerHTML=
 days.map(d=>
 
-`<button class="daybtn ${d===day?'active':''} ${getWorkoutStatusForDay(d)==='finished'?'completed':''}"
+`<button class="daybtn ${d===day?'active':''} ${(getWorkoutStatusForDay(d)==='finished'||isDayWorkoutCompleted(d))?'completed':''}"
 data-day="${d}">${d.slice(0,3).toUpperCase()}</button>`
 
 ).join('');
@@ -3635,7 +4056,7 @@ const exerciseCollapsed=exerciseCollapseOverrides.has(collapseKey)
 
 return `
 
-<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${exerciseCollapsed?'is-collapsed':''}">
+<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${exerciseCollapsed?'is-collapsed':''}" data-exercise-index="${i}">
 
 <div class="exercise-main">
 
@@ -3743,12 +4164,13 @@ ${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><pat
 <button type="button" class="iconbtn" onclick="editExercise(${i})" title="Editar" aria-label="Editar">✎</button>
 <button type="button" class="iconbtn" onclick="replaceExercise(${i})" title="Substituir exercício" aria-label="Substituir exercício"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9a4 4 0 0 0-4 4v2"/><path d="m4 10 3 3 3-3"/><path d="M4 17h9a4 4 0 0 0 4-4v-2"/><path d="m20 14-3-3-3 3"/></svg></button>
 <button type="button" class="iconbtn" onclick="openMoveDayDialog(${i})" title="Mover para outro dia da semana" aria-label="Mover para outro dia da semana"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="13" height="16" rx="2"/><path d="M7 3v4M12 3v4M3 10h13M13 14h8m-3-3 3 3-3 3"/></svg></button>
-<button type="button" class="iconbtn" onclick="moveExercise(${i},-1)" title="Subir" aria-label="Subir">↑</button>
-<button type="button" class="iconbtn" onclick="moveExercise(${i},1)" title="Descer" aria-label="Descer">↓</button>
 <button type="button" class="iconbtn" onclick="deleteExercise(${i})" title="Excluir exercício" aria-label="Excluir exercício">×</button>
 
 </div>
 
+<div class="exercise-drag-handle" title="Arrastar para reorganizar" aria-label="Arrastar para reorganizar" role="button" tabindex="0">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="5" r="1.5"/><circle cx="16" cy="5" r="1.5"/><circle cx="8" cy="12" r="1.5"/><circle cx="16" cy="12" r="1.5"/><circle cx="8" cy="19" r="1.5"/><circle cx="16" cy="19" r="1.5"/></svg>
+</div>
 </article>
 
 `;
@@ -3756,6 +4178,9 @@ ${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><pat
 }).join('')
 
 :'<div class="empty">Nenhum exercício neste treino. Use “Adicionar exercício” para começar.</div>';
+
+// Alinha a alça com as medidas reais dos botões após montar os cartões.
+alignExerciseDragHandles();
 
 // Desativa as setas apenas quando a carga abdominal salva é texto.
 updateExerciseListToggle();
@@ -4356,7 +4781,11 @@ if(fDay){ const weekdayOrder=['-','Segunda','Terça','Quarta','Quinta','Sexta','
 
 renderLoadFields(e.loads||[],e.sets||4,isAerobicExercise(e));
 
+modal.classList.remove('edit-mode','add-page-mode');
+modal.classList.add(i===null?'add-page-mode':'edit-mode');
 modal.classList.add('open');
+document.body.classList.toggle('exercise-page-open',i===null);
+document.getElementById('exercisePageEyebrow').textContent=i===null?'ADICIONAR EXERCÍCIO':'EDITAR EXERCÍCIO';
 
 }
 
@@ -4429,7 +4858,8 @@ fNameSelect.addEventListener('change',()=>{
 
 function closeModal(){
 
-modal.classList.remove('open');
+modal.classList.remove('open','edit-mode','add-page-mode');
+document.body.classList.remove('exercise-page-open');
 
 }
 
@@ -4756,27 +5186,199 @@ function confirmDeleteExercise(){
   render();
 }
 
-function moveExercise(i,dir){
+function moveExerciseToPosition(fromIndex,toIndex){
+  const list=state.workouts[day]||[];
+  if(!Number.isInteger(fromIndex)||!Number.isInteger(toIndex)||
+     fromIndex<0||fromIndex>=list.length||toIndex<0||toIndex>=list.length||
+     fromIndex===toIndex) return;
 
-const a=state.workouts[day];
+  recordUndo('Ordem dos exercícios alterada');
 
-const j=i+dir;
+  // Move as marcações junto com o exercício correspondente.
+  const checks=currentWeekData();
+  const checkEntries=list.map((_,index)=>{
+    const value=checks[day+'_'+index];
+    return Array.isArray(value)?value.slice():undefined;
+  });
 
-if(j<0||j>=a.length)
-return;
+  const [exercise]=list.splice(fromIndex,1);
+  list.splice(toIndex,0,exercise);
+  const [movedChecks]=checkEntries.splice(fromIndex,1);
+  checkEntries.splice(toIndex,0,movedChecks);
 
-recordUndo('Ordem dos exercícios alterada');
-[a[i],a[j]]=[a[j],a[i]];
+  Object.keys(checks).forEach(key=>{
+    if(key.startsWith(day+'_')) delete checks[key];
+  });
+  checkEntries.forEach((value,index)=>{
+    if(value!==undefined) checks[day+'_'+index]=value;
+  });
 
-swapChecks(i,j);
-
-save();
-
-render();
-
+  save();
+  render();
 }
 
-// ========================================
+// Reordenação exclusiva dos cards recolhidos.
+// O card original permanece conectado ao DOM para manter pointer capture;
+// uma cópia fixed acompanha o ponto exato do dedo/mouse em toda a viewport.
+let exerciseDragBound=false;
+let activeExerciseDrag=null;
+let pendingExercisePress=null;
+
+function beginExerciseDrag(press){
+  if(!press || pendingExercisePress!==press || activeExerciseDrag) return;
+  const {card,handle,pointerId,startX,startY}=press;
+  pendingExercisePress=null;
+  handle.classList.remove('press-pending');
+  handle.classList.add('long-press-armed');
+
+  const rect=card.getBoundingClientRect();
+  const fromIndex=Number(card.dataset.exerciseIndex);
+  if(!Number.isInteger(fromIndex)) return;
+
+  const placeholder=document.createElement('div');
+  placeholder.className='exercise-drag-placeholder';
+  placeholder.style.width=rect.width+'px';
+  placeholder.style.height=rect.height+'px';
+  placeholder.setAttribute('aria-hidden','true');
+
+  const floating=card.cloneNode(true);
+  floating.classList.add('exercise-drag-floating');
+  floating.style.width=rect.width+'px';
+  floating.style.height=rect.height+'px';
+  floating.style.left=rect.left+'px';
+  floating.style.top=rect.top+'px';
+  floating.removeAttribute('data-exercise-index');
+
+  try{handle.setPointerCapture(pointerId);}catch(_){}
+  card.parentNode.insertBefore(placeholder,card);
+  card.classList.add('exercise-drag-source');
+  card.style.position='absolute';
+  card.style.visibility='hidden';
+  card.style.width='0px';
+  card.style.height='0px';
+  card.style.minHeight='0px';
+  card.style.margin='0';
+  card.style.padding='0';
+  card.style.border='0';
+  card.style.overflow='hidden';
+
+  document.body.appendChild(floating);
+  document.body.classList.add('exercise-drag-active');
+  activeExerciseDrag={
+    listElement:press.listElement,card,placeholder,floating,fromIndex,
+    originalStyle:press.originalStyle,
+    pointerId,
+    offsetX:startX-rect.left,
+    offsetY:startY-rect.top,
+    handle
+  };
+}
+
+function cancelPendingExercisePress(){
+  const press=pendingExercisePress;
+  if(!press) return;
+  clearTimeout(press.timer);
+  press.handle.classList.remove('press-pending');
+  pendingExercisePress=null;
+}
+
+function bindExerciseDrag(){
+  if(exerciseDragBound) return;
+  const listElement=document.getElementById('exerciseList');
+  if(!listElement) return;
+  exerciseDragBound=true;
+
+  listElement.addEventListener('pointerdown',event=>{
+    const handle=event.target instanceof Element
+      ?event.target.closest('.exercise-drag-handle'):null;
+    if(!handle || activeExerciseDrag || pendingExercisePress) return;
+    if(event.pointerType==='mouse' && event.button!==0) return;
+    const card=handle.closest('.exercise');
+    if(!card || !card.classList.contains('is-collapsed')) return;
+
+    const fromIndex=Number(card.dataset.exerciseIndex);
+    if(!Number.isInteger(fromIndex)) return;
+
+    const press={
+      listElement,card,handle,pointerId:event.pointerId,
+      startX:event.clientX,startY:event.clientY,
+      originalStyle:card.getAttribute('style'),
+      timer:null
+    };
+    handle.classList.add('press-pending');
+    pendingExercisePress=press;
+    press.timer=setTimeout(()=>beginExerciseDrag(press),500);
+    // Importante: não cancelar o pointerdown. Um deslize antes de 1s
+    // cancela a intenção de arrastar e não inicia a movimentação do card.
+  },{passive:true});
+
+  function moveDrag(event){
+    const press=pendingExercisePress;
+    if(press && event.pointerId===press.pointerId){
+      const dx=event.clientX-press.startX;
+      const dy=event.clientY-press.startY;
+      if(Math.hypot(dx,dy)>9) cancelPendingExercisePress();
+      return;
+    }
+
+    const drag=activeExerciseDrag;
+    if(!drag || event.pointerId!==drag.pointerId) return;
+    event.preventDefault();
+    drag.floating.style.left=(event.clientX-drag.offsetX)+'px';
+    drag.floating.style.top=(event.clientY-drag.offsetY)+'px';
+
+    const cards=[...drag.listElement.querySelectorAll(':scope > .exercise:not(.exercise-drag-source)')];
+    const next=cards.find(card=>{
+      const r=card.getBoundingClientRect();
+      return event.clientY<r.top+r.height/2;
+    });
+    if(next) drag.listElement.insertBefore(drag.placeholder,next);
+    else drag.listElement.appendChild(drag.placeholder);
+  }
+
+  function finishDrag(event,cancelled){
+    const press=pendingExercisePress;
+    if(press && (!event || event.pointerId===press.pointerId)){
+      cancelPendingExercisePress();
+      return;
+    }
+    const drag=activeExerciseDrag;
+    if(!drag || (event && event.pointerId!==drag.pointerId)) return;
+    const order=[...drag.listElement.children].filter(el=>
+      el.classList && (
+        el.classList.contains('exercise-drag-placeholder') ||
+        (el.classList.contains('exercise') &&
+         !el.classList.contains('exercise-drag-source'))
+      )
+    );
+    const toIndex=order.indexOf(drag.placeholder);
+    const fromIndex=drag.fromIndex;
+
+    drag.card.classList.remove('exercise-drag-source');
+    if(drag.originalStyle===null) drag.card.removeAttribute('style');
+    else drag.card.setAttribute('style',drag.originalStyle);
+    drag.floating.remove();
+    drag.placeholder.remove();
+    drag.handle.classList.remove('long-press-armed','press-pending');
+    document.body.classList.remove('exercise-drag-active');
+    activeExerciseDrag=null;
+
+    if(!cancelled && Number.isInteger(toIndex) && toIndex!==fromIndex){
+      moveExerciseToPosition(fromIndex,toIndex);
+    }else{
+      render();
+    }
+  }
+
+  window.addEventListener('pointermove',moveDrag,{passive:false});
+  window.addEventListener('pointerup',event=>finishDrag(event,false));
+  window.addEventListener('pointercancel',event=>finishDrag(event,true));
+  window.addEventListener('blur',()=>{
+    if(pendingExercisePress) cancelPendingExercisePress();
+    if(activeExerciseDrag) finishDrag(null,true);
+  });
+}
+
 // MOVER EXERCÍCIO PARA OUTRO DIA
 // ========================================
 
@@ -5493,12 +6095,12 @@ document.getElementById('catalogDeleteConfirm').addEventListener('click',event=>
 });
 
 
-document.getElementById('backupMenuBtn').onclick=openBackupMenu;
+document.getElementById('backupMenuBtn')?.addEventListener('click',openBackupMenu);
 document.getElementById('closeBackupMenuBtn').onclick=closeBackupMenu;
 document.getElementById('chooseExportBtn').onclick=()=>{closeBackupMenu();exportData();};
 document.getElementById('chooseImportBtn').onclick=()=>{closeBackupMenu();importFile.click();};
 document.getElementById('infoCatalogBtn').onclick=openInfoCatalog;
-document.getElementById('summaryBtn').onclick=openSummaryPage;
+document.getElementById('summaryBtn')?.addEventListener('click',openSummaryPage);
 document.getElementById('summaryBackBtn').onclick=closeSummaryPage;
 document.getElementById('summaryTabs').addEventListener('click',event=>{
   const button=event.target.closest('[data-summary-filter]');
@@ -5976,6 +6578,37 @@ function closeSummaryPage(){
   document.body.classList.remove('summary-page-open');
 }
 
+
+function closeHeaderMenu(){
+  const menu=document.getElementById('headerMenu');
+  const trigger=document.getElementById('headerMenuTrigger');
+  if(menu) menu.hidden=true;
+  if(trigger){
+    trigger.setAttribute('aria-expanded','false');
+    trigger.setAttribute('aria-label','Abrir menu');
+  }
+}
+function toggleHeaderMenu(){
+  const menu=document.getElementById('headerMenu');
+  const trigger=document.getElementById('headerMenuTrigger');
+  if(!menu || !trigger) return;
+  const opening=menu.hidden;
+  menu.hidden=!opening;
+  trigger.setAttribute('aria-expanded',String(opening));
+  trigger.setAttribute('aria-label',opening?'Fechar menu':'Abrir menu');
+}
+document.getElementById('headerMenuTrigger')?.addEventListener('click',toggleHeaderMenu);
+document.addEventListener('click',event=>{
+  const menu=document.getElementById('headerMenu');
+  const trigger=document.getElementById('headerMenuTrigger');
+  if(menu && !menu.hidden && !menu.contains(event.target) && !trigger?.contains(event.target)){
+    closeHeaderMenu();
+  }
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape') closeHeaderMenu();
+});
+
 // ========================================
 // INICIALIZAÇÃO
 // ========================================
@@ -5983,6 +6616,7 @@ function closeSummaryPage(){
 setupStyledSelects();
 setupEquipmentPicker();
 render();
+bindExerciseDrag();
 
 </script>
 
