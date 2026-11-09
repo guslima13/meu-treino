@@ -4049,6 +4049,29 @@ main { overflow: visible !important; }
   box-shadow:0 0 0 1px #d7ff0030,0 0 8px #d7ff0060 !important;
 }
 
+
+
+/* Aviso do dia atual: alternância controlada por JavaScript para maior compatibilidade com Android WebView. */
+.daynav .daybtn.today-notice{position:relative!important;overflow:hidden!important;}
+.daynav .daybtn.today-notice .today-day-label,
+.daynav .daybtn.today-notice .today-hint-label{
+  position:absolute!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  white-space:nowrap!important;pointer-events:none!important;opacity:0;transform:translate3d(0,3px,0);
+  transition:opacity .55s ease,transform .55s ease!important;-webkit-transition:opacity .55s ease,-webkit-transform .55s ease!important;
+  will-change:opacity,transform;
+}
+.daynav .daybtn.today-notice .today-day-label.is-visible,
+.daynav .daybtn.today-notice .today-hint-label.is-visible{opacity:1!important;transform:translate3d(0,0,0)!important;}
+/* O cabeçalho e o título compartilham exatamente o fundo da página. */
+.sticky-workout-bar,
+.sticky-workout-bar .hero,
+.sticky-workout-bar .hero-copy{
+  background:#0c0d0d!important;
+  background-color:#0c0d0d!important;
+  box-shadow:none!important;
+  border-color:transparent!important;
+}
+
 </style>
 </head>
 
@@ -4857,6 +4880,24 @@ return session;
 
 }
 
+function getNextOpenWorkoutMidnight(fromDate=new Date()){
+  // Procura a próxima data de treino ainda em aberto (segunda a sábado).
+  const weekdayNames={1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'};
+  for(let offset=1;offset<=21;offset++){
+    const candidate=new Date(fromDate.getFullYear(),fromDate.getMonth(),fromDate.getDate()+offset,0,0,0,0);
+    const workoutDay=weekdayNames[candidate.getDay()];
+    if(!workoutDay) continue;
+    if(!(state.workouts[workoutDay]||[]).length) continue;
+    const candidateWeekStart=new Date(candidate.getFullYear(),candidate.getMonth(),candidate.getDate());
+    candidateWeekStart.setDate(candidateWeekStart.getDate()-candidateWeekStart.getDay());
+    const candidateWeekKey=candidateWeekStart.getFullYear()+'-'+String(candidateWeekStart.getMonth()+1).padStart(2,'0')+'-'+String(candidateWeekStart.getDate()).padStart(2,'0');
+    const status=candidateWeekKey===weekKey()?getWorkoutStatusForDay(workoutDay):'idle';
+    if(status==='idle' && !isDayWorkoutCompleted(workoutDay)) return candidate.getTime();
+  }
+  // Fallback seguro: próxima meia-noite, caso não haja treino aberto na janela.
+  return new Date(fromDate.getFullYear(),fromDate.getMonth(),fromDate.getDate()+1,0,0,0,0).getTime();
+}
+
 function startWorkout(){
 
 const session=getWorkoutStatus();
@@ -4864,12 +4905,12 @@ const session=getWorkoutStatus();
 if(session.status==='active')
 return;
 
-
 session.status='active';
-
 session.startedAt=new Date().toISOString();
-
 session.finishedAt=null;
+// Qualquer treino iniciado cancela o aviso de "É hoje!" até a meia-noite
+// do próximo dia que tenha um treino cadastrado e ainda em aberto.
+state.todayNoticeResumeAt=getNextOpenWorkoutMidnight(new Date());
 
 save();
 
@@ -5149,16 +5190,45 @@ muscleGroups.length
 ?muscleGroups.map(m=>m.toUpperCase()).join(' | ')
 :'Grupos musculares não informados';
 
+
+let todayNoticeTimer=null;
+function startTodayNoticeRotation(){
+  if(todayNoticeTimer) clearInterval(todayNoticeTimer);
+  const update=()=>{
+    document.querySelectorAll('.daynav .daybtn.today-notice').forEach(button=>{
+      const dayLabel=button.querySelector('.today-day-label');
+      const hintLabel=button.querySelector('.today-hint-label');
+      if(!dayLabel||!hintLabel) return;
+      const showHint=button.dataset.noticeShowHint==='true';
+      dayLabel.classList.toggle('is-visible',!showHint);
+      hintLabel.classList.toggle('is-visible',showHint);
+      button.dataset.noticeShowHint=String(!showHint);
+    });
+  };
+  document.querySelectorAll('.daynav .daybtn.today-notice').forEach(button=>{
+    button.dataset.noticeShowHint='false';
+    button.querySelector('.today-day-label')?.classList.add('is-visible');
+    button.querySelector('.today-hint-label')?.classList.remove('is-visible');
+  });
+  todayNoticeTimer=setInterval(update,3000);
+}
+const todayWeekday={1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'}[new Date().getDay()];
+const todayNoticeSuppressed=!!state.todayNoticeResumeAt && Date.now()<Number(state.todayNoticeResumeAt);
 document.getElementById('daynav').innerHTML=
 days.map(d=>{
   const workoutStatus=getWorkoutStatusForDay(d);
   const inProgress=workoutStatus==='active';
   const finished=workoutStatus==='finished';
   const completed=finished||isDayWorkoutCompleted(d);
+  const showTodayNotice=d===todayWeekday && !todayNoticeSuppressed && workoutStatus==='idle' && !isDayWorkoutCompleted(d) && (state.workouts[d]||[]).length>0;
+  const dayText=showTodayNotice
+    ? `<span class="today-day-label">${d.slice(0,3).toUpperCase()}</span><span class="today-hint-label">É hoje!</span>`
+    : d.slice(0,3).toUpperCase();
   return `<div class="day-item ${d===day?'active':''} ${completed?'completed':''} ${finished?'finished':''} ${inProgress?'workout-in-progress':''}" data-day-item="${d}">
-    <button type="button" class="daybtn ${d===day?'active':''} ${completed?'completed':''} ${inProgress?'workout-in-progress':''}" data-day="${d}" aria-pressed="${d===day}">${d.slice(0,3).toUpperCase()}</button>
+    <button type="button" class="daybtn ${d===day?'active':''} ${completed?'completed':''} ${inProgress?'workout-in-progress':''} ${showTodayNotice?'today-notice':''}" data-day="${d}" aria-pressed="${d===day}" ${showTodayNotice?`aria-label="${d}, é hoje"`:''}>${dayText}</button>
   </div>`;
 }).join('');
+startTodayNoticeRotation();
 
 document.querySelectorAll('.day-item .daybtn').forEach(b=>{
   let holdTimer=null;
@@ -7869,6 +7939,7 @@ if ('serviceWorker' in navigator) {
 }
 
 </script>
+
 
 </body>
 </html>
