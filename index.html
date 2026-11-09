@@ -3934,6 +3934,45 @@ main { overflow: visible !important; }
 .sticky-workout-bar #dayMuscles{font-size:14px!important;line-height:1.3!important}
 .sticky-workout-bar .header-menu-trigger svg{width:25px!important;height:25px!important}
 
+
+/* Ajustes: indicadores fixos, botões inferiores mais baixos e cards recolhidos compactos. */
+.progress-overview-content{margin-bottom:0!important}
+.progress-summary{margin-top:6px!important;margin-bottom:8px!important}
+.bottom-dashboard .toolbar .icon-action{height:78px!important;min-height:78px!important}
+@media(max-width:600px){
+  .bottom-dashboard .toolbar .icon-action{height:70px!important;min-height:70px!important}
+}
+/* Em cards recolhidos, aproxima a borda inferior dos controles sem apertar o conteúdo. */
+.exercise.is-collapsed{padding-bottom:9px!important}
+.exercise.is-collapsed .exercise-collapse-row{margin-bottom:2px!important}
+
+
+/* Ajuste fino: rodapé interno dos cards recolhidos, mantendo respiro dos controles. */
+.exercise.is-collapsed{padding-bottom:5px!important}
+.exercise.is-collapsed .exercise-collapse-row{margin-bottom:-4px!important}
+
+/* Indicadores: exercícios primeiro, séries depois; ícone e texto em uma única linha. */
+.progress-summary{display:flex!important;gap:9px!important}
+.progress-summary .stat{flex:1 1 0;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:7px!important;height:54px!important;padding:6px 7px!important;white-space:nowrap}
+.progress-summary .stat-exercises{order:1}
+.progress-summary .stat-sets{order:2}
+.progress-summary .summary-stat-icon{width:19px;height:19px;flex:0 0 19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;color:#c8d2ca}
+.progress-summary .stat span{display:inline-flex;align-items:baseline;gap:4px;min-width:0}
+.progress-summary .stat b{font-size:clamp(14px,2vw,19px)!important;line-height:1!important}
+.progress-summary .stat small{font-size:clamp(9px,1.25vw,11px)!important;line-height:1.1!important;text-align:left!important}
+@media(max-width:600px){
+ .progress-summary{gap:6px!important}
+ .progress-summary .stat{height:49px!important;gap:5px!important;padding:5px 4px!important}
+ .progress-summary .summary-stat-icon{width:16px;height:16px;flex-basis:16px}
+ .progress-summary .stat b{font-size:14px!important}
+ .progress-summary .stat small{font-size:9px!important}
+}
+
+/* Indicadores: centralização do conteúdo dentro de cada bloco. */
+.progress-summary .stat{justify-content:center!important;text-align:center!important}
+.progress-summary .stat span{justify-content:center!important;text-align:center!important}
+.progress-summary .stat small{text-align:center!important}
+
 </style>
 </head>
 
@@ -4012,15 +4051,17 @@ main { overflow: visible !important; }
       </div>
     </div>
 
-    <div class="summary progress-summary">
-      <div class="stat">
-        <b id="setProgress">0/27</b>
-        <small>Séries concluídas</small>
-      </div>
-      <div class="stat">
-        <b id="exerciseProgress">0/6</b>
-        <small>Exercícios concluídos</small>
-      </div>
+  </div>
+
+  <!-- Indicadores de séries e exercícios permanecem sempre visíveis. -->
+  <div class="summary progress-summary">
+    <div class="stat stat-exercises">
+      <svg class="summary-stat-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12M6 12h12M6 18h12M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      <span><b id="exerciseProgress">0/6</b> <small>exercícios concluídos</small></span>
+    </div>
+    <div class="stat stat-sets">
+      <svg class="summary-stat-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16M7 4v6M17 9v6M7 14v6"/></svg>
+      <span><b id="setProgress">0/27</b> <small>séries concluídas</small></span>
     </div>
   </div>
 </section>
@@ -4877,7 +4918,7 @@ function toggleProgressOverview(){
   const expanded=button.getAttribute('aria-expanded')==='true';
   content.hidden=expanded;
   button.setAttribute('aria-expanded',String(!expanded));
-  const label=expanded?'Expandir progressos e indicadores':'Recolher progressos e indicadores';
+  const label=expanded?'Expandir barras de progresso':'Recolher barras de progresso';
   button.setAttribute('aria-label',label);
   button.title=label;
   const path=expanded?'m6 15 6-6 6 6':'m6 9 6 6 6-6';
