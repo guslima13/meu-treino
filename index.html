@@ -3981,6 +3981,74 @@ main { overflow: visible !important; }
   transform:translateY(-14px) !important;
 }
 
+
+
+/* AJUSTE SOLICITADO: séries à esquerda e exercícios à direita. */
+.progress-summary .stat-sets{order:1!important}
+.progress-summary .stat-exercises{order:2!important}
+
+/* Ações inferiores: ícone e texto lado a lado, com dimensões homogêneas. */
+.bottom-dashboard .toolbar .icon-action{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  min-width:0!important;
+  min-height:48px!important;
+  height:48px!important;
+  padding:7px 9px!important;
+}
+.bottom-dashboard .toolbar .icon-action svg{
+  display:block!important;
+  width:18px!important;
+  height:18px!important;
+  flex:0 0 18px!important;
+}
+.bottom-dashboard .toolbar .icon-action-label{
+  display:block!important;
+  width:auto!important;
+  max-width:100%!important;
+  min-width:0!important;
+  font-size:clamp(10px,1.35vw,12px)!important;
+  line-height:1.15!important;
+  font-weight:750!important;
+  white-space:nowrap!important;
+  overflow-wrap:normal!important;
+  text-align:left!important;
+}
+@media(max-width:600px){
+  .bottom-dashboard .toolbar{gap:7px!important}
+  .bottom-dashboard .toolbar .icon-action{
+    height:46px!important;
+    min-height:46px!important;
+    padding:6px 7px!important;
+    gap:6px!important;
+  }
+  .bottom-dashboard .toolbar .icon-action svg{
+    width:17px!important;
+    height:17px!important;
+    flex-basis:17px!important;
+  }
+  .bottom-dashboard .toolbar .icon-action-label{
+    font-size:clamp(9px,2.7vw,11px)!important;
+  }
+}
+
+
+
+/* Dia cujo treino está efetivamente em andamento: replica o botão principal ativo. */
+.daynav .daybtn.workout-in-progress,
+.daynav .daybtn.workout-in-progress.active,
+.daynav .daybtn.workout-in-progress.completed,
+.daynav .daybtn.workout-in-progress.completed.active {
+  background:#26321a !important;
+  color:var(--accent) !important;
+  border-color:var(--accent) !important;
+  box-shadow:0 0 0 1px #d7ff0030,0 0 8px #d7ff0060 !important;
+}
+
 </style>
 </head>
 
@@ -5083,10 +5151,12 @@ muscleGroups.length
 
 document.getElementById('daynav').innerHTML=
 days.map(d=>{
-  const finished=getWorkoutStatusForDay(d)==='finished';
+  const workoutStatus=getWorkoutStatusForDay(d);
+  const inProgress=workoutStatus==='active';
+  const finished=workoutStatus==='finished';
   const completed=finished||isDayWorkoutCompleted(d);
-  return `<div class="day-item ${d===day?'active':''} ${completed?'completed':''} ${finished?'finished':''}" data-day-item="${d}">
-    <button type="button" class="daybtn ${d===day?'active':''} ${completed?'completed':''}" data-day="${d}" aria-pressed="${d===day}">${d.slice(0,3).toUpperCase()}</button>
+  return `<div class="day-item ${d===day?'active':''} ${completed?'completed':''} ${finished?'finished':''} ${inProgress?'workout-in-progress':''}" data-day-item="${d}">
+    <button type="button" class="daybtn ${d===day?'active':''} ${completed?'completed':''} ${inProgress?'workout-in-progress':''}" data-day="${d}" aria-pressed="${d===day}">${d.slice(0,3).toUpperCase()}</button>
   </div>`;
 }).join('');
 
