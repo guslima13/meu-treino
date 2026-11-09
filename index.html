@@ -5159,6 +5159,46 @@ window.addEventListener('scroll',closeDayWorkoutPreview,{passive:true});
 window.addEventListener('resize',closeDayWorkoutPreview);
 window.addEventListener('blur',closeDayWorkoutPreview);
 
+// Temporizador único e persistente: fica fora de render() para que trocar
+// o dia selecionado não crie intervalos concorrentes nem altere o ritmo.
+let todayNoticeTimer=null;
+let todayNoticeShowHint=false;
+function applyTodayNoticeFrame(){
+  const buttons=document.querySelectorAll('.daynav .daybtn.today-notice');
+  buttons.forEach(button=>{
+    const dayLabel=button.querySelector('.today-day-label');
+    const hintLabel=button.querySelector('.today-hint-label');
+    if(!dayLabel||!hintLabel) return;
+    dayLabel.classList.toggle('is-visible',!todayNoticeShowHint);
+    hintLabel.classList.toggle('is-visible',todayNoticeShowHint);
+  });
+  return buttons.length;
+}
+function startTodayNoticeRotation(){
+  const count=applyTodayNoticeFrame();
+  // Se o aviso deixou de ser elegível, encerra o único intervalo.
+  if(!count){
+    if(todayNoticeTimer!==null){clearInterval(todayNoticeTimer);todayNoticeTimer=null;}
+    todayNoticeShowHint=false;
+    return;
+  }
+  // Em um novo aviso, começa pela abreviação. Em re-renderizações mantém a fase.
+  if(todayNoticeTimer===null){
+    todayNoticeShowHint=false;
+    applyTodayNoticeFrame();
+    todayNoticeTimer=setInterval(()=>{
+      if(!document.querySelector('.daynav .daybtn.today-notice')){
+        clearInterval(todayNoticeTimer);
+        todayNoticeTimer=null;
+        todayNoticeShowHint=false;
+        return;
+      }
+      todayNoticeShowHint=!todayNoticeShowHint;
+      applyTodayNoticeFrame();
+    },3000);
+  }
+}
+
 function render(){
 
 const dayLabel={
@@ -5191,27 +5231,7 @@ muscleGroups.length
 :'Grupos musculares não informados';
 
 
-let todayNoticeTimer=null;
-function startTodayNoticeRotation(){
-  if(todayNoticeTimer) clearInterval(todayNoticeTimer);
-  const update=()=>{
-    document.querySelectorAll('.daynav .daybtn.today-notice').forEach(button=>{
-      const dayLabel=button.querySelector('.today-day-label');
-      const hintLabel=button.querySelector('.today-hint-label');
-      if(!dayLabel||!hintLabel) return;
-      const showHint=button.dataset.noticeShowHint==='true';
-      dayLabel.classList.toggle('is-visible',!showHint);
-      hintLabel.classList.toggle('is-visible',showHint);
-      button.dataset.noticeShowHint=String(!showHint);
-    });
-  };
-  document.querySelectorAll('.daynav .daybtn.today-notice').forEach(button=>{
-    button.dataset.noticeShowHint='false';
-    button.querySelector('.today-day-label')?.classList.add('is-visible');
-    button.querySelector('.today-hint-label')?.classList.remove('is-visible');
-  });
-  todayNoticeTimer=setInterval(update,3000);
-}
+
 const todayWeekday={1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'}[new Date().getDay()];
 const todayNoticeSuppressed=!!state.todayNoticeResumeAt && Date.now()<Number(state.todayNoticeResumeAt);
 document.getElementById('daynav').innerHTML=
