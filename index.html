@@ -4051,17 +4051,28 @@ main { overflow: visible !important; }
 
 
 
-/* Aviso do dia atual: alternância controlada por JavaScript para maior compatibilidade com Android WebView. */
-.daynav .daybtn.today-notice{position:relative!important;overflow:hidden!important;}
-.daynav .daybtn.today-notice .today-day-label,
-.daynav .daybtn.today-notice .today-hint-label{
-  position:absolute!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;
-  white-space:nowrap!important;pointer-events:none!important;opacity:0;transform:translate3d(0,3px,0);
-  transition:opacity .55s ease,transform .55s ease!important;-webkit-transition:opacity .55s ease,-webkit-transform .55s ease!important;
-  will-change:opacity,transform;
+/* Aviso estático do dia atual: mesmo padrão visual do botão, com contorno sutil. */
+.daynav .daybtn.today-notice{
+  border:1px solid var(--accent)!important;
+  box-shadow:0 0 0 1px #d7ff0030,0 0 7px #d7ff0035!important;
+  color:var(--accent)!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+  font-size:clamp(9px, 2.3vw, 12px)!important;
+  letter-spacing:-.25px!important;
+  padding-left:2px!important;
+  padding-right:2px!important;
 }
-.daynav .daybtn.today-notice .today-day-label.is-visible,
-.daynav .daybtn.today-notice .today-hint-label.is-visible{opacity:1!important;transform:translate3d(0,0,0)!important;}
+.daynav .daybtn.today-notice.active{
+  color:#10120a!important;
+  -webkit-text-fill-color:#10120a!important;
+  text-shadow:none!important;
+}
+.daynav .daybtn.today-notice:not(.active){
+  color:var(--accent)!important;
+  -webkit-text-fill-color:var(--accent)!important;
+}
+#progressOverviewContent[hidden]{display:none!important}
 /* O cabeçalho e o título compartilham exatamente o fundo da página. */
 .sticky-workout-bar,
 .sticky-workout-bar .hero,
@@ -4070,6 +4081,33 @@ main { overflow: visible !important; }
   background-color:#0c0d0d!important;
   box-shadow:none!important;
   border-color:transparent!important;
+}
+
+
+/* Rótulo explícito no botão: compatibilidade com Android WebView. */
+.daynav .daybtn .daybtn-label{
+  display:inline-block!important;
+  max-width:100%!important;
+  white-space:nowrap!important;
+  opacity:1!important;
+  visibility:visible!important;
+  font:inherit!important;
+  line-height:1.15!important;
+}
+.daynav .daybtn.today-notice .daybtn-label{
+  color:var(--accent)!important;
+  -webkit-text-fill-color:var(--accent)!important;
+  font-weight:800!important;
+}
+.daynav .daybtn.today-notice.active .daybtn-label{
+  color:#10120a!important;
+  -webkit-text-fill-color:#10120a!important;
+}
+@media (max-width:600px){
+  .daynav .daybtn.today-notice .daybtn-label{
+    font-size:10px!important;
+    letter-spacing:-.35px!important;
+  }
 }
 
 </style>
@@ -4116,13 +4154,13 @@ main { overflow: visible !important; }
 <section class="progress-overview" id="progressOverview" aria-label="Resumo do progresso">
   <div class="progress-overview-toggle-row">
     <button type="button" class="exercise-list-toggle progress-overview-toggle" id="progressOverviewToggle"
-      aria-label="Mostrar ou ocultar progresso" title="Mostrar ou ocultar progresso" aria-expanded="true"
+      aria-label="Mostrar ou ocultar progresso" title="Mostrar ou ocultar progresso" aria-expanded="false"
       aria-controls="progressOverviewContent" onclick="toggleProgressOverview()">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </button>
   </div>
 
-  <div id="progressOverviewContent" class="progress-overview-content">
+  <div id="progressOverviewContent" class="progress-overview-content" hidden>
     <!-- PROGRESSO DIÁRIO E SEMANAL: navegação por deslize -->
     <div class="progress-carousel" id="progressCarousel" aria-label="Progresso diário e semanal">
       <div class="progress-track" id="progressTrack">
@@ -4898,41 +4936,33 @@ function getNextOpenWorkoutMidnight(fromDate=new Date()){
   return new Date(fromDate.getFullYear(),fromDate.getMonth(),fromDate.getDate()+1,0,0,0,0).getTime();
 }
 
+function localDateKey(date=new Date()){
+  return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+}
+
 function startWorkout(){
-
-const session=getWorkoutStatus();
-
-if(session.status==='active')
-return;
-
-session.status='active';
-session.startedAt=new Date().toISOString();
-session.finishedAt=null;
-// Qualquer treino iniciado cancela o aviso de "É hoje!" até a meia-noite
-// do próximo dia que tenha um treino cadastrado e ainda em aberto.
-state.todayNoticeResumeAt=getNextOpenWorkoutMidnight(new Date());
-
-save();
-
-render();
-
+  const session=getWorkoutStatus();
+  if(session.status==='active') return;
+  session.status='active';
+  session.startedAt=new Date().toISOString();
+  session.finishedAt=null;
+  const todayName={1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'}[new Date().getDay()];
+  // Iniciar o treino de hoje mantém o aviso durante toda a sessão.
+  // Iniciar outro dia adia o próximo aviso até a meia-noite do próximo treino em aberto.
+  if(day!==todayName) state.todayNoticeResumeAt=getNextOpenWorkoutMidnight(new Date());
+  save();
+  render();
 }
 
 function finishWorkout(){
-
-const session=getWorkoutStatus();
-
-if(session.status!=='active')
-return;
-
-session.status='finished';
-
-session.finishedAt=new Date().toISOString();
-
-save();
-
-render();
-
+  const session=getWorkoutStatus();
+  if(session.status!=='active') return;
+  session.status='finished';
+  session.finishedAt=new Date().toISOString();
+  const todayName={1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'}[new Date().getDay()];
+  if(day===todayName) state.todayNoticeDismissedDate=localDateKey();
+  save();
+  render();
 }
 
 function isDayWorkoutCompleted(targetDay){
@@ -5028,19 +5058,32 @@ button.disabled=!canMarkProgress;
 // RENDERIZAÇÃO
 // ========================================
 
-function toggleProgressOverview(){
+function syncProgressOverviewToggle(expanded){
   const content=document.getElementById('progressOverviewContent');
   const button=document.getElementById('progressOverviewToggle');
   if(!content || !button) return;
-  const expanded=button.getAttribute('aria-expanded')==='true';
-  content.hidden=expanded;
-  button.setAttribute('aria-expanded',String(!expanded));
-  const label=expanded?'Expandir barras de progresso':'Recolher barras de progresso';
+  content.hidden=!expanded;
+  button.setAttribute('aria-expanded',String(expanded));
+  const label=expanded?'Recolher barras de progresso':'Expandir barras de progresso';
   button.setAttribute('aria-label',label);
   button.title=label;
   const path=expanded?'m6 15 6-6 6 6':'m6 9 6 6 6-6';
   button.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"/></svg>`;
 }
+
+function toggleProgressOverview(){
+  const button=document.getElementById('progressOverviewToggle');
+  if(!button) return;
+  const expanded=button.getAttribute('aria-expanded')==='true';
+  syncProgressOverviewToggle(!expanded);
+}
+
+
+(function initializeProgressOverviewCollapsed(){
+  const init=()=>syncProgressOverviewToggle(false);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+})();
 
 function toggleAllExerciseDetails(){
   allExercisesCollapsed=!allExercisesCollapsed;
@@ -5159,45 +5202,6 @@ window.addEventListener('scroll',closeDayWorkoutPreview,{passive:true});
 window.addEventListener('resize',closeDayWorkoutPreview);
 window.addEventListener('blur',closeDayWorkoutPreview);
 
-// Temporizador único e persistente: fica fora de render() para que trocar
-// o dia selecionado não crie intervalos concorrentes nem altere o ritmo.
-let todayNoticeTimer=null;
-let todayNoticeShowHint=false;
-function applyTodayNoticeFrame(){
-  const buttons=document.querySelectorAll('.daynav .daybtn.today-notice');
-  buttons.forEach(button=>{
-    const dayLabel=button.querySelector('.today-day-label');
-    const hintLabel=button.querySelector('.today-hint-label');
-    if(!dayLabel||!hintLabel) return;
-    dayLabel.classList.toggle('is-visible',!todayNoticeShowHint);
-    hintLabel.classList.toggle('is-visible',todayNoticeShowHint);
-  });
-  return buttons.length;
-}
-function startTodayNoticeRotation(){
-  const count=applyTodayNoticeFrame();
-  // Se o aviso deixou de ser elegível, encerra o único intervalo.
-  if(!count){
-    if(todayNoticeTimer!==null){clearInterval(todayNoticeTimer);todayNoticeTimer=null;}
-    todayNoticeShowHint=false;
-    return;
-  }
-  // Em um novo aviso, começa pela abreviação. Em re-renderizações mantém a fase.
-  if(todayNoticeTimer===null){
-    todayNoticeShowHint=false;
-    applyTodayNoticeFrame();
-    todayNoticeTimer=setInterval(()=>{
-      if(!document.querySelector('.daynav .daybtn.today-notice')){
-        clearInterval(todayNoticeTimer);
-        todayNoticeTimer=null;
-        todayNoticeShowHint=false;
-        return;
-      }
-      todayNoticeShowHint=!todayNoticeShowHint;
-      applyTodayNoticeFrame();
-    },3000);
-  }
-}
 
 function render(){
 
@@ -5234,21 +5238,20 @@ muscleGroups.length
 
 const todayWeekday={1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'}[new Date().getDay()];
 const todayNoticeSuppressed=!!state.todayNoticeResumeAt && Date.now()<Number(state.todayNoticeResumeAt);
+const todayAlreadyDismissed=state.todayNoticeDismissedDate===localDateKey();
 document.getElementById('daynav').innerHTML=
 days.map(d=>{
   const workoutStatus=getWorkoutStatusForDay(d);
   const inProgress=workoutStatus==='active';
   const finished=workoutStatus==='finished';
   const completed=finished||isDayWorkoutCompleted(d);
-  const showTodayNotice=d===todayWeekday && !todayNoticeSuppressed && workoutStatus==='idle' && !isDayWorkoutCompleted(d) && (state.workouts[d]||[]).length>0;
-  const dayText=showTodayNotice
-    ? `<span class="today-day-label">${d.slice(0,3).toUpperCase()}</span><span class="today-hint-label">É hoje!</span>`
-    : d.slice(0,3).toUpperCase();
+  const showTodayNotice=d===todayWeekday && !todayNoticeSuppressed && !todayAlreadyDismissed && workoutStatus!=='finished' && !isDayWorkoutCompleted(d) && (state.workouts[d]||[]).length>0;
+  const dayText=showTodayNotice?'É hoje!':d.slice(0,3).toUpperCase();
   return `<div class="day-item ${d===day?'active':''} ${completed?'completed':''} ${finished?'finished':''} ${inProgress?'workout-in-progress':''}" data-day-item="${d}">
-    <button type="button" class="daybtn ${d===day?'active':''} ${completed?'completed':''} ${inProgress?'workout-in-progress':''} ${showTodayNotice?'today-notice':''}" data-day="${d}" aria-pressed="${d===day}" ${showTodayNotice?`aria-label="${d}, é hoje"`:''}>${dayText}</button>
+    <button type="button" class="daybtn ${d===day?'active':''} ${completed?'completed':''} ${inProgress?'workout-in-progress':''} ${showTodayNotice?'today-notice':''}" data-day="${d}" aria-pressed="${d===day}" ${showTodayNotice?`aria-label="${d}, é hoje"`:''}><span class="daybtn-label">${dayText}</span></button>
   </div>`;
 }).join('');
-startTodayNoticeRotation();
+
 
 document.querySelectorAll('.day-item .daybtn').forEach(b=>{
   let holdTimer=null;
@@ -7298,6 +7301,8 @@ session.status='idle';
 session.startedAt=null;
 session.finishedAt=null;
 session.week=weekKey();
+const todayName={1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'}[new Date().getDay()];
+if(day===todayName) state.todayNoticeDismissedDate=localDateKey();
 
 save();
 
