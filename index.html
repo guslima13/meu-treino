@@ -4111,6 +4111,72 @@ main { overflow: visible !important; }
 }
 
 </style>
+<style>
+
+/* CORREÇÃO DEFINITIVA: seta do Progresso controlada pelo mesmo SVG dinâmico
+   usado em "Expandir/Recolher todos os exercícios". */
+#progressOverviewToggle::before,
+#progressOverviewToggle::after {
+  content: none !important;
+  display: none !important;
+}
+#progressOverviewToggle > svg {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+  -webkit-transform: none !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+#progressOverviewToggle > svg > path {
+  d: path("M6 9 L12 15 L18 9");
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2.5 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+</style>
+<style>
+
+/* Android/WebView: seta do Progresso sempre aponta para baixo quando fechado.
+   Ao expandir, gira 180 graus para cima com base no estado real do painel. */
+#progressOverviewToggle::before,
+#progressOverviewToggle::after {
+  content: none !important;
+  display: none !important;
+}
+#progressOverviewToggle > svg {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 16px !important;
+  height: 16px !important;
+  transform: rotate(0deg) !important;
+  -webkit-transform: rotate(0deg) !important;
+  transform-origin: 50% 50% !important;
+  transition: transform 160ms ease !important;
+  -webkit-transition: -webkit-transform 160ms ease !important;
+}
+#progressOverviewToggle[aria-expanded="true"] > svg {
+  transform: rotate(180deg) !important;
+  -webkit-transform: rotate(180deg) !important;
+}
+#progressOverviewToggle[aria-expanded="false"] > svg {
+  transform: rotate(0deg) !important;
+  -webkit-transform: rotate(0deg) !important;
+}
+#progressOverviewToggle > svg > path {
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2.5 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+</style>
 </head>
 
 <body>
@@ -5062,20 +5128,20 @@ function syncProgressOverviewToggle(expanded){
   const content=document.getElementById('progressOverviewContent');
   const button=document.getElementById('progressOverviewToggle');
   if(!content || !button) return;
+
   content.hidden=!expanded;
-  button.setAttribute('aria-expanded',String(expanded));
-  const label=expanded?'Recolher barras de progresso':'Expandir barras de progresso';
+  const isExpanded=!content.hidden;
+  button.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+
+  const label=isExpanded?'Recolher barras de progresso':'Expandir barras de progresso';
   button.setAttribute('aria-label',label);
   button.title=label;
-  const path=expanded?'m6 15 6-6 6 6':'m6 9 6 6 6-6';
-  button.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"/></svg>`;
 }
 
 function toggleProgressOverview(){
-  const button=document.getElementById('progressOverviewToggle');
-  if(!button) return;
-  const expanded=button.getAttribute('aria-expanded')==='true';
-  syncProgressOverviewToggle(!expanded);
+  const content=document.getElementById('progressOverviewContent');
+  if(!content) return;
+  syncProgressOverviewToggle(content.hidden);
 }
 
 
