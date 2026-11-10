@@ -1,9 +1,10 @@
-const CACHE_NAME = 'meu-treino-v6';
+const CACHE_NAME = 'meu-treino-v7';
 
 const FILES_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './icons/icon-512.svg',
   './icons/icon-512.jpg'
 ];
 
