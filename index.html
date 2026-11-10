@@ -4286,6 +4286,161 @@ main { overflow: visible !important; }
 }
 </style>
 
+
+<style id="index-current-request-adjustments">
+/* Indicador ativo volta a ser uma bolinha pulsante, sem halter. */
+.workout-btn.start.active .workout-indicator{
+  width:13px!important;height:13px!important;flex:0 0 13px!important;
+  border-radius:50%!important;background:var(--accent)!important;
+  box-shadow:0 0 0 4px #d7ff0030,0 0 8px #d7ff0060!important;
+  animation:onlinePulse 1.8s ease-in-out infinite!important;
+}
+.workout-btn.start.active .workout-indicator svg{display:none!important}
+.workout-btn.start.active{gap:18px!important}
+
+/* Espaçamento único entre símbolo e texto em todas as variações dos dois botões. */
+.top-dashboard .workout-btn,
+.bottom-dashboard .workout-btn{gap:10px!important}
+.workout-check-indicator{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:15px!important;height:15px!important;flex:0 0 15px!important;
+  border-radius:0!important;background:transparent!important;box-shadow:none!important;opacity:1!important;
+}
+.workout-check-indicator svg{
+  display:block!important;width:17px!important;height:17px!important;
+  fill:none!important;stroke:currentColor!important;stroke-width:3!important;
+  stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+
+/* Reduz somente o intervalo antes do botão inferior; preserva o gap interno
+   do painel entre Finalizar e os boxes Adicionar/Cadastro. */
+.bottom-dashboard{margin-top:9px!important}
+.bottom-dashboard .finish-control{margin-top:0!important}
+
+/* Dois controles alinhados na coluna direita: ação global acima da individual. */
+.exercise-collapse-row{gap:8px!important;padding-right:6px!important}
+.exercise-collapse-all-btn{margin-right:0!important}
+.exercise-collapse-all-btn svg{width:17px!important;height:17px!important}
+.exercise-collapse-row .exercise-collapse-btn{position:relative;z-index:7}
+
+/* A seta global existe somente no primeiro card, conforme posição atual na lista. */
+</style>
+
+
+<style id="index-followup-adjustments">
+/* Distância uniforme entre símbolo e texto nos quatro estados dos dois botões. */
+.top-dashboard .workout-btn,
+.bottom-dashboard .workout-btn,
+.workout-btn.start.active{
+  gap:10px!important;
+}
+
+/* O botão inferior de finalizar sempre usa o mesmo check, mesmo antes da conclusão. */
+.bottom-dashboard .workout-btn.finish .workout-check-indicator{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:15px!important;
+  height:15px!important;
+  flex:0 0 15px!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  opacity:1!important;
+}
+.bottom-dashboard .workout-btn.finish .workout-check-indicator svg{
+  display:block!important;
+  width:17px!important;
+  height:17px!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:3!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+}
+
+/* Seta do progresso sem caixa, contorno, fundo ou sombra; mantém o controle centralizado. */
+.progress-overview-toggle-row{
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  min-height:22px!important;
+  height:22px!important;
+  margin:0 0 7px!important;
+  padding:0!important;
+}
+#progressOverviewToggle{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:26px!important;
+  min-width:26px!important;
+  height:22px!important;
+  min-height:22px!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#aeb8b0!important;
+}
+#progressOverviewToggle:focus,
+#progressOverviewToggle:focus-visible{
+  outline:0!important;
+  box-shadow:none!important;
+}
+#progressOverviewToggle svg{
+  display:block!important;
+  width:17px!important;
+  height:17px!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:2.5!important;
+}
+</style>
+
+
+<style id="index-spacing-and-font-followup">
+/* Mantém acima do primeiro exercício o mesmo respiro visual usado
+   entre o último card e o painel inferior de finalização. */
+#exerciseList > .exercise:first-child{
+  margin-top:12px!important;
+}
+
+/* Aumento leve e uniforme da tipografia nos dois botões e em todos os estados. */
+.top-dashboard .workout-label,
+.bottom-dashboard .workout-label{
+  font-size:clamp(14px,2.6vw,17px)!important;
+}
+@media(max-width:600px){
+  .top-dashboard .workout-label,
+  .bottom-dashboard .workout-label{
+    font-size:clamp(13px,3.4vw,15px)!important;
+  }
+}
+</style>
+
+
+<style id="index-final-spacing-adjustment">
+/* Espaço entre os indicadores concluídos e o botão Iniciar,
+   igual ao respiro aplicado antes do painel inferior. */
+.top-dashboard{margin-top:9px!important}
+</style>
+
+
+<style id="index-progress-to-start-spacing">
+/* Igualar o respiro entre os indicadores de progresso e o botão Iniciar
+   ao espaço visual entre Finalizar e os controles Adicionar/Cadastro. */
+.progress-summary{
+  margin-bottom:14px!important;
+}
+.top-dashboard{
+  margin-top:0!important;
+}
+</style>
+
 </head>
 
 <body>
@@ -4387,13 +4542,6 @@ main { overflow: visible !important; }
   </div>
 </div>
 
-<div class="exercise-list-toolbar">
-  <button type="button" id="toggleAllExercisesBtn" class="exercise-list-toggle compact-collapse-toggle"
-    onclick="toggleAllExerciseDetails()" aria-expanded="true"
-    aria-label="Recolher todos os exercícios" title="Recolher todos os exercícios">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-  </button>
-</div>
 <section id="exerciseList"></section>
 
 
@@ -4538,7 +4686,7 @@ main { overflow: visible !important; }
 <div class="bottom-dashboard">
   <div class="workout-control finish-control">
     <button id="finishWorkoutBtn" class="workout-btn finish" onclick="finishWorkout()" disabled>
-      <span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span>
+      <span class="workout-indicator workout-check-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5 9.2 18 20 6"/></svg></span>
       <span class="workout-label">FINALIZAR TREINO</span>
     </button>
     <button type="button" class="reset-workout-icon" id="resetBtn"
@@ -4831,7 +4979,8 @@ day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 // neste navegador. Preserva exercícios, cargas, cadastros e histórico.
 (function(){
   const params=new URLSearchParams(window.location.search);
-  if(params.get('zerar-semana')!=='1') return;
+  const resetKey='smartWorkout_week_reset_20261110_v1';
+  if(params.get('zerar-semana')!=='1' && localStorage.getItem(resetKey)==='1') return;
   const currentWeek=weekKey();
   state.weeklyChecks=state.weeklyChecks||{};
   state.weeklyChecks[currentWeek]={};
@@ -4849,6 +4998,7 @@ day=days.includes(state.selectedDay)?state.selectedDay:days[0];
   state.todayNoticeDismissedDate=null;
   state.todayNoticeResumeAt=null;
   localStorage.setItem('smartWorkoutData',JSON.stringify(state));
+  localStorage.setItem(resetKey,'1');
   window.history.replaceState({},document.title,window.location.pathname+window.location.hash);
 })();
 
@@ -5259,7 +5409,7 @@ startBtn.disabled=false;
 
 startBtn.classList.remove('active');
 
-finishBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span><span class="workout-label">FINALIZAR TREINO</span>';
+finishBtn.innerHTML='<span class="workout-indicator workout-check-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5 9.2 18 20 6"/></svg></span><span class="workout-label">FINALIZAR TREINO</span>';
 
 finishBtn.disabled=true;
 
@@ -5273,7 +5423,7 @@ startBtn.disabled=true;
 
 startBtn.classList.add('active');
 
-finishBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span><span class="workout-label">FINALIZAR TREINO</span>';
+finishBtn.innerHTML='<span class="workout-indicator workout-check-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5 9.2 18 20 6"/></svg></span><span class="workout-label">FINALIZAR TREINO</span>';
 
 finishBtn.disabled=false;
 
@@ -5281,13 +5431,13 @@ finishBtn.disabled=false;
 
 else if(session.status==='finished'){
 
-startBtn.textContent='✓ TREINO FINALIZADO';
+startBtn.innerHTML='<span class="workout-indicator workout-check-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5 9.2 18 20 6"/></svg></span><span class="workout-label">TREINO FINALIZADO</span>';
 
 startBtn.disabled=true;
 
 startBtn.classList.remove('active');
 
-finishBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span><span class="workout-label">TREINO FINALIZADO</span>';
+finishBtn.innerHTML='<span class="workout-indicator workout-check-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5 9.2 18 20 6"/></svg></span><span class="workout-label">TREINO FINALIZADO</span>';
 
 finishBtn.disabled=true;
 
@@ -5337,9 +5487,17 @@ function toggleAllExerciseDetails(){
   exerciseCollapseOverrides.clear();
   document.querySelectorAll('#exerciseList .exercise').forEach(card=>{
     card.classList.toggle('is-collapsed',allExercisesCollapsed);
-    const button=card.querySelector('.exercise-collapse-btn');
+    const button=card.querySelector('.exercise-collapse-btn:not(.exercise-collapse-all-btn)');
     if(button) updateExerciseCollapseButton(button,allExercisesCollapsed);
   });
+  const globalButton=document.querySelector('#exerciseList .exercise-collapse-all-btn');
+  if(globalButton){
+    const label=allExercisesCollapsed?'Expandir todos os exercícios':'Recolher todos os exercícios';
+    globalButton.setAttribute('aria-expanded',String(!allExercisesCollapsed));
+    globalButton.setAttribute('aria-label',label);
+    globalButton.title=label;
+    globalButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h6V2M20 16h-6v6M4 8l6-6M20 16l-6 6M20 8h-6V2M4 16h6v6M20 8l-6-6M4 16l6 6"/></svg>';
+  }
   updateExerciseListToggle();
 }
 
@@ -5663,6 +5821,7 @@ aria-label="${Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Bool
 
 <div class="exercise-sets-area">
   <div class="exercise-collapse-row">
+    ${i===0?`<button type="button" class="exercise-collapse-btn exercise-collapse-all-btn" onclick="toggleAllExerciseDetails()" aria-label="Expandir ou recolher todos os exercícios" title="Expandir ou recolher todos os exercícios"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h6V2M20 16h-6v6M4 8l6-6M20 16l-6 6M20 8h-6V2M4 16h6v6M20 8l-6-6M4 16l6 6"/></svg></button>`:''}
     <button type="button" class="exercise-collapse-btn" onclick="toggleExerciseDetails(${i},this)" aria-expanded="${!exerciseCollapsed}" aria-label="${exerciseCollapsed?'Expandir este exercício':'Recolher este exercício'}" title="${exerciseCollapsed?'Expandir este exercício':'Recolher este exercício'}">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="${exerciseCollapsed?'m6 9 6 6 6-6':'m6 15 6-6 6 6'}"/></svg>
     </button>
