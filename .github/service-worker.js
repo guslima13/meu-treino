@@ -1,4 +1,4 @@
-const CACHE_NAME = 'meu-treino-pwa-v2';
+const CACHE_NAME = 'meu-treino-pwa-v4';
 const APP_SHELL = ['./', './index.html', './manifest.json', './icons/icon-512.jpg'];
 
 self.addEventListener('install', event => {
