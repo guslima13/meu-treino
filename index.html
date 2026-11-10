@@ -4198,6 +4198,94 @@ main { overflow: visible !important; }
 #duplicateActiveExerciseConfirm{z-index:12000}
 
 </style>
+
+<style>
+/* Alvos de toque discretos para as setas de expandir/recolher. */
+.exercise-collapse-row{
+  min-height:36px!important;
+  align-items:center!important;
+}
+.exercise-collapse-btn,
+#toggleAllExercisesBtn,
+#progressOverviewToggle{
+  width:40px!important;
+  min-width:40px!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:1px solid #35443d!important;
+  border-radius:8px!important;
+  background:#171d1a!important;
+  color:#c9d5cd!important;
+  box-shadow:inset 0 1px 0 #ffffff08!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+.exercise-collapse-btn svg,
+#toggleAllExercisesBtn svg,
+#progressOverviewToggle svg{
+  width:17px!important;
+  height:17px!important;
+}
+.exercise-collapse-btn:active,
+#toggleAllExercisesBtn:active,
+#progressOverviewToggle:active{
+  background:#222c26!important;
+}
+.exercise-collapse-btn:focus-visible,
+#toggleAllExercisesBtn:focus-visible,
+#progressOverviewToggle:focus-visible{
+  outline:2px solid var(--accent)!important;
+  outline-offset:2px!important;
+}
+.exercise-list-toolbar{
+  height:36px!important;
+  min-height:36px!important;
+}
+.progress-overview-toggle-row{
+  height:36px!important;
+  min-height:36px!important;
+  margin-bottom:8px!important;
+}
+#progressOverviewToggle{
+  position:relative!important;
+  margin:0!important;
+  border:1px solid #35443d!important;
+  background:#171d1a!important;
+  box-shadow:inset 0 1px 0 #ffffff08!important;
+}
+#progressOverviewToggle::before{
+  font-size:20px!important;
+}
+/* No estado ativo, a bolinha vira o halter do ícone do aplicativo.
+   A animação e o halo de pulsação permanecem no mesmo elemento. */
+.workout-btn.start.active .workout-indicator{
+  width:29px!important;
+  height:22px!important;
+  flex:0 0 29px!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:0 0 0 3px #d7ff0030,0 0 5px #d7ff0060!important;
+  opacity:1!important;
+}
+.workout-btn.start.active .workout-indicator svg{
+  display:block!important;
+  width:29px!important;
+  height:22px!important;
+  overflow:visible!important;
+  fill:var(--accent)!important;
+  filter:drop-shadow(0 0 3px #d7ff0060);
+}
+.workout-btn.start.active .workout-indicator svg path{fill:var(--accent)!important}
+@media(max-width:600px){
+  .exercise-collapse-row{min-height:36px!important}
+  .exercise-list-toolbar{height:36px!important;min-height:36px!important}
+}
+</style>
+
 </head>
 
 <body>
@@ -4293,7 +4381,7 @@ main { overflow: visible !important; }
 <div class="top-dashboard">
   <div class="workout-control">
     <button id="startWorkoutBtn" class="workout-btn start" onclick="startWorkout()">
-      <span class="workout-indicator" aria-hidden="true"></span>
+      <span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span>
       <span class="workout-label">INICIAR TREINO</span>
     </button>
   </div>
@@ -4450,7 +4538,7 @@ main { overflow: visible !important; }
 <div class="bottom-dashboard">
   <div class="workout-control finish-control">
     <button id="finishWorkoutBtn" class="workout-btn finish" onclick="finishWorkout()" disabled>
-      <span class="workout-indicator" aria-hidden="true"></span>
+      <span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span>
       <span class="workout-label">FINALIZAR TREINO</span>
     </button>
     <button type="button" class="reset-workout-icon" id="resetBtn"
@@ -4738,6 +4826,32 @@ const exerciseCollapseOverrides=new Map();
 let editIndex=null;
 let state=loadState();
 day=days.includes(state.selectedDay)?state.selectedDay:days[0];
+
+// Ferramenta de uso único para zerar somente o progresso do ciclo semanal
+// neste navegador. Preserva exercícios, cargas, cadastros e histórico.
+(function(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('zerar-semana')!=='1') return;
+  const currentWeek=weekKey();
+  state.weeklyChecks=state.weeklyChecks||{};
+  state.weeklyChecks[currentWeek]={};
+  state.checks={};
+  state.sessions=state.sessions||{};
+  days.forEach(workoutDay=>{
+    const session=state.sessions[workoutDay];
+    if(session && session.week===currentWeek){
+      state.sessions[workoutDay]={
+        status:'idle',startedAt:null,finishedAt:null,
+        resetExpiresAt:null,restartCount:0,week:currentWeek
+      };
+    }
+  });
+  state.todayNoticeDismissedDate=null;
+  state.todayNoticeResumeAt=null;
+  localStorage.setItem('smartWorkoutData',JSON.stringify(state));
+  window.history.replaceState({},document.title,window.location.pathname+window.location.hash);
+})();
+
 
 const undoHistory=[];
 let undoTimer=null;
@@ -5139,13 +5253,13 @@ if(canReset){
 
 if(session.status==='idle'){
 
-startBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"></span><span class="workout-label">INICIAR TREINO</span>';
+startBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span><span class="workout-label">INICIAR TREINO</span>';
 
 startBtn.disabled=false;
 
 startBtn.classList.remove('active');
 
-finishBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"></span><span class="workout-label">FINALIZAR TREINO</span>';
+finishBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span><span class="workout-label">FINALIZAR TREINO</span>';
 
 finishBtn.disabled=true;
 
@@ -5153,13 +5267,13 @@ finishBtn.disabled=true;
 
 else if(session.status==='active'){
 
-startBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"></span><span class="workout-label">TREINO EM ANDAMENTO</span>';
+startBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span><span class="workout-label">TREINO EM ANDAMENTO</span>';
 
 startBtn.disabled=true;
 
 startBtn.classList.add('active');
 
-finishBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"></span><span class="workout-label">FINALIZAR TREINO</span>';
+finishBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span><span class="workout-label">FINALIZAR TREINO</span>';
 
 finishBtn.disabled=false;
 
@@ -5173,7 +5287,7 @@ startBtn.disabled=true;
 
 startBtn.classList.remove('active');
 
-finishBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"></span><span class="workout-label">TREINO FINALIZADO</span>';
+finishBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span><span class="workout-label">TREINO FINALIZADO</span>';
 
 finishBtn.disabled=true;
 
