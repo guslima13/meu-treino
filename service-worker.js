@@ -1,11 +1,10 @@
-const CACHE_NAME = 'meu-treino-v7';
+const CACHE_NAME = 'meu-treino-v8';
 
 const FILES_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  './icons/icon-512.svg',
-  './icons/icon-512.jpg'
+  './icons/icon-512.svg'
 ];
 
 // Instala a nova versão
