@@ -1,4 +1,4 @@
-const CACHE_NAME = 'meu-treino-v8';
+const CACHE_NAME = 'meu-treino-v9';
 
 const FILES_TO_CACHE = [
   './',
