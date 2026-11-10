@@ -1,5 +1,5 @@
-const CACHE_NAME = 'meu-treino-pwa-v1';
-const APP_SHELL = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png'];
+const CACHE_NAME = 'meu-treino-pwa-v2';
+const APP_SHELL = ['./', './index.html', './manifest.json', './icons/icon-512.jpg'];
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {

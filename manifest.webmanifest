@@ -9,15 +9,9 @@
   "description": "Seu treino de academia, séries, cargas e evolução.",
   "icons": [
     {
-      "src": "./icons/icon-192.jpg",
-      "sizes": "192x192",
+      "src": "./icons/icon-512.jpg",
+      "sizes": "512x512",
       "type": "image/jpeg",
-      "purpose": "any"
-    },
-    {
-      "src": "./icons/icon-512.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
       "purpose": "any"
     }
   ]
