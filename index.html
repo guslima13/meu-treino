@@ -4052,6 +4052,9 @@ main { overflow: visible !important; }
 
 
 /* Aviso estático do dia atual: mesmo padrão visual do botão, com contorno sutil. */
+.daynav .daybtn.today-notice .daybtn-label{
+  font-weight:850!important;
+}
 .daynav .daybtn.today-notice{
   border:1px solid var(--accent)!important;
   box-shadow:0 0 0 1px #d7ff0030,0 0 7px #d7ff0035!important;
@@ -4108,6 +4111,13 @@ main { overflow: visible !important; }
     font-size:10px!important;
     letter-spacing:-.35px!important;
   }
+}
+
+/* Durante o treino de hoje, o aviso É  HOJE! usa a cor do botão Treino em andamento. */
+.daynav .daybtn.today-notice.workout-in-progress,
+.daynav .daybtn.today-notice.workout-in-progress .daybtn-label{
+  color:var(--accent)!important;
+  -webkit-text-fill-color:var(--accent)!important;
 }
 
 </style>
@@ -4175,6 +4185,17 @@ main { overflow: visible !important; }
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
 }
+
+
+/* Ajuste pontual do ícone Menu: maior, levemente elevado e deslocado à direita.
+   O contêiner sticky e sua estrutura permanecem inalterados. */
+.sticky-workout-bar .header-menu-wrap{transform:translate(7px,-3px)}
+.sticky-workout-bar .header-menu-trigger{width:44px!important;height:42px!important;flex:0 0 44px!important}
+.sticky-workout-bar .header-menu-trigger svg{width:28px!important;height:28px!important}
+
+
+/* A confirmação de troca direta deve ficar acima da janela de substituição. */
+#duplicateActiveExerciseConfirm{z-index:12000}
 
 </style>
 </head>
@@ -4711,11 +4732,12 @@ const initial = {
 
 const days=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 
-let day=days[0];
-let allExercisesCollapsed=false;
+let day=null;
+let allExercisesCollapsed=true;
 const exerciseCollapseOverrides=new Map();
 let editIndex=null;
 let state=loadState();
+day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 
 const undoHistory=[];
 let undoTimer=null;
@@ -4858,6 +4880,7 @@ progressVersion:2
 
 function save(){
 
+state.selectedDay=day;
 state.progressVersion=2;
 
 localStorage.setItem(
@@ -4971,6 +4994,8 @@ session={
 status:'idle',
 startedAt:null,
 finishedAt:null,
+resetExpiresAt:null,
+restartCount:0,
 week:currentWeek
 
 };
@@ -4980,6 +5005,8 @@ save();
 
 }
 
+if(!Number.isFinite(Number(session.resetExpiresAt))) session.resetExpiresAt=null;
+if(!Number.isFinite(Number(session.restartCount))) session.restartCount=0;
 return session;
 
 }
@@ -5009,9 +5036,31 @@ function localDateKey(date=new Date()){
 function startWorkout(){
   const session=getWorkoutStatus();
   if(session.status==='active') return;
+
+  // Apenas um treino pode permanecer em andamento por vez, independentemente do dia.
+  const otherActiveDay=days.find(workoutDay=>
+    workoutDay!==day && getWorkoutStatusForDay(workoutDay)==='active'
+  );
+  if(otherActiveDay){
+    const toast=document.getElementById('undoToast');
+    const message=document.getElementById('undoMessage');
+    const undoButton=document.getElementById('undoBtn');
+    if(toast && message){
+      message.textContent=`O treino de ${otherActiveDay} já está em andamento. Finalize ou reinicie esse treino antes de iniciar outro.`;
+      if(undoButton) undoButton.hidden=true;
+      toast.classList.add('show');
+      setTimeout(()=>{
+        toast.classList.remove('show');
+        if(undoButton) undoButton.hidden=false;
+      },4000);
+    }
+    return;
+  }
+
   session.status='active';
   session.startedAt=new Date().toISOString();
   session.finishedAt=null;
+  session.resetExpiresAt=null;
   const todayName={1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'}[new Date().getDay()];
   // Iniciar o treino de hoje mantém o aviso durante toda a sessão.
   // Iniciar outro dia adia o próximo aviso até a meia-noite do próximo treino em aberto.
@@ -5025,6 +5074,9 @@ function finishWorkout(){
   if(session.status!=='active') return;
   session.status='finished';
   session.finishedAt=new Date().toISOString();
+  // O primeiro encerramento válido do ciclo libera Reiniciar por uma hora.
+  // Depois de usar Reiniciar uma vez, o segundo encerramento não libera outro reinício.
+  session.resetExpiresAt=(Number(session.restartCount)||0)===0?Date.now()+60*60*1000:null;
   const todayName={1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'}[new Date().getDay()];
   if(day===todayName) state.todayNoticeDismissedDate=localDateKey();
   save();
@@ -5050,12 +5102,13 @@ state.sessions=state.sessions||{};
 const currentWeek=weekKey();
 let session=state.sessions[targetDay];
 if(!session || session.week!==currentWeek){
-session={status:'idle',startedAt:null,finishedAt:null,week:currentWeek};
+session={status:'idle',startedAt:null,finishedAt:null,resetExpiresAt:null,restartCount:0,week:currentWeek};
 state.sessions[targetDay]=session;
 }
 return session.status;
 }
 
+let resetButtonExpiryTimer=null;
 function renderWorkoutButtons(){
 
 const session=getWorkoutStatus();
@@ -5068,7 +5121,21 @@ const finishBtn=document.getElementById(
 'finishWorkoutBtn'
 );
 const resetIcon=document.getElementById('resetBtn');
-if(resetIcon) resetIcon.hidden=session.status!=='finished';
+if(resetButtonExpiryTimer){clearTimeout(resetButtonExpiryTimer);resetButtonExpiryTimer=null;}
+const resetRemaining=Number(session.resetExpiresAt)-Date.now();
+const canReset=session.status==='finished' && (Number(session.restartCount)||0)===0 &&
+  Number.isFinite(Number(session.resetExpiresAt)) && resetRemaining>0;
+if(resetIcon) resetIcon.hidden=!canReset;
+if(canReset){
+  const finishedAt=session.finishedAt;
+  resetButtonExpiryTimer=setTimeout(()=>{
+    const current=getWorkoutStatus();
+    if(current.status==='finished' && current.finishedAt===finishedAt){
+      const button=document.getElementById('resetBtn');
+      if(button) button.hidden=true;
+    }
+  },Math.min(resetRemaining+50,2147483647));
+}
 
 if(session.status==='idle'){
 
@@ -5312,9 +5379,9 @@ days.map(d=>{
   const finished=workoutStatus==='finished';
   const completed=finished||isDayWorkoutCompleted(d);
   const showTodayNotice=d===todayWeekday && !todayNoticeSuppressed && !todayAlreadyDismissed && workoutStatus!=='finished' && !isDayWorkoutCompleted(d) && (state.workouts[d]||[]).length>0;
-  const dayText=showTodayNotice?'É hoje!':d.slice(0,3).toUpperCase();
+  const dayText=showTodayNotice?'É  HOJE!':d.slice(0,3).toUpperCase();
   return `<div class="day-item ${d===day?'active':''} ${completed?'completed':''} ${finished?'finished':''} ${inProgress?'workout-in-progress':''}" data-day-item="${d}">
-    <button type="button" class="daybtn ${d===day?'active':''} ${completed?'completed':''} ${inProgress?'workout-in-progress':''} ${showTodayNotice?'today-notice':''}" data-day="${d}" aria-pressed="${d===day}" ${showTodayNotice?`aria-label="${d}, é hoje"`:''}><span class="daybtn-label">${dayText}</span></button>
+    <button type="button" class="daybtn ${d===day?'active':''} ${completed?'completed':''} ${inProgress?'workout-in-progress':''} ${showTodayNotice?'today-notice':''}" data-day="${d}" aria-pressed="${d===day}" ${showTodayNotice?`aria-label="${d}, É  HOJE!"`:''}><span class="daybtn-label">${dayText}</span></button>
   </div>`;
 }).join('');
 
@@ -5361,6 +5428,7 @@ document.querySelectorAll('.day-item .daybtn').forEach(b=>{
     if(longPressTriggered || suppressClick){event.preventDefault();event.stopPropagation();return;}
     closeDayWorkoutPreview();
     day=b.dataset.day;
+    save();
     render();
   });
 });
@@ -6524,15 +6592,89 @@ function closeReplaceModal(){
   window.exerciseReplacementCatalog=null;
 }
 
+let pendingDirectExerciseSwap=null;
+
+function closeDuplicateExerciseConfirm(){
+  document.getElementById('duplicateActiveExerciseConfirm')?.remove();
+  pendingDirectExerciseSwap=null;
+}
+
+function confirmDirectExerciseSwap(){
+  const pending=pendingDirectExerciseSwap;
+  closeDuplicateExerciseConfirm();
+  if(!pending) return;
+  const {targetDay,targetIndex,sourceDay,sourceIndex}=pending;
+  const target=state.workouts[targetDay]?.[targetIndex];
+  const source=state.workouts[sourceDay]?.[sourceIndex];
+  if(!target || !source) return;
+
+  recordUndo('Exercícios trocados entre treinos');
+  state.workouts[targetDay][targetIndex]=JSON.parse(JSON.stringify(source));
+  state.workouts[sourceDay][sourceIndex]=JSON.parse(JSON.stringify(target));
+
+  // As marcações acompanham os exercícios trocados, inclusive entre dias.
+  const checks=currentWeekData();
+  const targetKey=targetDay+'_'+targetIndex;
+  const sourceKey=sourceDay+'_'+sourceIndex;
+  const targetChecks=checks[targetKey];
+  const sourceChecks=checks[sourceKey];
+  if(sourceChecks===undefined) delete checks[targetKey];
+  else checks[targetKey]=JSON.parse(JSON.stringify(sourceChecks));
+  if(targetChecks===undefined) delete checks[sourceKey];
+  else checks[sourceKey]=JSON.parse(JSON.stringify(targetChecks));
+
+  closeReplaceModal();
+  save();
+  render();
+}
+
+function openDuplicateExerciseConfirm(selected,sourceDay,sourceIndex,targetIndex){
+  closeDuplicateExerciseConfirm();
+  pendingDirectExerciseSwap={targetDay:day,targetIndex,sourceDay,sourceIndex};
+  const modal=document.createElement('div');
+  modal.id='duplicateActiveExerciseConfirm';
+  modal.className='confirm-backdrop';
+  modal.innerHTML=`
+    <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="duplicateActiveExerciseTitle">
+      <h2 id="duplicateActiveExerciseTitle">Exercício já ativo</h2>
+      <p></p>
+      <div class="confirm-actions">
+        <button type="button" class="btn" id="cancelDirectExerciseSwap">Cancelar</button>
+        <button type="button" class="btn primary" id="confirmDirectExerciseSwap">Troca direta</button>
+      </div>
+    </section>`;
+  modal.querySelector('p').textContent=
+    `O exercício ${selected.name||'selecionado'} já está ativo no treino de ${sourceDay}. O que deseja fazer?`;
+  modal.querySelector('#cancelDirectExerciseSwap').addEventListener('click',closeDuplicateExerciseConfirm);
+  modal.querySelector('#confirmDirectExerciseSwap').addEventListener('click',confirmDirectExerciseSwap);
+  modal.addEventListener('click',event=>{if(event.target===modal) closeDuplicateExerciseConfirm();});
+  document.body.appendChild(modal);
+}
+
 function chooseReplacement(index){
   const i=window.exerciseReplacementTarget;
   const selected=window.exerciseReplacementCatalog?.[index];
   if(!selected || !Number.isInteger(i) || !state.workouts[day][i]) return;
 
+  // Só considera duplicado quando nome e características da variação coincidem.
+  // Ex.: mesmo nome com Barra W e Barra Reta representa exercícios diferentes.
+  const selectedSignature=exerciseVariationSignature(selected);
+  let existing=null;
+  for(const workoutDay of days){
+    const found=(state.workouts[workoutDay]||[]).findIndex((exercise,exerciseIndex)=>
+      !(workoutDay===day && exerciseIndex===i) &&
+      exerciseVariationSignature(exercise)===selectedSignature
+    );
+    if(found>=0){existing={day:workoutDay,index:found};break;}
+  }
+  if(existing){
+    openDuplicateExerciseConfirm(selected,existing.day,existing.index,i);
+    return;
+  }
+
   recordUndo('Exercício substituído');
   state.workouts[day][i]=JSON.parse(JSON.stringify(selected));
   if(isAerobicExercise(selected)) state.workouts[day][i].type='aerobico';
-  // A troca mantém a posição, mas reinicia as marcações das séries.
   currentWeekData()[day+'_'+i]=[];
   closeReplaceModal();
   save();
@@ -7366,9 +7508,14 @@ const session=getWorkoutStatus();
 session.status='idle';
 session.startedAt=null;
 session.finishedAt=null;
+session.restartCount=(Number(session.restartCount)||0)+1;
+session.resetExpiresAt=null;
 session.week=weekKey();
 const todayName={1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'}[new Date().getDay()];
-if(day===todayName) state.todayNoticeDismissedDate=localDateKey();
+if(day===todayName){
+  state.todayNoticeDismissedDate=null;
+  state.todayNoticeResumeAt=null;
+}
 
 save();
 
@@ -7638,8 +7785,8 @@ function refreshStyledSelect(select){
   const trigger=root.querySelector('.styled-select-trigger');
   const menu=root.querySelector('.styled-select-menu');
   const selected=Array.from(select.options).find(option=>option.value===select.value && select.selectedIndex>=0);
-  trigger.querySelector('.styled-select-label').textContent=selected ? selected.textContent : 'Selecione';
   const isExercisePicker=select.id==='fNameSelect';
+  trigger.querySelector('.styled-select-label').textContent=selected ? selected.textContent : (isExercisePicker ? 'Selecione um exercício' : 'Selecione');
   const previousSearch=isExercisePicker ? (menu.querySelector('.styled-select-search input')?.value||'') : '';
   menu.innerHTML='';
   let searchInput=null;
@@ -7652,7 +7799,9 @@ function refreshStyledSelect(select){
     menu.appendChild(searchWrap);
   }
   const options=Array.from(select.options);
-  const filteredOptions=options.filter(option=>!isExercisePicker || !previousSearch || option.textContent.toLocaleLowerCase('pt-BR').includes(previousSearch.toLocaleLowerCase('pt-BR')));
+  // O placeholder permanece no campo, mas não aparece como item dentro do menu.
+  const menuOptions=options.filter(option=>!isExercisePicker || option.value!=='');
+  const filteredOptions=menuOptions.filter(option=>!isExercisePicker || !previousSearch || option.textContent.toLocaleLowerCase('pt-BR').includes(previousSearch.toLocaleLowerCase('pt-BR')));
   if(!filteredOptions.length){
     const empty=document.createElement('div');
     empty.className='styled-select-empty';
@@ -7997,6 +8146,9 @@ document.addEventListener('click',event=>{
 document.addEventListener('keydown',event=>{
   if(event.key==='Escape') closeHeaderMenu();
 });
+window.addEventListener('beforeunload',()=>{
+  try{state.selectedDay=day;save();}catch(_){}
+});
 
 // ========================================
 // INICIALIZAÇÃO
@@ -8004,8 +8156,16 @@ document.addEventListener('keydown',event=>{
 
 setupStyledSelects();
 setupEquipmentPicker();
+allExercisesCollapsed=true;
+exerciseCollapseOverrides.clear();
 render();
 bindExerciseDrag();
+window.addEventListener('pageshow',()=>{
+  if(typeof renderWorkoutButtons==='function') renderWorkoutButtons();
+});
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden && typeof renderWorkoutButtons==='function') renderWorkoutButtons();
+});
 
 </script>
 
