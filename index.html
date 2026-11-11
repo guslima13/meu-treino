@@ -4122,6 +4122,13 @@ main { overflow: visible !important; }
 
 
 
+
+/* Identificação temporária: somente nas opções do menu suspenso de Adicionar. */
+.styled-select-option .new-exercise-tag{
+  color:var(--accent,#d7ff00);
+  font-weight:800;
+  white-space:pre;
+}
 </style>
 <style>
 
@@ -5665,7 +5672,7 @@ function alignExerciseDragHandles(){
       const corridaExtraLeft = card.classList.contains('exercise-running') ? 12 : 0;
       actions.style.setProperty(
         'translate',
-        `${checkCenterX-actionsCenterX-corridaExtraLeft}px 0`,
+        `${checkCenterX-actionsCenterX-corridaExtraLeft}px -13px`,
         'important'
       );
     }
@@ -7362,6 +7369,34 @@ function exerciseVariationSignature(ex){
     .map(v=>comparisonKey(v)).join('|');
 }
 let exercisePickerVariants=[];
+// Marcações persistentes exibidas somente no menu suspenso de Adicionar.
+// Guardamos apenas as assinaturas dos exercícios ainda não selecionados.
+const NEW_EXERCISE_PICKER_STORAGE_KEY='smartWorkoutNewExercisePickerSignatures';
+function loadNewExercisePickerSignatures(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(NEW_EXERCISE_PICKER_STORAGE_KEY)||'[]');
+    return new Set(Array.isArray(saved)?saved.filter(value=>typeof value==='string') : []);
+  }catch(error){
+    return new Set();
+  }
+}
+const newExercisePickerSignatures=loadNewExercisePickerSignatures();
+function persistNewExercisePickerSignatures(){
+  try{
+    localStorage.setItem(NEW_EXERCISE_PICKER_STORAGE_KEY,JSON.stringify([...newExercisePickerSignatures]));
+  }catch(error){}
+}
+function markNewExerciseForPicker(exercise){
+  const signature=exerciseVariationSignature(exercise);
+  if(!signature) return;
+  newExercisePickerSignatures.add(signature);
+  persistNewExercisePickerSignatures();
+}
+function clearNewExercisePickerMark(exercise){
+  const signature=exerciseVariationSignature(exercise);
+  if(!signature) return;
+  if(newExercisePickerSignatures.delete(signature)) persistNewExercisePickerSignatures();
+}
 function getAllExerciseVariants(){
   const unique=new Map();
   // O cadastro mestre é a única fonte de exercícios disponíveis nas listas.
@@ -7373,6 +7408,15 @@ function getAllExerciseVariants(){
     if(!unique.has(signature)) unique.set(signature,JSON.parse(JSON.stringify(ex)));
   });
   const variants=[...unique.values()];
+  const activeSignatures=new Set(variants.map(exerciseVariationSignature));
+  let removedStaleMark=false;
+  [...newExercisePickerSignatures].forEach(signature=>{
+    if(!activeSignatures.has(signature)){
+      newExercisePickerSignatures.delete(signature);
+      removedStaleMark=true;
+    }
+  });
+  if(removedStaleMark) persistNewExercisePickerSignatures();
   const labels=getExerciseDisplayNames(variants);
   return variants.map((ex,index)=>({ex,label:labels[index]}))
     .sort((a,b)=>a.label.localeCompare(b.label,'pt-BR'))
@@ -7503,7 +7547,7 @@ function addExerciseCatalogValue(){
     openExerciseVariation(name);
     return;
   }
-  state.exerciseCatalog.push({
+  const newExercise={
     name,
     muscle:'',
     equipment:'-',
@@ -7512,7 +7556,9 @@ function addExerciseCatalogValue(){
     sets:4,
     loads:[],
     note:''
-  });
+  };
+  state.exerciseCatalog.push(newExercise);
+  markNewExerciseForPicker(newExercise);
   save();
   input.value='';
   renderAllCatalogLists();
@@ -7612,6 +7658,7 @@ function saveExerciseVariation(){
   }
   state.exerciseCatalog=Array.isArray(state.exerciseCatalog)?state.exerciseCatalog:[];
   state.exerciseCatalog.push(variation);
+  markNewExerciseForPicker(variation);
   preserveExerciseDropdownValues(variation);
   save();
   renderAllCatalogLists();
@@ -8193,13 +8240,32 @@ function refreshStyledSelect(select){
       const item=document.createElement('button');
       item.type='button';
       item.className='styled-select-option';
-      item.textContent=option.textContent;
+      if(isExercisePicker){
+        const exercise=exercisePickerVariants[Number(option.value)];
+        const signature=exercise?exerciseVariationSignature(exercise):'';
+        if(signature && newExercisePickerSignatures.has(signature)){
+          const name=document.createElement('span');
+          name.textContent=option.textContent;
+          const tag=document.createElement('span');
+          tag.className='new-exercise-tag';
+          tag.textContent=' - NOVO';
+          item.append(name,tag);
+        }else{
+          item.textContent=option.textContent;
+        }
+      }else{
+        item.textContent=option.textContent;
+      }
       item.setAttribute('role','option');
       item.setAttribute('aria-selected',String(select.selectedIndex===index));
       item.disabled=option.disabled;
       if(option.disabled) item.setAttribute('aria-disabled','true');
       item.addEventListener('click',()=>{
         if(option.disabled) return;
+        if(isExercisePicker){
+          const selectedExercise=exercisePickerVariants[Number(option.value)];
+          if(selectedExercise) clearNewExercisePickerMark(selectedExercise);
+        }
         select.selectedIndex=index;
         select.dispatchEvent(new Event('input',{bubbles:true}));
         select.dispatchEvent(new Event('change',{bubbles:true}));
@@ -8978,6 +9044,111 @@ if ('serviceWorker' in navigator) {
   transform:none!important;
 }
 </style>
+
+
+
+<!-- Alinhamento geométrico real entre o quadro de cargas e a coluna de ícones.
+     A rotina mede as bordas renderizadas e corrige somente o eixo vertical da coluna. -->
+<script id="runtime-load-icons-top-alignment">
+(function () {
+  'use strict';
+
+  let framePending = false;
+  const observed = new WeakSet();
+  let resizeObserver = null;
+
+  function alignExercise(exercise) {
+    if (!exercise || exercise.classList.contains('is-collapsed')) return;
+
+    const table = exercise.querySelector('.exercise-sets-area .sets-table');
+    const actions = exercise.querySelector('.actions');
+    const firstIcon = actions && actions.querySelector('.iconbtn');
+    if (!table || !actions || !firstIcon) return;
+
+    const tableStyle = getComputedStyle(table);
+    const actionsStyle = getComputedStyle(actions);
+    if (tableStyle.display === 'none' || actionsStyle.display === 'none') return;
+
+    // Neutraliza temporariamente os deslocamentos antigos apenas para medir
+    // a posição natural do primeiro botão. A largura e o eixo horizontal não mudam.
+    actions.style.setProperty('transform', 'none', 'important');
+    const tableTop = table.getBoundingClientRect().top;
+    const iconTop = firstIcon.getBoundingClientRect().top;
+    const correction = tableTop - iconTop;
+
+    // Aplica a diferença medida entre as bordas externas superiores.
+    actions.style.setProperty(
+      'transform', 'translateY(' + correction.toFixed(3) + 'px)', 'important'
+    );
+
+    // Marca o estado somente após conferir a geometria já aplicada.
+    const finalTableTop = table.getBoundingClientRect().top;
+    const finalIconTop = firstIcon.getBoundingClientRect().top;
+    const difference = Math.abs(finalTableTop - finalIconTop);
+    exercise.dataset.loadIconsTopAligned = difference < 0.5 ? 'true' : 'false';
+  }
+
+  function alignAll() {
+    framePending = false;
+    document.querySelectorAll('.exercise').forEach(alignExercise);
+  }
+
+  function scheduleAlignment() {
+    if (framePending) return;
+    framePending = true;
+    requestAnimationFrame(function () {
+      requestAnimationFrame(alignAll);
+    });
+  }
+
+  function observeCurrentExercises() {
+    if (!resizeObserver && 'ResizeObserver' in window) {
+      resizeObserver = new ResizeObserver(scheduleAlignment);
+    }
+    document.querySelectorAll('.exercise').forEach(function (exercise) {
+      if (!observed.has(exercise)) {
+        observed.add(exercise);
+        if (resizeObserver) resizeObserver.observe(exercise);
+      }
+      const table = exercise.querySelector('.sets-table');
+      const actions = exercise.querySelector('.actions');
+      if (resizeObserver && table) resizeObserver.observe(table);
+      if (resizeObserver && actions) resizeObserver.observe(actions);
+    });
+    scheduleAlignment();
+  }
+
+  const mutationObserver = new MutationObserver(function (mutations) {
+    // Recalcula quando a lista é renderizada novamente ou o card expande/recolhe.
+    if (mutations.some(function (mutation) {
+      return mutation.type === 'childList' ||
+        (mutation.type === 'attributes' && mutation.attributeName === 'class');
+    })) observeCurrentExercises();
+  });
+
+  function start() {
+    observeCurrentExercises();
+    mutationObserver.observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    window.addEventListener('resize', scheduleAlignment, { passive: true });
+    window.addEventListener('orientationchange', scheduleAlignment, { passive: true });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(scheduleAlignment);
+    }
+    scheduleAlignment();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
+})();
+</script>
 
 </body>
 </html>
