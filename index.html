@@ -4520,7 +4520,17 @@ main{padding-bottom:24px!important}
 
 <!-- RESUMO DO PROGRESSO: recolhível sem ocultar o botão de iniciar treino -->
 <section class="progress-overview" id="progressOverview" aria-label="Resumo do progresso">
-  <div class="progress-overview-toggle-row">
+  <!-- Indicadores de séries e exercícios permanecem sempre visíveis. -->
+  <div class="summary progress-summary" aria-label="Resumo das conclusões">
+    <div class="stat stat-sets">
+      <svg class="summary-stat-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16M7 4v6M17 9v6M7 14v6"/></svg>
+      <span><b id="setProgress">0/27</b> <small>séries concluídas</small></span>
+    </div>
+    <span class="progress-summary-divider" aria-hidden="true"></span>
+    <div class="stat stat-exercises">
+      <svg class="summary-stat-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12M6 12h12M6 18h12M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      <span><b id="exerciseProgress">0/6</b> <small>exercícios concluídos</small></span>
+    </div>
     <button type="button" class="exercise-list-toggle progress-overview-toggle" id="progressOverviewToggle"
       aria-label="Mostrar ou ocultar progresso" title="Mostrar ou ocultar progresso" aria-expanded="false"
       aria-controls="progressOverviewContent" onclick="toggleProgressOverview()">
@@ -4556,18 +4566,6 @@ main{padding-bottom:24px!important}
       </div>
     </div>
 
-  </div>
-
-  <!-- Indicadores de séries e exercícios permanecem sempre visíveis. -->
-  <div class="summary progress-summary">
-    <div class="stat stat-sets">
-      <svg class="summary-stat-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16M7 4v6M17 9v6M7 14v6"/></svg>
-      <span><b id="setProgress">0/27</b> <small>séries concluídas</small></span>
-    </div>
-    <div class="stat stat-exercises">
-      <svg class="summary-stat-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12M6 12h12M6 18h12M3 6h.01M3 12h.01M3 18h.01"/></svg>
-      <span><b id="exerciseProgress">0/6</b> <small>exercícios concluídos</small></span>
-    </div>
   </div>
 </section>
 
@@ -5015,7 +5013,7 @@ day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 // Entrega limpa: preserva exercícios e cargas, mas inicia todos os dias sem progresso.
 // Executa uma única vez nesta versão para não apagar o progresso criado depois.
 (function(){
-  const resetKey='smartWorkout_clean_delivery_20261111_v2';
+  const resetKey='smartWorkout_clean_delivery_20261111_v4';
   if(localStorage.getItem(resetKey)==='1') return;
   state.weeklyChecks={};
   state.checks={};
@@ -5398,9 +5396,9 @@ function finishWorkout(){
     finishedAt:session.finishedAt,
     exercises:completedExercises
   });
-  // O primeiro encerramento válido do ciclo libera Reiniciar por uma hora.
+  // O primeiro encerramento válido do ciclo libera Reiniciar por até 30 minutos.
   // Depois de usar Reiniciar uma vez, o segundo encerramento não libera outro reinício.
-  session.resetExpiresAt=(Number(session.restartCount)||0)===0?Date.now()+60*60*1000:null;
+  session.resetExpiresAt=(Number(session.restartCount)||0)===0?Date.now()+30*60*1000:null;
   const todayName={1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'}[new Date().getDay()];
   if(day===todayName) state.todayNoticeDismissedDate=localDateKey();
   save();
@@ -8552,6 +8550,306 @@ if ('serviceWorker' in navigator) {
 
 </script>
 
+
+
+<style id="combined-progress-summary-final">
+/* Bloco único: indicadores lado a lado e controle de expandir/recolher à direita. */
+.progress-summary{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:clamp(7px,2vw,18px)!important;
+  width:100%!important;
+  min-height:58px!important;
+  margin:9px 0 0!important;
+  padding:8px 10px!important;
+  box-sizing:border-box!important;
+  background:var(--panel)!important;
+  border:1px solid var(--line)!important;
+  border-radius:12px!important;
+}
+.progress-summary .stat{
+  display:flex!important;
+  flex:1 1 0!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:6px!important;
+  width:auto!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  text-align:left!important;
+  white-space:nowrap!important;
+}
+.progress-summary .stat>span{display:flex!important;flex-wrap:wrap!important;align-items:baseline!important;gap:3px 5px!important;min-width:0!important}
+.progress-summary .stat b{font-size:clamp(13px,2vw,17px)!important;line-height:1.1!important}
+.progress-summary .stat small{font-size:clamp(9px,1.25vw,11px)!important;line-height:1.15!important;text-align:left!important}
+.progress-summary .summary-stat-icon{width:17px!important;height:17px!important;flex:0 0 17px!important}
+.progress-summary #progressOverviewToggle{
+  position:static!important;
+  flex:0 0 27px!important;
+  width:27px!important;
+  min-width:27px!important;
+  height:27px!important;
+  min-height:27px!important;
+  margin:0 0 0 2px!important;
+  padding:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:0!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  color:#aeb8b0!important;
+  box-shadow:none!important;
+}
+.progress-summary #progressOverviewToggle svg{display:block!important;width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:2.5!important}
+.progress-summary #progressOverviewToggle:active{background:#222c26!important}
+.progress-summary #progressOverviewToggle:focus-visible{outline:2px solid var(--accent)!important;outline-offset:1px!important}
+@media(max-width:390px){
+  .progress-summary{gap:5px!important;padding:7px 7px!important}
+  .progress-summary .stat{gap:4px!important}
+  .progress-summary .summary-stat-icon{width:15px!important;height:15px!important;flex-basis:15px!important}
+  .progress-summary .stat b{font-size:12px!important}
+  .progress-summary .stat small{font-size:8px!important}
+  .progress-summary #progressOverviewToggle{flex-basis:24px!important;width:24px!important;min-width:24px!important}
+}
+/* Separador discreto entre os dois indicadores, sem deslocar o bloco ao expandir. */
+.progress-summary-divider{
+  display:block!important;
+  flex:0 0 1px!important;
+  align-self:stretch!important;
+  min-height:25px!important;
+  margin:0 1px!important;
+  background:var(--line)!important;
+  opacity:.9!important;
+}
+/* A seta indica a próxima ação: para baixo ao expandir, para cima ao recolher. */
+.progress-summary #progressOverviewToggle svg{
+  transform:rotate(0deg)!important;
+  transition:transform .18s ease!important;
+}
+.progress-summary #progressOverviewToggle[aria-expanded="true"] svg{
+  transform:rotate(180deg)!important;
+}
+.progress-summary #progressOverviewToggle[aria-expanded="false"] svg{
+  transform:rotate(0deg)!important;
+}
+</style>
+
+<style id="progress-summary-layout-correction">
+/* O cabeçalho dos indicadores permanece estático; o painel abre abaixo dele. */
+#progressOverview{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  gap:0!important;
+  width:100%!important;
+}
+#progressOverview > .progress-summary{
+  order:0!important;
+  display:flex!important;
+  flex-flow:row nowrap!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  width:100%!important;
+  min-height:58px!important;
+  box-sizing:border-box!important;
+  gap:clamp(6px,1.5vw,14px)!important;
+  margin:9px 0 0!important;
+  position:relative!important;
+}
+#progressOverview > #progressOverviewContent{
+  order:1!important;
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:8px 0 0!important;
+}
+#progressOverview > #progressOverviewContent[hidden]{
+  display:none!important;
+}
+#progressOverview .progress-summary .stat{
+  flex:1 1 0!important;
+  min-width:0!important;
+}
+#progressOverview .progress-summary-divider{
+  flex:0 0 1px!important;
+  width:1px!important;
+  align-self:stretch!important;
+  min-height:28px!important;
+  margin:0 2px!important;
+}
+#progressOverview .progress-summary #progressOverviewToggle{
+  flex:0 0 28px!important;
+  width:28px!important;
+  min-width:28px!important;
+  height:28px!important;
+  min-height:28px!important;
+  margin:0 0 0 auto!important;
+  padding:0!important;
+  align-self:center!important;
+}
+#progressOverview #progressOverviewToggle svg{
+  transform:rotate(0deg)!important;
+  transform-origin:center!important;
+  transition:transform 180ms ease!important;
+}
+#progressOverview #progressOverviewToggle[aria-expanded="true"] svg{
+  transform:rotate(180deg)!important;
+}
+#progressOverview #progressOverviewToggle[aria-expanded="false"] svg{
+  transform:rotate(0deg)!important;
+}
+@media(max-width:390px){
+  #progressOverview > .progress-summary{gap:5px!important;padding-left:7px!important;padding-right:7px!important}
+  #progressOverview .progress-summary-divider{margin:0 1px!important}
+  #progressOverview .progress-summary #progressOverviewToggle{flex-basis:25px!important;width:25px!important;min-width:25px!important}
+}
+</style>
+
+
+<style id="progress-summary-order-final-fix">
+/* Ordem real do cabeçalho: séries | exercícios | seta no extremo direito. */
+#progressOverview .progress-summary .stat-sets{
+  order:1!important;
+}
+#progressOverview .progress-summary .progress-summary-divider{
+  order:2!important;
+}
+#progressOverview .progress-summary .stat-exercises{
+  order:3!important;
+}
+#progressOverview .progress-summary #progressOverviewToggle{
+  order:4!important;
+  margin-left:auto!important;
+  margin-right:0!important;
+  flex:0 0 28px!important;
+  width:28px!important;
+  min-width:28px!important;
+  position:static!important;
+  inset:auto!important;
+}
+/* Usa a seta SVG original; remove pseudo-setas herdadas de tentativas anteriores. */
+#progressOverview .progress-summary #progressOverviewToggle::before,
+#progressOverview .progress-summary #progressOverviewToggle::after{
+  content:none!important;
+  display:none!important;
+}
+#progressOverview .progress-summary #progressOverviewToggle svg{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  transform:rotate(0deg)!important;
+  transition:transform 180ms ease!important;
+}
+#progressOverview .progress-summary #progressOverviewToggle[aria-expanded="true"] svg{
+  transform:rotate(180deg)!important;
+}
+#progressOverview .progress-summary #progressOverviewToggle[aria-expanded="false"] svg{
+  transform:rotate(0deg)!important;
+}
+</style>
+
+
+<style id="progress-summary-spacing-and-centering-fix">
+/* Respiro consistente entre o resumo e o botão de iniciar treino. */
+#progressOverview{
+  margin-bottom:18px!important;
+}
+#progressOverview > .progress-summary{
+  margin-bottom:0!important;
+}
+#progressOverview + .top-dashboard{
+  margin-top:0!important;
+}
+
+/* Centralização vertical e horizontal dos dois indicadores. */
+#progressOverview > .progress-summary{
+  align-items:center!important;
+  min-height:60px!important;
+  padding:8px 12px!important;
+  box-sizing:border-box!important;
+}
+#progressOverview > .progress-summary > .stat{
+  display:flex!important;
+  flex:1 1 0!important;
+  min-width:0!important;
+  height:100%!important;
+  min-height:42px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  align-self:center!important;
+  text-align:center!important;
+  padding:4px 6px!important;
+  box-sizing:border-box!important;
+}
+#progressOverview > .progress-summary > .stat > span{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex-wrap:wrap!important;
+  gap:4px!important;
+  min-width:0!important;
+  text-align:center!important;
+  line-height:1.25!important;
+}
+#progressOverview > .progress-summary > .progress-summary-divider{
+  display:block!important;
+  flex:0 0 1px!important;
+  width:1px!important;
+  height:34px!important;
+  min-height:34px!important;
+  align-self:center!important;
+  margin:0 4px!important;
+}
+#progressOverview > .progress-summary > #progressOverviewToggle{
+  align-self:center!important;
+  margin-top:0!important;
+  margin-bottom:0!important;
+}
+@media(max-width:390px){
+  #progressOverview{margin-bottom:16px!important}
+  #progressOverview > .progress-summary{padding:7px 8px!important;gap:4px!important}
+  #progressOverview > .progress-summary > .progress-summary-divider{
+    height:30px!important;min-height:30px!important;margin:0 2px!important
+  }
+  #progressOverview > .progress-summary > .stat{padding:3px 2px!important}
+  #progressOverview > .progress-summary > .stat > span{gap:3px!important}
+}
+</style>
+
+
+<style id="progress-to-start-spacing-match">
+/* Distância equivalente ao respiro visual entre o botão Iniciar e o primeiro card:
+   considera os intervalos vazios ao redor da barra de ferramentas dos exercícios. */
+#progressOverview{
+  margin-bottom:26px!important;
+}
+#progressOverview + .top-dashboard{
+  margin-top:0!important;
+}
+@media(max-width:600px){
+  #progressOverview{margin-bottom:26px!important}
+}
+</style>
+
+
+<style id="progress-to-start-spacing-equalized">
+/* Mesmo espaçamento do botão Iniciar até o primeiro card de exercício. */
+#progressOverview{
+  margin-bottom:12px!important;
+}
+#progressOverview + .top-dashboard{
+  margin-top:0!important;
+}
+</style>
 
 </body>
 </html>
