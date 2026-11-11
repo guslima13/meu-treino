@@ -2638,7 +2638,7 @@ main{padding-top:7px}
 }
 .exercise-drag-handle{touch-action:none;cursor:grab}
 .exercise-drag-handle.press-pending{border-color:var(--accent);color:var(--accent);background:#29351d}
-.exercise-drag-handle.long-press-armed{border-color:var(--accent);color:var(--accent);cursor:grabbing;box-shadow:0 0 0 2px #d7ff0030}
+.exercise-drag-handle.long-press-armed{border-color:var(--accent);color:var(--accent);cursor:grabbing;box-shadow:none}
 @media(max-width:600px){
   header{padding-top:8px;padding-bottom:8px}
   header .brand{font-size:17px}
@@ -4120,6 +4120,8 @@ main { overflow: visible !important; }
   -webkit-text-fill-color:var(--accent)!important;
 }
 
+
+
 </style>
 <style>
 
@@ -4478,6 +4480,9 @@ main{padding-bottom:24px!important}
 .header-menu-trigger svg{width:26px!important;height:26px!important}
 .sticky-workout-bar .header-menu-trigger svg{width:30px!important;height:30px!important}
 </style>
+
+
+
 
 </head>
 
@@ -5004,6 +5009,8 @@ const initial = {
 const days=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 
 let day=null;
+// O estado do controle geral é independente para cada dia da semana.
+const allExercisesCollapsedByDay=Object.fromEntries(days.map(workoutDay=>[workoutDay,true]));
 let allExercisesCollapsed=true;
 const exerciseCollapseOverrides=new Map();
 let editIndex=null;
@@ -5553,22 +5560,22 @@ function toggleProgressOverview(){
 })();
 
 function toggleAllExerciseDetails(){
+  // Atua somente sobre os cards do treino/dia atualmente exibido.
   allExercisesCollapsed=!allExercisesCollapsed;
-  exerciseCollapseOverrides.clear();
+  allExercisesCollapsedByDay[day]=allExercisesCollapsed;
+
+  // Remove apenas as exceções individuais deste dia; os demais dias preservam seu estado.
+  for(const key of exerciseCollapseOverrides.keys()){
+    if(key.startsWith(day+'_')) exerciseCollapseOverrides.delete(key);
+  }
+
   document.querySelectorAll('#exerciseList .exercise').forEach(card=>{
     card.classList.toggle('is-collapsed',allExercisesCollapsed);
     const button=card.querySelector('.exercise-collapse-btn:not(.exercise-collapse-all-btn)');
     if(button) updateExerciseCollapseButton(button,allExercisesCollapsed);
   });
-  const globalButton=document.querySelector('#exerciseList .exercise-collapse-all-btn');
-  if(globalButton){
-    const label=allExercisesCollapsed?'Expandir todos os exercícios':'Recolher todos os exercícios';
-    globalButton.setAttribute('aria-expanded',String(!allExercisesCollapsed));
-    globalButton.setAttribute('aria-label',label);
-    globalButton.title=label;
-    globalButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H4m0 0 3-3M4 5l3 3M14 5h6m0 0-3-3m3 3-3 3M10 12H4m0 0 3-3m-3 3 3 3M14 12h6m0 0-3-3m3 3-3 3M10 19H4m0 0 3-3m-3 3 3 3M14 19h6m0 0-3-3m3 3-3 3"/></svg>';
-  }
   updateExerciseListToggle();
+  requestAnimationFrame(alignExerciseDragHandles);
 }
 
 function updateExerciseCollapseButton(button,collapsed){
@@ -5586,16 +5593,21 @@ function toggleExerciseDetails(index,button){
   card.classList.toggle('is-collapsed',collapsed);
   exerciseCollapseOverrides.set(`${day}_${index}`,collapsed);
   updateExerciseCollapseButton(button,collapsed);
+  if(!collapsed) requestAnimationFrame(alignExerciseDragHandles);
 }
 
 function updateExerciseListToggle(){
   const button=document.getElementById('toggleAllExercisesBtn');
   if(!button) return;
+
+  // Seta para baixo = cards recolhidos (ação: expandir).
+  // Seta para cima = cards expandidos (ação: recolher).
+  const arrowPath=allExercisesCollapsed?'m6 9 6 6 6-6':'m6 15 6-6 6 6';
+  const label=allExercisesCollapsed?'Expandir todos os exercícios deste treino':'Recolher todos os exercícios deste treino';
   button.setAttribute('aria-expanded',String(!allExercisesCollapsed));
-  const label=allExercisesCollapsed?'Expandir todos os exercícios':'Recolher todos os exercícios';
   button.setAttribute('aria-label',label);
   button.title=label;
-  button.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H4m0 0 3-3M4 5l3 3M14 5h6m0 0-3-3m3 3-3 3M10 12H4m0 0 3-3m-3 3 3 3M14 12h6m0 0-3-3m3 3-3 3M10 19H4m0 0 3-3m-3 3 3 3M14 19h6m0 0-3-3m3 3-3 3"/></svg>`;
+  button.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${arrowPath}"/></svg>`;
 }
 
 function alignExerciseDragHandles(){
@@ -5626,17 +5638,37 @@ function alignExerciseDragHandles(){
     const cardRect=card.getBoundingClientRect();
     const checkRect=check.getBoundingClientRect();
     const collapseRect=collapse.getBoundingClientRect();
-    const handleWidth=handle.getBoundingClientRect().width || 30;
+    // Mantém as dimensões próprias do botão de mover; não copia a altura
+    // do botão de recolher nem altera seu tamanho.
+    const handleRect=handle.getBoundingClientRect();
+    const handleWidth=handleRect.width || 30;
+    handle.style.setProperty('box-sizing','border-box','important');
 
-    // Centro horizontal da alça = centro horizontal do botão de check.
+    // Centraliza o botão de mover diretamente sob o check.
+    // Usa left em coordenadas do cartão e neutraliza right para evitar
+    // interferência de regras CSS responsivas ou de alinhamentos antigos.
     const checkCenterX=checkRect.left + checkRect.width/2;
-    const rightOffset=cardRect.right - checkCenterX - handleWidth/2;
-
-    // As bordas superior e inferior da alça coincidem com as da seta.
-    handle.style.right=`${rightOffset}px`;
+    const leftOffset=checkCenterX - cardRect.left - handleWidth/2;
+    handle.style.setProperty('left',`${leftOffset}px`,'important');
+    handle.style.setProperty('right','auto','important');
     handle.style.top=`${collapseRect.top - cardRect.top}px`;
     handle.style.bottom='auto';
-    handle.style.height=`${collapseRect.height}px`;
+
+    // Centraliza horizontalmente a coluna de ações sob o botão de check.
+    // Usa a propriedade translate para não alterar dimensões, fluxo, padding,
+    // gaps ou o transform vertical já existente.
+    const actions=card.querySelector('.actions');
+    if(actions && getComputedStyle(actions).display!=='none'){
+      actions.style.removeProperty('translate');
+      const actionsRect=actions.getBoundingClientRect();
+      const actionsCenterX=actionsRect.left + actionsRect.width/2;
+      const corridaExtraLeft = card.classList.contains('exercise-running') ? 12 : 0;
+      actions.style.setProperty(
+        'translate',
+        `${checkCenterX-actionsCenterX-corridaExtraLeft}px 0`,
+        'important'
+      );
+    }
   });
 }
 
@@ -5678,6 +5710,8 @@ window.addEventListener('blur',closeDayWorkoutPreview);
 
 
 function render(){
+
+allExercisesCollapsed=allExercisesCollapsedByDay[day]??true;
 
 const dayLabel={
 
@@ -5850,7 +5884,7 @@ const exerciseCollapsed=exerciseCollapseOverrides.has(collapseKey)
 
 return `
 
-<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${exerciseCollapsed?'is-collapsed':''}" data-exercise-index="${i}">
+<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${String(e.name||'').trim().toLocaleLowerCase('pt-BR')==='corrida'?'exercise-running':''} ${exerciseCollapsed?'is-collapsed':''}" data-exercise-index="${i}">
 
 <div class="exercise-main">
 
@@ -5954,7 +5988,7 @@ ${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><pat
 
 </div>
 
-<div class="actions">
+<div class="actions" ${String(e.name||'').trim().toLocaleLowerCase('pt-BR')==='corrida'?'style="translate: -20px 0;"':''}>
 
 <button type="button" class="iconbtn" onclick="editExercise(${i})" title="Editar" aria-label="Editar">✎</button>
 <button type="button" class="iconbtn" onclick="replaceExercise(${i})" title="Substituir exercício" aria-label="Substituir exercício"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9a4 4 0 0 0-4 4v2"/><path d="m4 10 3 3 3-3"/><path d="M4 17h9a4 4 0 0 0 4-4v-2"/><path d="m20 14-3-3-3 3"/></svg></button>
@@ -7209,6 +7243,10 @@ function bindExerciseDrag(){
     const press=pendingExercisePress;
     if(press && (!event || event.pointerId===press.pointerId)){
       cancelPendingExercisePress();
+      // A alça é uma div com role=button e tabindex=0. Em alguns navegadores,
+      // o foco após o toque aplica um contorno/estado visual diferente ao soltar.
+      // Retirar o foco após um toque simples evita essa mudança de aparência.
+      press.handle.blur();
       return;
     }
     const drag=activeExerciseDrag;
@@ -8514,7 +8552,7 @@ window.addEventListener('beforeunload',()=>{
 
 setupStyledSelects();
 setupEquipmentPicker();
-allExercisesCollapsed=true;
+allExercisesCollapsed=allExercisesCollapsedByDay[day]??true;
 exerciseCollapseOverrides.clear();
 render();
 bindExerciseDrag();
@@ -8850,21 +8888,94 @@ if ('serviceWorker' in navigator) {
 }
 </style>
 
-</body>
-</html>
 
-
-<style id="global-exercise-expand-icon-refinement">
-/* Ícone global: três fileiras de setas apontando para fora, indicando expansão de todos os cards. */
-/* Os botões global e individual crescem juntos para manter a padronização visual. */
-.exercise-collapse-row .exercise-collapse-btn{
-  width:30px!important;
-  min-width:30px!important;
-  height:26px!important;
-  min-height:26px!important;
+<style id="exact-drag-handle-button-alignment">
+.exercise.is-collapsed .exercise-drag-handle{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:0!important;
+  padding:0!important;
+  border:1px solid #35443d!important;
+  border-radius:8px!important;
+  box-sizing:border-box!important;
 }
-.exercise-collapse-row .exercise-collapse-btn svg{
-  width:17px!important;
-  height:17px!important;
+.exercise.is-collapsed .exercise-drag-handle svg{
+  display:block!important;
+  width:15px!important;
+  height:15px!important;
+  margin:0!important;
 }
 </style>
+
+
+<style id="stable-drag-handle-geometry">
+.exercise.is-collapsed .exercise-drag-handle,
+.exercise.is-collapsed .exercise-drag-handle:active,
+.exercise.is-collapsed .exercise-drag-handle:focus,
+.exercise.is-collapsed .exercise-drag-handle:focus-visible,
+.exercise.is-collapsed .exercise-drag-handle.press-pending,
+.exercise.is-collapsed .exercise-drag-handle.long-press-armed {
+  width:30px!important;
+  min-width:30px!important;
+  max-width:30px!important;
+  height:26px!important;
+  min-height:26px!important;
+  max-height:26px!important;
+  box-sizing:border-box!important;
+  border-width:1px!important;
+  border-style:solid!important;
+  border-radius:8px!important;
+  padding:0!important;
+  margin:0!important;
+  transform:none!important;
+  outline:none!important;
+}
+.exercise.is-collapsed .exercise-drag-handle.long-press-armed {
+  box-shadow:none!important;
+}
+.exercise.is-collapsed .exercise-drag-handle svg {
+  width:15px!important;
+  min-width:15px!important;
+  height:15px!important;
+  min-height:15px!important;
+  display:block!important;
+  margin:0!important;
+  transform:none!important;
+}
+</style>
+
+
+<style id="drag-handle-stable-after-tap">
+.exercise.is-collapsed .exercise-drag-handle,
+.exercise.is-collapsed .exercise-drag-handle:hover,
+.exercise.is-collapsed .exercise-drag-handle:active,
+.exercise.is-collapsed .exercise-drag-handle:focus,
+.exercise.is-collapsed .exercise-drag-handle:focus-visible,
+.exercise.is-collapsed .exercise-drag-handle.press-pending,
+.exercise.is-collapsed .exercise-drag-handle.long-press-armed {
+  box-sizing:border-box!important;
+  border:1px solid #3b5140!important;
+  border-radius:8px!important;
+  outline:0!important;
+  box-shadow:none!important;
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+  transition:none!important;
+}
+.exercise.is-collapsed .exercise-drag-handle.press-pending,
+.exercise.is-collapsed .exercise-drag-handle.long-press-armed,
+.exercise.is-collapsed .exercise-drag-handle:active {
+  background:#202923!important;
+  color:#c8d8cd!important;
+}
+.exercise.is-collapsed .exercise-drag-handle svg {
+  display:block!important;
+  margin:0!important;
+  transform:none!important;
+}
+</style>
+
+</body>
+</html>
