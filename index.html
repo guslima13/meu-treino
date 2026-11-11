@@ -3033,8 +3033,8 @@ main{padding-top:0 !important}
 .bottom-dashboard .finish-control #finishWorkoutBtn{
   position:relative;
 }
-.reset-workout-icon[hidden]{display:none !important}
-.reset-workout-icon{
+.reset-workout-icon[hidden],.cancel-workout-icon[hidden]{display:none !important}
+.reset-workout-icon,.cancel-workout-icon{
   position:absolute;
   z-index:3;
   top:50%;
@@ -3053,15 +3053,15 @@ main{padding-top:0 !important}
   cursor:pointer;
   box-shadow:0 2px 7px #0004;
 }
-.reset-workout-icon svg{
+.reset-workout-icon svg,.cancel-workout-icon svg{
   width:19px;height:19px;
   fill:none;stroke:currentColor;stroke-width:1.9;
   stroke-linecap:round;stroke-linejoin:round;
 }
-.reset-workout-icon:active{transform:translateY(-50%) scale(.95)}
+.reset-workout-icon:active,.cancel-workout-icon:active{transform:translateY(-50%) scale(.95)}
 @media(max-width:600px){
-  .reset-workout-icon{right:6px;width:31px;height:31px;padding:5px}
-  .reset-workout-icon svg{width:18px;height:18px}
+  .reset-workout-icon,.cancel-workout-icon{right:6px;width:31px;height:31px;padding:5px}
+  .reset-workout-icon svg,.cancel-workout-icon svg{width:18px;height:18px}
 }
 
 
@@ -4595,11 +4595,22 @@ main{padding-bottom:24px!important}
 
 <div class="confirm-backdrop" id="resetConfirm" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="resetConfirmTitle">
-    <h2 id="resetConfirmTitle">Reiniciar exercício</h2>
-    <p>Desmarcar todas as séries concluídas deste treino nesta semana?</p>
+    <h2 id="resetConfirmTitle">Reiniciar</h2>
+    <p>Todas as séries concluídas no treino anterior se manterão salvas no histórico.</p>
     <div class="confirm-actions">
-      <button type="button" class="btn" id="cancelResetBtn">Cancelar</button>
-      <button type="button" class="btn primary" id="confirmResetBtn">Reiniciar exercício</button>
+      <button type="button" class="btn" id="cancelResetBtn">Voltar</button>
+      <button type="button" class="btn primary" id="confirmResetBtn">Confirmar</button>
+    </div>
+  </section>
+</div>
+
+<div class="confirm-backdrop" id="cancelWorkoutConfirm" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="cancelWorkoutConfirmTitle">
+    <h2 id="cancelWorkoutConfirmTitle">Cancelar treino</h2>
+    <p>Todas as séries concluídas neste treino não serão salvas.</p>
+    <div class="confirm-actions">
+      <button type="button" class="btn" id="backCancelWorkoutBtn">Voltar</button>
+      <button type="button" class="btn primary" id="confirmCancelWorkoutBtn">Confirmar</button>
     </div>
   </section>
 </div>
@@ -4736,6 +4747,13 @@ main{padding-bottom:24px!important}
     <button id="finishWorkoutBtn" class="workout-btn finish" onclick="finishWorkout()" disabled>
       <span class="workout-indicator workout-check-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5 9.2 18 20 6"/></svg></span>
       <span class="workout-label">FINALIZAR TREINO</span>
+    </button>
+    <button type="button" class="reset-workout-icon cancel-workout-icon" id="cancelWorkoutBtn"
+      title="Cancelar treino" aria-label="Cancelar treino"
+      onclick="openCancelWorkoutDialog()" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
     </button>
     <button type="button" class="reset-workout-icon" id="resetBtn"
       title="Reiniciar este treino" aria-label="Reiniciar este treino"
@@ -5027,8 +5045,9 @@ day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 // Entrega limpa: preserva exercícios e cargas, mas inicia todos os dias sem progresso.
 // Executa uma única vez nesta versão para não apagar o progresso criado depois.
 (function(){
-  const resetKey='smartWorkout_clean_delivery_20261111_v4';
+  const resetKey='smartWorkout_test_all_days_open_20261111_v1';
   if(localStorage.getItem(resetKey)==='1') return;
+  // Arquivo de teste: deixa todos os dias disponíveis para iniciar um novo treino.
   state.weeklyChecks={};
   state.checks={};
   state.completedWorkouts=[];
@@ -5036,7 +5055,9 @@ day=days.includes(state.selectedDay)?state.selectedDay:days[0];
   days.forEach(workoutDay=>{
     state.sessions[workoutDay]={
       status:'idle',startedAt:null,finishedAt:null,
-      resetExpiresAt:null,restartCount:0,week:null
+      resetExpiresAt:null,restartCount:0,week:weekKey(),
+      cancelOpportunityConsumed:false,cancelAvailableUntil:null,
+      preStartSnapshot:null
     };
   });
   state.selectedDay=days[0];
@@ -5305,7 +5326,10 @@ startedAt:null,
 finishedAt:null,
 resetExpiresAt:null,
 restartCount:0,
-week:currentWeek
+week:currentWeek,
+cancelOpportunityConsumed:false,
+cancelAvailableUntil:null,
+preStartSnapshot:null
 
 };
 
@@ -5316,6 +5340,9 @@ save();
 
 if(!Number.isFinite(Number(session.resetExpiresAt))) session.resetExpiresAt=null;
 if(!Number.isFinite(Number(session.restartCount))) session.restartCount=0;
+if(typeof session.cancelOpportunityConsumed!=='boolean') session.cancelOpportunityConsumed=false;
+if(!Object.prototype.hasOwnProperty.call(session,'cancelAvailableUntil')) session.cancelAvailableUntil=null;
+if(!Object.prototype.hasOwnProperty.call(session,'preStartSnapshot')) session.preStartSnapshot=null;
 return session;
 
 }
@@ -5366,6 +5393,19 @@ function startWorkout(){
     return;
   }
 
+  const isFirstStartThisWeek=!session.cancelOpportunityConsumed && (Number(session.restartCount)||0)===0;
+  const weeklyProgress=weekData();
+  const dayProgressSnapshot={};
+  Object.keys(weeklyProgress).filter(key=>key.startsWith(day+'_')).forEach(key=>{
+    dayProgressSnapshot[key]=structuredClone(weeklyProgress[key]);
+  });
+  session.preStartSnapshot={
+    progress:dayProgressSnapshot,
+    todayNoticeDismissedDate:state.todayNoticeDismissedDate??null,
+    todayNoticeResumeAt:state.todayNoticeResumeAt??null
+  };
+  session.cancelOpportunityConsumed=true;
+  session.cancelAvailableUntil=isFirstStartThisWeek?Date.now()+60*1000:null;
   session.status='active';
   session.startedAt=new Date().toISOString();
   session.finishedAt=null;
@@ -5378,20 +5418,64 @@ function startWorkout(){
   render();
 }
 
+let cancelButtonExpiryTimer=null;
+function openCancelWorkoutDialog(){
+  const session=getWorkoutStatus();
+  if(session.status!=='active' || !session.cancelAvailableUntil || Date.now()>Number(session.cancelAvailableUntil)) return;
+  document.getElementById('cancelWorkoutConfirm').hidden=false;
+}
+function closeCancelWorkoutDialog(){
+  document.getElementById('cancelWorkoutConfirm').hidden=true;
+}
+function confirmCancelWorkout(){
+  const session=getWorkoutStatus();
+  if(session.status!=='active'){
+    closeCancelWorkoutDialog();
+    return;
+  }
+  closeCancelWorkoutDialog();
+  const snapshot=session.preStartSnapshot;
+  const weeklyProgress=weekData();
+  Object.keys(weeklyProgress).filter(key=>key.startsWith(day+'_')).forEach(key=>delete weeklyProgress[key]);
+  if(snapshot?.progress){
+    Object.entries(snapshot.progress).forEach(([key,value])=>{
+      weeklyProgress[key]=structuredClone(value);
+    });
+  }
+  if(snapshot){
+    state.todayNoticeDismissedDate=snapshot.todayNoticeDismissedDate;
+    state.todayNoticeResumeAt=snapshot.todayNoticeResumeAt;
+  }
+  session.status='idle';
+  session.startedAt=null;
+  session.finishedAt=null;
+  session.resetExpiresAt=null;
+  session.cancelAvailableUntil=null;
+  session.preStartSnapshot=null;
+  // A oportunidade de cancelar é consumida no primeiro início do ciclo,
+  // mesmo que o treino seja cancelado; ela não reaparece ao iniciar novamente.
+  session.cancelOpportunityConsumed=true;
+  save();
+  render();
+}
+
 function finishWorkout(){
   const session=getWorkoutStatus();
   if(session.status!=='active') return;
   session.status='finished';
+  session.cancelAvailableUntil=null;
+  session.preStartSnapshot=null;
   session.finishedAt=new Date().toISOString();
-  // Guarda um retrato dos exercícios integralmente confirmados nesta sessão.
-  // Cada registro preserva as cargas das séries feitas para a evolução histórica.
+  // Guarda um retrato de todas as séries confirmadas nesta sessão.
+  // Cada registro preserva individualmente as séries feitas para a evolução histórica.
   state.completedWorkouts=Array.isArray(state.completedWorkouts)?state.completedWorkouts:[];
   const completedExercises=(state.workouts[day]||[]).flatMap((exercise,index)=>{
     const count=Number(exercise.sets)||1;
     const checks=checksFor(day,index);
     const completed=Array.from({length:count},(_,setIndex)=>checks[setIndex]===true);
-    if(!completed.every(Boolean)) return [];
-    const loads=Array.from({length:count},(_,setIndex)=>String((exercise.loads||[])[setIndex]??'').trim());
+    if(!completed.some(Boolean)) return [];
+    // Registra cada série confirmada individualmente; séries pendentes ficam vazias.
+    const loads=Array.from({length:count},(_,setIndex)=>completed[setIndex]?String((exercise.loads||[])[setIndex]??'').trim():'');
     const numericLoads=loads.filter(value=>value!=='').map(value=>Number(value.replace(',','.'))).filter(Number.isFinite);
     return [{
       exerciseId:exercise.id||(exercise.id='exercise_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9)),
@@ -5399,6 +5483,7 @@ function finishWorkout(){
       muscle:String(exercise.muscle||''),
       equipment:String(exercise.equipment||''),
       loads,
+      completedSets:completed,
       average:numericLoads.length?numericLoads.reduce((sum,value)=>sum+value,0)/numericLoads.length:null
     }];
   });
@@ -5438,7 +5523,7 @@ state.sessions=state.sessions||{};
 const currentWeek=weekKey();
 let session=state.sessions[targetDay];
 if(!session || session.week!==currentWeek){
-session={status:'idle',startedAt:null,finishedAt:null,resetExpiresAt:null,restartCount:0,week:currentWeek};
+session={status:'idle',startedAt:null,finishedAt:null,resetExpiresAt:null,restartCount:0,week:currentWeek,cancelOpportunityConsumed:false,cancelAvailableUntil:null,preStartSnapshot:null};
 state.sessions[targetDay]=session;
 }
 return session.status;
@@ -5457,6 +5542,22 @@ const finishBtn=document.getElementById(
 'finishWorkoutBtn'
 );
 const resetIcon=document.getElementById('resetBtn');
+const cancelIcon=document.getElementById('cancelWorkoutBtn');
+if(cancelButtonExpiryTimer){clearTimeout(cancelButtonExpiryTimer);cancelButtonExpiryTimer=null;}
+const cancelRemaining=Number(session.cancelAvailableUntil)-Date.now();
+const canCancel=session.status==='active' &&
+  Number.isFinite(Number(session.cancelAvailableUntil)) && cancelRemaining>0;
+if(cancelIcon) cancelIcon.hidden=!canCancel;
+if(canCancel){
+  const startedAt=session.startedAt;
+  cancelButtonExpiryTimer=setTimeout(()=>{
+    const current=getWorkoutStatus();
+    if(current.status==='active' && current.startedAt===startedAt){
+      const button=document.getElementById('cancelWorkoutBtn');
+      if(button) button.hidden=true;
+    }
+  },Math.min(cancelRemaining+50,2147483647));
+}
 if(resetButtonExpiryTimer){clearTimeout(resetButtonExpiryTimer);resetButtonExpiryTimer=null;}
 const resetRemaining=Number(session.resetExpiresAt)-Date.now();
 const canReset=session.status==='finished' && (Number(session.restartCount)||0)===0 &&
@@ -8041,6 +8142,11 @@ resetBtn.onclick=resetDay;
 
 document.getElementById('cancelResetBtn').onclick=closeResetDialog;
 document.getElementById('confirmResetBtn').onclick=confirmResetDay;
+document.getElementById('backCancelWorkoutBtn').onclick=closeCancelWorkoutDialog;
+document.getElementById('confirmCancelWorkoutBtn').onclick=confirmCancelWorkout;
+document.getElementById('cancelWorkoutConfirm').addEventListener('click',event=>{
+  if(event.target.id==='cancelWorkoutConfirm') closeCancelWorkoutDialog();
+});
 document.getElementById('resetConfirm').addEventListener('click',event=>{
   if(event.target.id==='resetConfirm') closeResetDialog();
 });
@@ -8521,7 +8627,7 @@ function summaryLoadsMarkup(){
     .map(workout=>{
       const exercise=(workout.exercises||[]).find(item=>ids.has(item.exerciseId));
       if(!exercise) return null;
-      const numericLoads=(exercise.loads||[]).map(value=>String(value??'').trim()).filter(value=>value!=='').map(value=>Number(value.replace(',','.'))).filter(Number.isFinite);
+      const numericLoads=(exercise.loads||[]).filter((value,setIndex)=>Array.isArray(exercise.completedSets)?exercise.completedSets[setIndex]===true:true).map(value=>String(value??'').trim()).filter(value=>value!=='').map(value=>Number(value.replace(',','.'))).filter(Number.isFinite);
       if(!numericLoads.length) return null;
       return {...workout,exercise,average:numericLoads.reduce((sum,value)=>sum+value,0)/numericLoads.length};
     })
@@ -8530,7 +8636,7 @@ function summaryLoadsMarkup(){
     .slice(-3);
   const historyMarkup=recentWorkouts.length?`<section class="summary-history-table-wrap"><h3>Últimos ${recentWorkouts.length} ${recentWorkouts.length===1?'treino finalizado':'treinos finalizados'}</h3><div class="summary-history-list">${[...recentWorkouts].reverse().map((workout,index)=>{
     const date=new Date(workout.finishedAt).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
-    const chips=(workout.exercise.loads||[]).map((load,setIndex)=>`<span>${setIndex+1}: ${esc(summaryLoadValue(load))}</span>`).join('');
+    const chips=(workout.exercise.loads||[]).map((load,setIndex)=>({load,setIndex})).filter(item=>Array.isArray(workout.exercise.completedSets)?workout.exercise.completedSets[item.setIndex]===true:true).map(({load,setIndex})=>`<span>${setIndex+1}: ${esc(summaryLoadValue(load))}</span>`).join('');
     return `<article class="summary-history-session"><div class="summary-history-session-heading"><strong>${esc(workout.day)} · ${esc(date)}</strong><b>Média: ${esc(summaryLoadValue(workout.average))}</b></div><div class="summary-load-chips">${chips}</div></article>`;
   }).join('')}</div></section>`:`<div class="summary-empty-state">Ainda não há treinos finalizados com todas as séries deste exercício confirmadas. Finalize um treino após marcar as séries como feitas para registrar as cargas aqui.</div>`;
   return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Confira as cargas das séries nos três últimos treinos finalizados do exercício selecionado.</p></div></div>
