@@ -391,6 +391,16 @@ cursor:pointer;
 flex:0 0 40px
 }
 
+.exercise{
+transition:opacity .22s ease, filter .22s ease;
+}
+.exercise.exercise-completed{
+opacity:.58;
+filter:saturate(.72);
+}
+.exercise.exercise-completed:hover{
+opacity:.72;
+}
 .exercise-done-btn.done{
 background:#249b28;
 border-color:#249b28;
@@ -4620,8 +4630,8 @@ main{padding-bottom:24px!important}
     <h2 id="deleteConfirmTitle">Excluir exercício</h2>
     <p id="deleteConfirmMessage">Tem certeza de que deseja excluir este exercício?</p>
     <div class="confirm-actions">
-      <button type="button" class="btn" id="cancelDeleteBtn">Cancelar</button>
-      <button type="button" class="btn primary" id="confirmDeleteBtn">Excluir exercício</button>
+      <button type="button" class="btn" id="cancelDeleteBtn">Voltar</button>
+      <button type="button" class="btn primary" id="confirmDeleteBtn">Confirmar</button>
     </div>
   </section>
 </div>
@@ -5042,30 +5052,8 @@ let editIndex=null;
 let state=loadState();
 day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 
-// Entrega limpa: preserva exercícios e cargas, mas inicia todos os dias sem progresso.
-// Executa uma única vez nesta versão para não apagar o progresso criado depois.
-(function(){
-  const resetKey='smartWorkout_test_all_days_open_20261111_v1';
-  if(localStorage.getItem(resetKey)==='1') return;
-  // Arquivo de teste: deixa todos os dias disponíveis para iniciar um novo treino.
-  state.weeklyChecks={};
-  state.checks={};
-  state.completedWorkouts=[];
-  state.sessions=state.sessions||{};
-  days.forEach(workoutDay=>{
-    state.sessions[workoutDay]={
-      status:'idle',startedAt:null,finishedAt:null,
-      resetExpiresAt:null,restartCount:0,week:weekKey(),
-      cancelOpportunityConsumed:false,cancelAvailableUntil:null,
-      preStartSnapshot:null
-    };
-  });
-  state.selectedDay=days[0];
-  state.todayNoticeDismissedDate=null;
-  state.todayNoticeResumeAt=null;
-  localStorage.setItem('smartWorkoutData',JSON.stringify(state));
-  localStorage.setItem(resetKey,'1');
-})();
+// Rotina de reset de teste removida: o aplicativo não apaga o progresso ao abrir.
+
 
 
 const undoHistory=[];
@@ -5123,10 +5111,84 @@ function comparisonKey(value){
   return String(value??'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 }
 
+
+// RETENÇÃO DO HISTÓRICO: semana atual + 3 semanas anteriores.
+// Os ciclos semanais do aplicativo começam no domingo.
+const HISTORY_RETENTION_WEEKS=4;
+
+function retentionWeekStart(value){
+  if(value===null || value===undefined || value==='') return null;
+  const raw=String(value).trim();
+  let date=null;
+  const dateOnly=raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(dateOnly){
+    date=new Date(Number(dateOnly[1]),Number(dateOnly[2])-1,Number(dateOnly[3]));
+  }else{
+    date=new Date(raw);
+  }
+  if(!Number.isFinite(date?.getTime())) return null;
+  date.setHours(0,0,0,0);
+  date.setDate(date.getDate()-date.getDay());
+  return date;
+}
+
+function isWithinHistoryRetention(...values){
+  let start=null;
+  for(const value of values){
+    start=retentionWeekStart(value);
+    if(start) break;
+  }
+  // Sem uma data confiável, o registro não pode ser considerado parte das
+  // quatro semanas mais recentes e é descartado do histórico.
+  if(!start) return false;
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const currentWeekStart=new Date(today);
+  currentWeekStart.setDate(currentWeekStart.getDate()-currentWeekStart.getDay());
+  const cutoff=new Date(currentWeekStart);
+  cutoff.setDate(cutoff.getDate()-7*(HISTORY_RETENTION_WEEKS-1));
+  return start.getTime()>=cutoff.getTime();
+}
+
+function applyHistoryRetention(target=state){
+  if(!target || typeof target!=='object') return;
+  if(Array.isArray(target.completedWorkouts)){
+    target.completedWorkouts=target.completedWorkouts.filter(item=>
+      isWithinHistoryRetention(item?.week,item?.finishedAt,item?.startedAt)
+    );
+  }
+  if(Array.isArray(target.loadHistory)){
+    target.loadHistory=target.loadHistory.filter(item=>
+      isWithinHistoryRetention(item?.date,item?.timestamp)
+    );
+  }
+  if(target.weeklyChecks && typeof target.weeklyChecks==='object' && !Array.isArray(target.weeklyChecks)){
+    Object.keys(target.weeklyChecks).forEach(key=>{
+      if(!isWithinHistoryRetention(key)) delete target.weeklyChecks[key];
+    });
+  }
+  if(target.sessions && typeof target.sessions==='object' && !Array.isArray(target.sessions)){
+    Object.keys(target.sessions).forEach(key=>{
+      const session=target.sessions[key];
+      if(!isWithinHistoryRetention(session?.week)){
+        delete target.sessions[key];
+      }
+    });
+  }
+}
+
 function normalizeState(x){
 
-if(!x||!x.workouts)
-throw new Error('Backup inválido');
+if(!x || typeof x!=='object' || Array.isArray(x) || !x.workouts || typeof x.workouts!=='object' || Array.isArray(x.workouts))
+throw new Error('Backup inválido: estrutura principal ausente.');
+if(!days.every(d=>Array.isArray(x.workouts[d])))
+throw new Error('Backup inválido: faltam dias da ficha de treinos.');
+for(const workoutDay of days){
+  if(x.workouts[workoutDay].length>300) throw new Error('Backup inválido: quantidade excessiva de exercícios.');
+  for(const exercise of x.workouts[workoutDay]){
+    if(!exercise || typeof exercise!=='object' || Array.isArray(exercise)) throw new Error('Backup inválido: exercício malformado.');
+  }
+}
 
 x.checks=x.checks||{};
 x.notes=x.notes||{};
@@ -5174,6 +5236,9 @@ x.progressVersion=2;
 
 }
 
+// A estrutura antiga 'checks' já foi migrada para weeklyChecks.
+x.checks={};
+applyHistoryRetention(x);
 return x;
 
 }
@@ -5208,19 +5273,32 @@ progressVersion:2
 
 }
 
+let storageWarningShown=false;
 function save(){
-
-state.selectedDay=day;
-state.progressVersion=2;
-
-localStorage.setItem(
-'smartWorkoutData',
-JSON.stringify(state)
-);
-
-const summaryPage=document.getElementById('summaryPage');
-if(summaryPage && !summaryPage.hidden && typeof renderSummaryPage==='function') renderSummaryPage();
-
+  state.selectedDay=day;
+  state.progressVersion=2;
+  applyHistoryRetention(state);
+  try{
+    localStorage.setItem('smartWorkoutData',JSON.stringify(state));
+  }catch(error){
+    if(!storageWarningShown){
+      storageWarningShown=true;
+      const toast=document.getElementById('undoToast');
+      const message=document.getElementById('undoMessage');
+      const undo=document.getElementById('undoBtn');
+      if(toast && message){
+        message.textContent='Atenção: não foi possível salvar no navegador. Exporte um backup assim que possível.';
+        if(undo) undo.hidden=true;
+        toast.classList.add('show');
+      }else{
+        alert('Não foi possível salvar os dados no navegador. Exporte um backup assim que possível.');
+      }
+    }
+    return false;
+  }
+  const summaryPage=document.getElementById('summaryPage');
+  if(summaryPage && !summaryPage.hidden && typeof renderSummaryPage==='function') renderSummaryPage();
+  return true;
 }
 
 // ========================================
@@ -5401,6 +5479,7 @@ function startWorkout(){
   });
   session.preStartSnapshot={
     progress:dayProgressSnapshot,
+    loadHistoryLength:(Array.isArray(state.loadHistory)?state.loadHistory.length:0),
     todayNoticeDismissedDate:state.todayNoticeDismissedDate??null,
     todayNoticeResumeAt:state.todayNoticeResumeAt??null
   };
@@ -5445,6 +5524,9 @@ function confirmCancelWorkout(){
   if(snapshot){
     state.todayNoticeDismissedDate=snapshot.todayNoticeDismissedDate;
     state.todayNoticeResumeAt=snapshot.todayNoticeResumeAt;
+    if(Number.isInteger(snapshot.loadHistoryLength) && Array.isArray(state.loadHistory)){
+      state.loadHistory=state.loadHistory.slice(0,Math.max(0,snapshot.loadHistoryLength));
+    }
   }
   session.status='idle';
   session.startedAt=null;
@@ -5487,14 +5569,16 @@ function finishWorkout(){
       average:numericLoads.length?numericLoads.reduce((sum,value)=>sum+value,0)/numericLoads.length:null
     }];
   });
-  state.completedWorkouts.push({
-    id:'workout_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),
-    day,
-    week:weekKey(),
-    startedAt:session.startedAt,
-    finishedAt:session.finishedAt,
-    exercises:completedExercises
-  });
+  if(completedExercises.length){
+    state.completedWorkouts.push({
+      id:'workout_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),
+      day,
+      week:weekKey(),
+      startedAt:session.startedAt,
+      finishedAt:session.finishedAt,
+      exercises:completedExercises
+    });
+  }
   // O primeiro encerramento válido do ciclo libera Reiniciar por até 30 minutos.
   // Depois de usar Reiniciar uma vez, o segundo encerramento não libera outro reinício.
   session.resetExpiresAt=(Number(session.restartCount)||0)===0?Date.now()+30*60*1000:null;
@@ -5992,7 +6076,7 @@ const exerciseCollapsed=exerciseCollapseOverrides.has(collapseKey)
 
 return `
 
-<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${String(e.name||'').trim().toLocaleLowerCase('pt-BR')==='corrida'?'exercise-running':''} ${exerciseCollapsed?'is-collapsed':''}" data-exercise-index="${i}">
+<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${String(e.name||'').trim().toLocaleLowerCase('pt-BR')==='corrida'?'exercise-running':''} ${exerciseCollapsed?'is-collapsed':''} ${Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Boolean)?'exercise-completed':''}" data-exercise-index="${i}">
 
 <div class="exercise-main">
 
@@ -6154,24 +6238,110 @@ function recordLoadHistory(dayName,exercise,setIndex){
   });
 }
 
+// Remove do histórico provisório uma série desmarcada nesta sessão.
+// Registros anteriores ao início da sessão nunca são removidos.
+function removeSessionLoadHistory(dayName,exercise,setIndex,startedAt){
+  if(!Array.isArray(state.loadHistory) || !exercise) return;
+  const exerciseId=exercise.id;
+  const startedMs=Date.parse(startedAt||'');
+  if(!exerciseId || !Number.isFinite(startedMs)) return;
+  state.loadHistory=state.loadHistory.filter(entry=>{
+    if(entry.day!==dayName || entry.exerciseId!==exerciseId || Number(entry.set)!==setIndex+1) return true;
+    const entryMs=Date.parse(entry.timestamp||'');
+    return !Number.isFinite(entryMs) || entryMs<startedMs;
+  });
+}
+
 // ========================================
 // MARCAÇÃO DE SÉRIES
 // ========================================
 
+// Atualiza somente os indicadores de progresso e o cartão afetado.
+// Não reconstrói a lista de exercícios: a barra lateral permanece no mesmo DOM,
+// evitando o salto/piscada ao marcar uma série.
+function syncProgressAfterSetChange(){
+  const list=state.workouts[day]||[];
+  let total=0,done=0,completedExercises=0;
+
+  list.forEach((exercise,index)=>{
+    const setCount=Number(exercise.sets)||1;
+    const checks=checksFor(day,index);
+    total+=setCount;
+    done+=checks.filter(Boolean).length;
+    if(Array.from({length:setCount},(_,j)=>checks[j]===true).every(Boolean)){
+      completedExercises++;
+    }
+  });
+
+  const pct=total?Math.min(100,done/total*100):0;
+  const exerciseProgress=document.getElementById('exerciseProgress');
+  const setProgress=document.getElementById('setProgress');
+  const progressBar=document.getElementById('progressBar');
+  const dailyPercent=document.getElementById('dailyPercent');
+  if(exerciseProgress) exerciseProgress.textContent=completedExercises+'/'+list.length;
+  if(setProgress) setProgress.textContent=done+'/'+total;
+  if(progressBar) progressBar.style.width=pct+'%';
+  if(dailyPercent) dailyPercent.textContent=Math.round(pct)+'%';
+
+  const weekly=weeklyTotals();
+  const weeklyPct=weekly.total?Math.min(100,weekly.done/weekly.total*100):0;
+  const weeklyBar=document.getElementById('weeklyProgressBar');
+  const weeklyPercent=document.getElementById('weeklyPercent');
+  const weeklyDescription=document.getElementById('weeklyDescription');
+  if(weeklyBar) weeklyBar.style.width=weeklyPct+'%';
+  if(weeklyPercent) weeklyPercent.textContent=Math.round(weeklyPct)+'%';
+  if(weeklyDescription){
+    weeklyDescription.textContent=weekly.done+' de '+weekly.total+' séries concluídas nesta semana.';
+  }
+}
+
+function syncExerciseCompletionUI(exerciseIndex){
+  const exercise=state.workouts[day]?.[exerciseIndex];
+  const card=document.querySelector(`#exerciseList .exercise[data-exercise-index="${exerciseIndex}"]`);
+  if(!exercise || !card) return;
+
+  const checks=checksFor(day,exerciseIndex);
+  const setCount=Number(exercise.sets)||1;
+  const allDone=Array.from({length:setCount},(_,j)=>checks[j]===true).every(Boolean);
+  card.classList.toggle('exercise-completed',allDone);
+  const doneButton=card.querySelector('.exercise-done-btn');
+  if(doneButton){
+    doneButton.classList.toggle('done',allDone);
+    doneButton.title=allDone?'Desmarcar exercício':'Concluir todas as séries';
+    doneButton.setAttribute('aria-label',allDone?'Desmarcar exercício':'Concluir todas as séries do exercício');
+  }
+
+  card.querySelectorAll('.set-row').forEach((row,index)=>{
+    const checked=checks[index]===true;
+    row.classList.toggle('completed',checked);
+    const button=row.querySelector('.set-done-btn');
+    if(button){
+      button.classList.toggle('done',checked);
+      button.setAttribute('aria-label',(checked?'Desmarcar':'Marcar')+' série '+(index+1)+' como feita');
+      button.setAttribute('onclick',`toggleSet(${exerciseIndex},${index},${!checked})`);
+      button.title=checked?'Desmarcar série':'Marcar série como feita';
+      button.innerHTML=checked
+        ?'<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5 9.2 18 20 6"/></svg>'
+        :'OK';
+    }
+  });
+}
+
 function toggleSet(i,j,v){
+  if(getWorkoutStatus().status!=='active') return;
 
-if(getWorkoutStatus().status!=='active') return;
+  const a=checksFor(day,i);
+  const wasDone=a[j]===true;
+  a[j]=v;
+  const exercise=state.workouts[day][i];
+  const session=getWorkoutStatus();
+  if(v && !wasDone) recordLoadHistory(day,exercise,j);
+  else if(!v && wasDone) removeSessionLoadHistory(day,exercise,j,session.startedAt);
 
-
-const a=checksFor(day,i);
-const wasDone=a[j]===true;
-a[j]=v;
-if(v && !wasDone) recordLoadHistory(day,state.workouts[day][i],j);
-
-save();
-
-render();
-
+  save();
+  syncExerciseCompletionUI(i);
+  syncProgressAfterSetChange();
+  renderWorkoutButtons();
 }
 
 function toggleExercise(i){
@@ -6189,14 +6359,18 @@ const alreadyDone=Array.from(
 (_,j)=>checks[j]===true
 ).every(Boolean);
 
+const session=getWorkoutStatus();
 for(let j=0;j<count;j++){
   const wasDone=checks[j]===true;
   checks[j]=!alreadyDone;
   if(!alreadyDone && !wasDone) recordLoadHistory(day,exercise,j);
+  else if(alreadyDone && wasDone) removeSessionLoadHistory(day,exercise,j,session.startedAt);
 }
 
 save();
-render();
+syncExerciseCompletionUI(i);
+syncProgressAfterSetChange();
+renderWorkoutButtons();
 
 }
 
@@ -8033,6 +8207,11 @@ Object.keys(data)
 .forEach(k=>delete data[k]);
 
 const session=getWorkoutStatus();
+if(session.status==='active' && session.preStartSnapshot &&
+   Number.isInteger(session.preStartSnapshot.loadHistoryLength) &&
+   Array.isArray(state.loadHistory)){
+  state.loadHistory=state.loadHistory.slice(0,Math.max(0,session.preStartSnapshot.loadHistoryLength));
+}
 session.status='idle';
 session.startedAt=null;
 session.finishedAt=null;
@@ -8056,75 +8235,67 @@ render();
 // ========================================
 
 function exportData(){
-
-const blob=new Blob(
-
-[JSON.stringify(state,null,2)],
-
-{type:'application/json'}
-
-);
-
-const url=URL.createObjectURL(blob);
-
-const a=document.createElement('a');
-
-a.href=url;
-
-a.download='backup-meu-treino.json';
-
-a.click();
-
-setTimeout(
-()=>URL.revokeObjectURL(url),
-1000
-);
-
+  // Aplica a retenção antes de exportar, para que o backup também respeite
+  // o limite de quatro semanas sem tocar na ficha de exercícios.
+  applyHistoryRetention(state);
+  if(!save()){
+    alert('O aplicativo não conseguiu salvar os dados antes da exportação. Verifique o espaço disponível no navegador e tente novamente.');
+    return;
+  }
+  try{
+    const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='backup-meu-treino.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(error){
+    alert('Não foi possível gerar o backup. Tente novamente.');
+  }
 }
 
 // ========================================
 // IMPORTAR BACKUP
 // ========================================
-
 function importData(file){
-
-const r=new FileReader();
-
-r.onload=()=>{
-
-try{
-
-const x=normalizeState(
-JSON.parse(r.result)
-);
-
-if(!days.every(d=>
-Array.isArray(x.workouts[d])
-))
-throw new Error('Treinos incompletos');
-
-state=x;
-
-save();
-
-day=days.find(d=>
-state.workouts[d]
-)||days[0];
-
-render();
-
-alert('Backup importado!');
-
-}catch(e){
-
-alert('Não foi possível ler esse backup.');
-
-}
-
-};
-
-r.readAsText(file);
-
+  if(!file) return;
+  if(file.size>5*1024*1024){
+    alert('Esse backup é maior que 5 MB e não pode ser importado.');
+    return;
+  }
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const previousState=state;
+    const previousDay=day;
+    try{
+      const parsed=JSON.parse(String(reader.result||''));
+      const candidate=normalizeState(parsed);
+      if(!days.every(d=>Array.isArray(candidate.workouts[d]))){
+        throw new Error('A ficha está incompleta.');
+      }
+      state=candidate;
+      day=days.includes(state.selectedDay)?state.selectedDay:days[0];
+      if(!save()){
+        state=previousState;
+        day=previousDay;
+        alert('Não foi possível salvar o backup importado. Os dados que estavam abertos no aplicativo foram mantidos.');
+        return;
+      }
+      render();
+      alert('Backup importado com sucesso! A ficha de exercícios foi preservada e o histórico foi limitado às quatro últimas semanas.');
+    }catch(error){
+      state=previousState;
+      day=previousDay;
+      alert('Não foi possível importar esse backup. O arquivo pode estar inválido ou incompleto. Os dados atuais foram mantidos.');
+    }
+  };
+  reader.onerror=()=>{
+    alert('Não foi possível ler o arquivo de backup. Os dados atuais foram mantidos.');
+  };
+  reader.readAsText(file);
 }
 
 // ========================================
