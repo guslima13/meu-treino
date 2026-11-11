@@ -4439,6 +4439,44 @@ main { overflow: visible !important; }
 .top-dashboard{
   margin-top:0!important;
 }
+
+
+/* Refinos solicitados: rodapé enxuto e histórico de carga por treino concluído. */
+main{padding-bottom:24px!important}
+.summary-page h1{margin-bottom:12px}
+.summary-overview-cards{margin-top:12px}
+.summary-history-session{padding:10px 0;border-top:1px solid #303636}
+.summary-history-session-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:11px}
+.summary-history-session-heading strong{min-width:0;overflow-wrap:anywhere}
+.summary-history-session-heading b{color:var(--accent);white-space:nowrap}
+.summary-history-session .summary-load-chips{gap:7px}
+.summary-history-session .summary-load-chips span{font-variant-numeric:tabular-nums}
+.workout-btn.start:disabled:not(.active){background:#252a29;color:#77817b;border-color:#343b38;cursor:not-allowed;opacity:.8}
+@media(max-width:600px){main{padding-bottom:18px!important}.summary-page h1{margin-bottom:10px}.summary-history-session-heading{align-items:flex-start;flex-direction:column;gap:4px}}
+
+</style>
+
+
+<style id="requested-icon-refinements-20261111">
+/* Preserve the original start symbol at full visibility when another day blocks starting. */
+.workout-btn.start:disabled:not(.active) .workout-indicator{opacity:1!important}
+.workout-btn.start:disabled:not(.active) .workout-indicator svg{opacity:1!important;display:block!important}
+/* Aproxima levemente o símbolo do texto apenas no estado Reiniciar treino. */
+.top-dashboard .workout-btn:has(.restart-start-indicator){gap:8px!important}
+/* Restart icon inside the top action uses the same circular-arrow mark as the reset control. */
+.top-dashboard .restart-start-indicator{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  width:19px!important;height:19px!important;flex:0 0 19px!important;
+  border-radius:0!important;background:transparent!important;box-shadow:none!important;opacity:1!important;
+}
+.top-dashboard .restart-start-indicator svg{
+  display:block!important;width:19px!important;height:19px!important;
+  fill:none!important;stroke:currentColor!important;stroke-width:1.9!important;
+  stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+/* Slightly enlarge only the menu glyph; the button, wrapper and their alignment stay unchanged. */
+.header-menu-trigger svg{width:26px!important;height:26px!important}
+.sticky-workout-bar .header-menu-trigger svg{width:30px!important;height:30px!important}
 </style>
 
 </head>
@@ -4548,7 +4586,7 @@ main { overflow: visible !important; }
 <div class="confirm-backdrop" id="resetConfirm" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="resetConfirmTitle">
     <h2 id="resetConfirmTitle">Reiniciar exercício</h2>
-    <p>Desmarcar todas as séries concluídas deste treino nesta semana? As cargas e exercícios serão mantidos.</p>
+    <p>Desmarcar todas as séries concluídas deste treino nesta semana?</p>
     <div class="confirm-actions">
       <button type="button" class="btn" id="cancelResetBtn">Cancelar</button>
       <button type="button" class="btn primary" id="confirmResetBtn">Reiniciar exercício</button>
@@ -4719,7 +4757,6 @@ main { overflow: visible !important; }
       <button type="button" class="btn summary-back-btn" id="summaryBackBtn" aria-label="Voltar aos treinos">Voltar</button>
     </div>
     <h1>Resumo geral</h1>
-    <p class="summary-page-intro">Consulte como seus exercícios estão distribuídos de segunda a sábado e acompanhe as cargas registradas nas séries concluídas.</p>
     <div class="summary-overview-cards" id="summaryOverviewCards"></div>
     <nav class="summary-tabs" id="summaryTabs" aria-label="Filtros do resumo">
       <button type="button" class="summary-tab active" data-summary-filter="days" aria-pressed="true">Dias da semana</button>
@@ -4975,31 +5012,26 @@ let editIndex=null;
 let state=loadState();
 day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 
-// Ferramenta de uso único para zerar somente o progresso do ciclo semanal
-// neste navegador. Preserva exercícios, cargas, cadastros e histórico.
+// Entrega limpa: preserva exercícios e cargas, mas inicia todos os dias sem progresso.
+// Executa uma única vez nesta versão para não apagar o progresso criado depois.
 (function(){
-  const params=new URLSearchParams(window.location.search);
-  const resetKey='smartWorkout_week_reset_20261110_v1';
-  if(params.get('zerar-semana')!=='1' && localStorage.getItem(resetKey)==='1') return;
-  const currentWeek=weekKey();
-  state.weeklyChecks=state.weeklyChecks||{};
-  state.weeklyChecks[currentWeek]={};
+  const resetKey='smartWorkout_clean_delivery_20261111_v2';
+  if(localStorage.getItem(resetKey)==='1') return;
+  state.weeklyChecks={};
   state.checks={};
+  state.completedWorkouts=[];
   state.sessions=state.sessions||{};
   days.forEach(workoutDay=>{
-    const session=state.sessions[workoutDay];
-    if(session && session.week===currentWeek){
-      state.sessions[workoutDay]={
-        status:'idle',startedAt:null,finishedAt:null,
-        resetExpiresAt:null,restartCount:0,week:currentWeek
-      };
-    }
+    state.sessions[workoutDay]={
+      status:'idle',startedAt:null,finishedAt:null,
+      resetExpiresAt:null,restartCount:0,week:null
+    };
   });
+  state.selectedDay=days[0];
   state.todayNoticeDismissedDate=null;
   state.todayNoticeResumeAt=null;
   localStorage.setItem('smartWorkoutData',JSON.stringify(state));
   localStorage.setItem(resetKey,'1');
-  window.history.replaceState({},document.title,window.location.pathname+window.location.hash);
 })();
 
 
@@ -5080,6 +5112,7 @@ if(x.equipmentPrepositions && Object.prototype.hasOwnProperty.call(x.equipmentPr
 // existentes uma única vez e preserva itens mesmo quando saem de um dia.
 if(!Array.isArray(x.exerciseCatalog)) x.exerciseCatalog=[];
 if(!Array.isArray(x.loadHistory)) x.loadHistory=[];
+if(!Array.isArray(x.completedWorkouts)) x.completedWorkouts=[];
 const ensureExerciseId=ex=>{if(ex && typeof ex==='object' && !ex.id) ex.id='exercise_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);};
 Object.values(x.workouts||{}).flat().forEach(ensureExerciseId);
 x.exerciseCatalog.forEach(ensureExerciseId);
@@ -5338,6 +5371,33 @@ function finishWorkout(){
   if(session.status!=='active') return;
   session.status='finished';
   session.finishedAt=new Date().toISOString();
+  // Guarda um retrato dos exercícios integralmente confirmados nesta sessão.
+  // Cada registro preserva as cargas das séries feitas para a evolução histórica.
+  state.completedWorkouts=Array.isArray(state.completedWorkouts)?state.completedWorkouts:[];
+  const completedExercises=(state.workouts[day]||[]).flatMap((exercise,index)=>{
+    const count=Number(exercise.sets)||1;
+    const checks=checksFor(day,index);
+    const completed=Array.from({length:count},(_,setIndex)=>checks[setIndex]===true);
+    if(!completed.every(Boolean)) return [];
+    const loads=Array.from({length:count},(_,setIndex)=>String((exercise.loads||[])[setIndex]??'').trim());
+    const numericLoads=loads.filter(value=>value!=='').map(value=>Number(value.replace(',','.'))).filter(Number.isFinite);
+    return [{
+      exerciseId:exercise.id||(exercise.id='exercise_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9)),
+      exerciseName:String(exercise.name||'Exercício'),
+      muscle:String(exercise.muscle||''),
+      equipment:String(exercise.equipment||''),
+      loads,
+      average:numericLoads.length?numericLoads.reduce((sum,value)=>sum+value,0)/numericLoads.length:null
+    }];
+  });
+  state.completedWorkouts.push({
+    id:'workout_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),
+    day,
+    week:weekKey(),
+    startedAt:session.startedAt,
+    finishedAt:session.finishedAt,
+    exercises:completedExercises
+  });
   // O primeiro encerramento válido do ciclo libera Reiniciar por uma hora.
   // Depois de usar Reiniciar uma vez, o segundo encerramento não libera outro reinício.
   session.resetExpiresAt=(Number(session.restartCount)||0)===0?Date.now()+60*60*1000:null;
@@ -5403,9 +5463,21 @@ if(canReset){
 
 if(session.status==='idle'){
 
-startBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span><span class="workout-label">INICIAR TREINO</span>';
+const activeWorkoutDay=days.find(workoutDay=>workoutDay!==day && getWorkoutStatusForDay(workoutDay)==='active');
+const startBlocked=Boolean(activeWorkoutDay);
 
-startBtn.disabled=false;
+const wasRestarted=(Number(session.restartCount)||0)>0;
+if(wasRestarted){
+  startBtn.innerHTML='<span class="workout-indicator restart-start-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 7v5h-5M4.8 9a7.5 7.5 0 0 1 12.7-2L20 12M4 17v-5h5m10.2 3a7.5 7.5 0 0 1-12.7 2L4 12"/></svg></span><span class="workout-label">REINICIAR TREINO</span>';
+}else{
+  startBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span><span class="workout-label">INICIAR TREINO</span>';
+}
+
+// Quando outro dia estiver ativo, preserve a bolinha do indicador, mas deixe-a vazia.
+const startIndicator=startBtn.querySelector('.workout-indicator');
+if(startBlocked && startIndicator) startIndicator.innerHTML='';
+startBtn.disabled=startBlocked;
+startBtn.title=startBlocked?`Finalize o treino de ${activeWorkoutDay} antes de iniciar outro.`:'';
 
 startBtn.classList.remove('active');
 
@@ -5832,7 +5904,7 @@ aria-label="${Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Bool
 <div class="sets-head">
 <span>Série</span>
 <span>${isAerobicExercise(e)?'Tempo':'Carga (kg)'}</span>
-<span>Feito</span>
+<span>FEITO?</span>
 </div>
 
 ${Array.from(
@@ -8315,38 +8387,54 @@ function summaryLoadValue(value){
   return /^[-+]?\d+(?:[,.]\d+)?$/.test(text)?text+' kg':text;
 }
 
-function summaryChartMarkup(history){
-  const points=history.map((item,index)=>({label:index===history.length-1?'Mais recente':'Anterior',value:Number(String(item.load).replace(',','.'))})).filter(point=>Number.isFinite(point.value));
+function summaryChartMarkup(workouts){
+  const points=workouts.map((item,index)=>({
+    label:item.day+' '+new Date(item.finishedAt).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),
+    value:item.average
+  })).filter(point=>Number.isFinite(point.value));
   if(!points.length) return '';
-  const width=700,height=205,left=54,right=24,top=20,bottom=38;
-  const min=Math.min(...points.map(p=>p.value)),max=Math.max(...points.map(p=>p.value));
+  const width=700,height=220,left=58,right=24,top=22,bottom=48;
+  const min=Math.min(...points.map(point=>point.value)),max=Math.max(...points.map(point=>point.value));
   const range=max-min||Math.max(Math.abs(max)*.08,1);
-  const x=i=>points.length===1?(left+width-right)/2:left+i*(width-left-right)/Math.max(points.length-1,1);
+  const x=index=>points.length===1?(left+width-right)/2:left+index*(width-left-right)/Math.max(points.length-1,1);
   const y=value=>top+(max-value)/range*(height-top-bottom);
   const coords=points.map((point,index)=>`${x(index).toFixed(1)},${y(point.value).toFixed(1)}`);
-  const yLabels=[0,.5,1].map(r=>{const value=max-r*range;const yy=top+r*(height-top-bottom);return `<text x="${left-9}" y="${yy+4}" text-anchor="end">${esc(Number(value.toFixed(2)).toLocaleString('pt-BR'))}</text><line x1="${left}" y1="${yy}" x2="${width-right}" y2="${yy}" />`;}).join('');
-  const xLabels=points.map((point,index)=>`<text x="${x(index)}" y="${height-10}" text-anchor="middle">${point.label}</text>`).join('');
-  const dots=points.map((point,index)=>`<circle cx="${x(index)}" cy="${y(point.value)}" r="5"><title>${point.label} · ${summaryLoadValue(point.value)}</title></circle>`).join('');
-  return `<div class="summary-chart-wrap"><h3>Comparação das últimas atualizações</h3><p>Comparação entre as duas confirmações mais recentes de séries concluídas.</p><svg class="summary-load-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Comparação entre a atualização anterior e a mais recente"><g class="summary-chart-grid">${yLabels}</g>${points.length>1?`<polyline points="${coords.join(' ')}" />`:''}${dots}<g class="summary-chart-labels">${xLabels}</g></svg></div>`;
+  const yLabels=[0,.5,1].map(r=>{
+    const value=max-r*range,yy=top+r*(height-top-bottom);
+    return `<text x="${left-9}" y="${yy+4}" text-anchor="end">${esc(Number(value.toFixed(2)).toLocaleString('pt-BR'))} kg</text><line x1="${left}" y1="${yy}" x2="${width-right}" y2="${yy}" />`;
+  }).join('');
+  const xLabels=points.map((point,index)=>`<text x="${x(index)}" y="${height-10}" text-anchor="middle">${esc(point.label)}</text>`).join('');
+  const dots=points.map((point,index)=>`<circle cx="${x(index)}" cy="${y(point.value)}" r="5"><title>${esc(point.label)} · média ${summaryLoadValue(point.value)}</title></circle>`).join('');
+  return `<div class="summary-chart-wrap"><h3>Comparações</h3><p>Média das cargas das séries concluídas em cada um dos últimos três treinos finalizados.</p><svg class="summary-load-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Comparação da média das cargas nos últimos três treinos concluídos"><g class="summary-chart-grid">${yLabels}</g>${points.length>1?`<polyline points="${coords.join(' ')}" />`:''}${dots}<g class="summary-chart-labels">${xLabels}</g></svg></div>`;
 }
 
 function summaryLoadsMarkup(){
   const groups=getActiveSummaryExercises();
-  if(!groups.length) return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Acompanhe as duas atualizações mais recentes das séries confirmadas.</p></div></div><div class="summary-empty-state">Adicione exercícios aos treinos para consultar as cargas atuais e começar a registrar sua evolução.</div>`;
+  if(!groups.length) return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Acompanhe as cargas das séries dos três últimos treinos finalizados.</p></div></div><div class="summary-empty-state">Adicione exercícios aos treinos para consultar a evolução das cargas.</div>`;
   const selectedIndex=Math.min(Math.max(Number(summaryLoadGroupIndex)||0,0),groups.length-1);
   summaryLoadGroupIndex=String(selectedIndex);
   const options=groups.map((group,index)=>`<option value="${index}" ${index===selectedIndex?'selected':''}>${esc(group.name)} · ${esc(group.muscle)} · ${esc(group.equipment)}</option>`).join('');
   const group=groups[selectedIndex];
   const ids=new Set(group.ids);
-  const history=(state.loadHistory||[]).filter(item=>ids.has(item.exerciseId)).sort((a,b)=>(new Date(a.timestamp).getTime()||0)-(new Date(b.timestamp).getTime()||0));
-  const recentHistory=history.slice(-2);
-  const currentEntries=group.entries;
-  const currentMarkup=currentEntries.map(({day:dayName,exercise})=>`<div class="summary-current-load"><div><strong>${esc(dayName)} · ${esc(exercise.name||'Exercício')}</strong><small>${esc(exercise.muscle||'-')} · ${esc(exercise.equipment||'-')}</small></div><div class="summary-load-chips">${Array.from({length:Number(exercise.sets)||1},(_,index)=>`<span>${index+1}: ${esc(summaryLoadValue((exercise.loads||[])[index]))}</span>`).join('')}</div></div>`).join('');
-  const historyMarkup=recentHistory.length?`<div class="summary-history-table-wrap"><h3>Últimas ${recentHistory.length} ${recentHistory.length===1?'atualização':'atualizações'}</h3><div class="summary-history-list">${[...recentHistory].reverse().map((item,index)=>`<div class="summary-history-row"><span>${index===0?'Mais recente':'Anterior'}</span><strong>Série ${Number(item.set)||'-'}</strong><b>${esc(summaryLoadValue(item.load))}</b></div>`).join('')}</div></div>`:`<div class="summary-empty-state">Ainda não há confirmações de séries para este exercício. Ao marcar uma série como OK, a carga será registrada. Ao atualizar a carga e confirmar novamente, a nova informação passa a compor as últimas atualizações.</div>`;
-  return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Veja as cargas atuais e compare somente as duas confirmações mais recentes.</p></div></div>
+  const recentWorkouts=(state.completedWorkouts||[])
+    .map(workout=>{
+      const exercise=(workout.exercises||[]).find(item=>ids.has(item.exerciseId));
+      if(!exercise) return null;
+      const numericLoads=(exercise.loads||[]).map(value=>String(value??'').trim()).filter(value=>value!=='').map(value=>Number(value.replace(',','.'))).filter(Number.isFinite);
+      if(!numericLoads.length) return null;
+      return {...workout,exercise,average:numericLoads.reduce((sum,value)=>sum+value,0)/numericLoads.length};
+    })
+    .filter(Boolean)
+    .sort((a,b)=>new Date(a.finishedAt).getTime()-new Date(b.finishedAt).getTime())
+    .slice(-3);
+  const historyMarkup=recentWorkouts.length?`<section class="summary-history-table-wrap"><h3>Últimos ${recentWorkouts.length} ${recentWorkouts.length===1?'treino finalizado':'treinos finalizados'}</h3><div class="summary-history-list">${[...recentWorkouts].reverse().map((workout,index)=>{
+    const date=new Date(workout.finishedAt).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+    const chips=(workout.exercise.loads||[]).map((load,setIndex)=>`<span>${setIndex+1}: ${esc(summaryLoadValue(load))}</span>`).join('');
+    return `<article class="summary-history-session"><div class="summary-history-session-heading"><strong>${esc(workout.day)} · ${esc(date)}</strong><b>Média: ${esc(summaryLoadValue(workout.average))}</b></div><div class="summary-load-chips">${chips}</div></article>`;
+  }).join('')}</div></section>`:`<div class="summary-empty-state">Ainda não há treinos finalizados com todas as séries deste exercício confirmadas. Finalize um treino após marcar as séries como feitas para registrar as cargas aqui.</div>`;
+  return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Confira as cargas das séries nos três últimos treinos finalizados do exercício selecionado.</p></div></div>
     <div class="summary-load-filters"><label>Exercício<select id="summaryLoadExercise">${options}</select></label></div>
-    <section class="summary-current-loads"><h3>Cargas atuais nos treinos</h3>${currentMarkup}</section>
-    ${recentHistory.length?summaryChartMarkup(recentHistory):''}${historyMarkup}`;
+    ${recentWorkouts.length?summaryChartMarkup(recentWorkouts):''}${historyMarkup}`;
 }
 
 function renderSummaryPage(){
