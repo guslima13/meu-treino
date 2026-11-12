@@ -4675,6 +4675,36 @@ main{padding-bottom:24px!important}
 body.weekly-evolution-open{overflow:hidden}
 @media(max-width:600px){.weekly-evolution-page{padding-bottom:20px}.weekly-week-heading{align-items:flex-start;flex-direction:column;gap:3px}}
 </style>
+
+<style id="final-action-icons-approved-20261112">
+/* Somente aparência: mantém o fluxo e o armazenamento originais. */
+.bottom-dashboard .finish-control #cancelWorkoutBtn,
+.bottom-dashboard .finish-control #resetBtn {
+  top:50%!important;right:13px!important;transform:translateY(-50%)!important;
+  width:30px!important;min-width:30px!important;height:30px!important;min-height:30px!important;
+  padding:0!important;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;outline-offset:2px;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.bottom-dashboard .finish-control #cancelWorkoutBtn {color:#40503c!important}
+.bottom-dashboard .finish-control #cancelWorkoutBtn svg {
+  width:24px!important;height:24px!important;display:block!important;
+  fill:none!important;stroke:currentColor!important;stroke-width:2.7!important;
+  stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+.bottom-dashboard .finish-control #resetBtn {color:#d7ff00!important}
+.bottom-dashboard .finish-control #resetBtn svg {
+  width:24px!important;height:24px!important;display:block!important;
+  fill:none!important;stroke:currentColor!important;stroke-width:2.2!important;
+  stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+.bottom-dashboard .finish-control #cancelWorkoutBtn:active,
+.bottom-dashboard .finish-control #resetBtn:active {transform:translateY(-50%) scale(.95)!important}
+@media(min-width:601px){
+  .bottom-dashboard .finish-control #cancelWorkoutBtn,
+  .bottom-dashboard .finish-control #resetBtn{right:17px!important}
+}
+</style>
 </head>
 
 <body>
@@ -4782,7 +4812,7 @@ body.weekly-evolution-open{overflow:hidden}
 
 <div class="confirm-backdrop" id="resetConfirm" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="resetConfirmTitle">
-    <h2 id="resetConfirmTitle">Reiniciar</h2>
+    <h2 id="resetConfirmTitle">Reiniciar treino</h2>
     <p>Todas as séries concluídas no treino anterior se manterão salvas no histórico.</p>
     <div class="confirm-actions">
       <button type="button" class="btn" id="cancelResetBtn">Voltar</button>
