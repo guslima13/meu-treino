@@ -4264,6 +4264,20 @@ main { overflow: visible !important; }
 @media (max-width: 600px) {
   .exercise .sets-head > :last-child { width: 40px; }
 }
+
+/* Ajustes solicitados: resumo dos dias e tonalidade uniforme do menu. */
+.day-workout-preview{overflow:visible!important;}
+.day-workout-preview::before{
+  content:"";position:absolute;top:-7px;left:var(--preview-pointer-x,50%);
+  width:12px;height:12px;transform:translateX(-50%) rotate(45deg);
+  background:#1b221e;border-left:1px solid #46564b;border-top:1px solid #46564b;
+  pointer-events:none;
+}
+.header-menu-trigger,.header-menu-trigger.menu-open,
+.header-menu-trigger[aria-expanded="true"],.header-menu,
+.hero .header-menu-trigger,.hero .header-menu-trigger.menu-open,.hero .header-menu{
+  background:#1b221e!important;background-image:none!important;
+}
 </style>
 <style>
 
@@ -5982,12 +5996,13 @@ function showDayWorkoutPreview(targetDay,anchor){
     </div>`).join(''):'<div class="day-preview-empty">Nenhum exercício cadastrado</div>';
   document.body.appendChild(panel);
   const rect=anchor.getBoundingClientRect();
-  const width=Math.min(340,window.innerWidth-20);
+  const width=Math.min(290,window.innerWidth-24);
   panel.style.width=width+'px';
   const left=Math.max(10,Math.min(window.innerWidth-width-10,rect.left+rect.width/2-width/2));
   panel.style.left=left+'px';
-  panel.style.top=Math.min(window.innerHeight-12,rect.bottom+7)+'px';
-  const maxHeight=Math.max(120,window.innerHeight-rect.bottom-20);
+  panel.style.top=Math.min(window.innerHeight-12,rect.bottom+17)+'px';
+  panel.style.setProperty('--preview-pointer-x',Math.max(14,Math.min(width-14,rect.left+rect.width/2-left))+'px');
+  const maxHeight=Math.max(120,window.innerHeight-rect.bottom-30);
   panel.style.maxHeight=Math.min(390,maxHeight)+'px';
 }
 window.addEventListener('scroll',closeDayWorkoutPreview,{passive:true});
