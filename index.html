@@ -6746,24 +6746,23 @@ function upsertExerciseCatalog(exercise, oldExercise=null){
 function updateCanonicalExerciseFromAdd(selectedVariant, updatedExercise){
   if(!selectedVariant || !updatedExercise) return false;
   const previousSignature=exerciseVariationSignature(selectedVariant);
-  const index=(state.exerciseCatalog||[]).findIndex(item=>
-    exerciseVariationSignature(item)===previousSignature
-  );
+  const catalog=state.exerciseCatalog||[];
+  const index=catalog.findIndex(item=>exerciseVariationSignature(item)===previousSignature);
   if(index<0) return false;
-
-  const canonical=state.exerciseCatalog[index];
-  const metadata={
-    name:String(updatedExercise.name||canonical.name||'').trim(),
-    muscle:String(updatedExercise.muscle??canonical.muscle??'').trim(),
-    equipment:String(updatedExercise.equipment??canonical.equipment??'-').trim()||'-',
-    execution:String(updatedExercise.execution??canonical.execution??'-').trim()||'-',
-    grip:String(updatedExercise.grip??canonical.grip??'-').trim()||'-'
-  };
-  Object.assign(canonical,metadata);
-
-  // Atualiza as cópias que já estejam nos treinos sem gerar novo registro mestre.
+  // Catálogo mestre guarda TODOS os atributos, inclusive séries, cargas e notas.
+  // O exercício não precisa estar atribuído a nenhum dia para manter esses valores.
+  const updated=JSON.parse(JSON.stringify(updatedExercise));
+  const conflicting=catalog.some((item,i)=>i!==index && exerciseVariationSignature(item)===exerciseVariationSignature(updated));
+  if(conflicting){
+    showCatalogNotice('Exercício já cadastrado','Essa combinação de nome e atributos já existe no cadastro.');
+    return false;
+  }
+  catalog[index]=updated;
+  // Propaga os mesmos dados às ocorrências ativas da mesma variação.
   Object.values(state.workouts||{}).forEach(workout=>(workout||[]).forEach(item=>{
-    if(exerciseVariationSignature(item)===previousSignature) Object.assign(item,metadata);
+    if(exerciseVariationSignature(item)===previousSignature){
+      Object.assign(item,JSON.parse(JSON.stringify(updated)));
+    }
   }));
   return true;
 }
@@ -6951,7 +6950,7 @@ document.getElementById('exercisePageEyebrow').textContent=i===null?'ADICIONAR E
 function handleExerciseNameInput(selectedVariant=null){
   if(editIndex!==null) return;
   const typed=fName.value.trim();
-  const catalog=[...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()];
+  const catalog=state.exerciseCatalog||[];
   const match=selectedVariant || (typed
     ? [...catalog].reverse().find(ex=>String(ex.name||'').trim().toLocaleLowerCase('pt-BR')===typed.toLocaleLowerCase('pt-BR'))
     : null);
@@ -7102,11 +7101,12 @@ if(editIndex===null){
   // A seleção em Adicionar altera os dados do cadastro mestre existente.
   // Nunca cria um novo item no catálogo por causa de edição de metadados.
   preserveExerciseDropdownValues(selectedVariantForAdd);
-  updateCanonicalExerciseFromAdd(selectedVariantForAdd,e);
+  if(!updateCanonicalExerciseFromAdd(selectedVariantForAdd,e)) return;
 
   // A escolha do dia funciona como movimentação da mesma variação já cadastrada.
   // Atualiza cópias antigas com os metadados novos e remove apenas essa variação.
-  const sameVariant=item=>exerciseVariationSignature(item)===exerciseVariationSignature(e);
+  const originalSignature=exerciseVariationSignature(selectedVariantForAdd);
+  const sameVariant=item=>exerciseVariationSignature(item)===exerciseVariationSignature(e) || exerciseVariationSignature(item)===originalSignature;
   days.forEach(dayName=>{
     const list=state.workouts[dayName]||[];
     for(let idx=list.length-1;idx>=0;idx--){
@@ -7606,6 +7606,12 @@ function bindExerciseDrag(){
   }
 
   window.addEventListener('pointermove',moveDrag,{passive:false});
+  // A rolagem iniciada sobre a alça deve ser nativa. Depois que a pressão
+  // longa ativa o arrasto, evita rolagem concorrente enquanto o dedo move o card.
+  window.addEventListener('touchmove',event=>{
+    if(!activeExerciseDrag || !event.cancelable) return;
+    event.preventDefault();
+  },{passive:false});
   window.addEventListener('pointerup',event=>finishDrag(event,false));
   window.addEventListener('pointercancel',event=>finishDrag(event,true));
   window.addEventListener('blur',()=>{
@@ -8811,7 +8817,7 @@ function renderWeeklyEvolution(){
       const items=w.records.flatMap((r,sessionIndex)=>r.loads.map((load,j)=>`<span class="${r.done[j]?'':'missing'}">${w.records.length>1?'T'+(sessionIndex+1)+' · ':''}S${j+1}: ${r.done[j]?weeklyFormatLoad(load):'—'}</span>`));
       const hasPending=w.records.some(r=>r.done.some(v=>v!==true));
       const status=!w.records.length?'Exercício não realizado nesta semana.':hasPending?'— Há séries não concluídas.':'Todas as séries registradas foram concluídas.';
-      return `<article class="weekly-week-card"><div class="weekly-week-heading"><strong>Semana ${i+1} · ${esc(w.label)}</strong><span class="weekly-week-average">${esc(weeklyFmtAvg(w.average))}</span></div>${items.length?`<div class="weekly-series">${items.join('')}</div>`:''}<p class="weekly-week-status">${esc(status)}</p></article>`;
+      return `<article class="weekly-week-card"><div class="weekly-week-heading"><strong>Semana ${i+1} · ${esc(w.label)}</strong></div>${items.length?`<div class="weekly-series">${items.join('')}</div>`:''}<p class="weekly-week-status">${esc(status)}</p></article>`;
     }).join('');
   }else{
     const chartWeeks=[...weeks].reverse(); // Da semana mais antiga à mais recente, para leitura temporal do gráfico.
@@ -9513,6 +9519,16 @@ if ('serviceWorker' in navigator) {
 </style>
 
 
+<style id="exercise-drag-scroll-fix-20261112">
+/* Permite rolagem vertical iniciada sobre a alça. O arrasto continua
+   exigindo pressão longa; não altera dimensões nem o aspecto do botão. */
+.exercise-drag-handle,
+.exercise.is-collapsed .exercise-drag-handle,
+.exercise.is-collapsed .exercise-drag-handle.press-pending,
+.exercise.is-collapsed .exercise-drag-handle.long-press-armed {
+  touch-action:pan-y!important;
+}
+</style>
 <style id="drag-handle-stable-after-tap">
 .exercise.is-collapsed .exercise-drag-handle,
 .exercise.is-collapsed .exercise-drag-handle:hover,
