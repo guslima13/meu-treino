@@ -5883,7 +5883,7 @@ function toggleExerciseDetails(index,button){
 }
 
 function updateExerciseListToggle(){
-  const button=document.getElementById('toggleAllExercisesBtn');
+  const button=document.querySelector('#exerciseList .exercise-collapse-all-btn');
   if(!button) return;
 
   // Seta para baixo = cards recolhidos (ação: expandir).
@@ -6210,7 +6210,7 @@ aria-label="${Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Bool
 
 <div class="exercise-sets-area">
   <div class="exercise-collapse-row">
-    ${i===0?`<button type="button" class="exercise-collapse-btn exercise-collapse-all-btn" onclick="toggleAllExerciseDetails()" aria-label="Expandir ou recolher todos os exercícios" title="Expandir ou recolher todos os exercícios"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3l5 3.5L17 3 M7 10l5 3.5 5-3.5 M7 17l5 3.5 5-3.5"/></svg></button>`:''}
+    ${i===0?`<button type="button" class="exercise-collapse-btn exercise-collapse-all-btn" onclick="toggleAllExerciseDetails()" aria-expanded="${!allExercisesCollapsed}" aria-label="${allExercisesCollapsed?'Expandir todos os exercícios deste treino':'Recolher todos os exercícios deste treino'}" title="${allExercisesCollapsed?'Expandir todos os exercícios deste treino':'Recolher todos os exercícios deste treino'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${allExercisesCollapsed?'M7 3l5 3.5L17 3 M7 10l5 3.5 5-3.5 M7 17l5 3.5 5-3.5':'M7 7l5-3.5L17 7 M7 14l5-3.5 5 3.5 M7 21l5-3.5 5 3.5'}"/></svg></button>`:''}
     <button type="button" class="exercise-collapse-btn" onclick="toggleExerciseDetails(${i},this)" aria-expanded="${!exerciseCollapsed}" aria-label="${exerciseCollapsed?'Expandir este exercício':'Recolher este exercício'}" title="${exerciseCollapsed?'Expandir este exercício':'Recolher este exercício'}">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="${exerciseCollapsed?'m6 9 6 6 6-6':'m6 15 6-6 6 6'}"/></svg>
     </button>
