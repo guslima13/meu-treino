@@ -5069,6 +5069,7 @@ const allExercisesCollapsedByDay=Object.fromEntries(days.map(workoutDay=>[workou
 let allExercisesCollapsed=true;
 const exerciseCollapseOverrides=new Map();
 let editIndex=null;
+let lastKnownPrimaryRaw=null;
 let state=loadState();
 // A preferência independente tem prioridade; o campo dentro do backup/estado
 // continua como compatibilidade para versões anteriores.
@@ -5248,8 +5249,6 @@ applyHistoryRetention(x);
 return x;
 
 }
-
-let lastKnownPrimaryRaw=null;
 
 function loadState(){
 
