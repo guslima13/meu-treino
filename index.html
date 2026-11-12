@@ -4638,6 +4638,29 @@ main{padding-bottom:24px!important}
   box-shadow:0 0 0 2px #d7ff0025,0 0 3px #d7ff0055!important;
 }
 </style>
+
+<style>
+.weekly-evolution-page[hidden]{display:none!important}
+.weekly-evolution-page{position:fixed;inset:0;z-index:110;overflow:auto;background:var(--bg,#101414);padding-bottom:28px}
+.weekly-evolution-page .eyebrow{color:var(--accent,#d7ff00)!important;font-size:10px;letter-spacing:.09em}
+.weekly-intro{color:var(--muted,#9fa9a2);font-size:12px;line-height:1.6;margin:0 0 18px}
+.weekly-exercise-label{display:block;font-size:12px;font-weight:700;margin:0 0 7px}
+#weeklyEvolutionExercise{width:100%;margin-bottom:0;min-height:42px;background:#202626;color:#f0f5f0;border:1px solid #3b4941;border-radius:10px;padding:10px}
+.weekly-evolution-page .weekly-evolution-tabs{margin:16px 0 16px!important;padding:0 1px!important;display:flex;gap:8px;flex-wrap:wrap}
+.weekly-week-card{padding:14px;margin:0 0 10px;background:linear-gradient(145deg,#1b1f1f,#141717);border:1px solid var(--line,#343b38);border-radius:13px}
+.weekly-week-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.weekly-week-heading strong{font-size:13px}.weekly-week-heading small{font-size:11px;color:var(--muted,#a3aca5)}
+.weekly-series{display:flex;flex-wrap:wrap;gap:7px}.weekly-series span{border:1px solid #39443d;border-radius:8px;padding:7px 9px;font-size:12px;background:#252b28}
+.weekly-series span.missing{color:#a3aaa4;border-style:dashed}.weekly-week-status{font-size:12px;color:#aeb8b0;margin:8px 0 0}
+.weekly-week-average{font-size:12px;color:var(--accent,#d7ff00);font-weight:700}
+.weekly-chart-wrap{padding:14px;background:linear-gradient(145deg,#1b1f1f,#141717);border:1px solid var(--line,#343b38);border-radius:13px}
+.weekly-chart-wrap svg{width:100%;height:auto;display:block;overflow:visible}.weekly-chart-wrap .gridline{stroke:#39443e;stroke-width:1}
+.weekly-chart-wrap .trend{stroke:var(--accent,#d7ff00);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.weekly-chart-wrap .dot{fill:var(--accent,#d7ff00)}.weekly-chart-wrap text{fill:#bdc8bf;font-size:12px}
+.weekly-chart-legend{font-size:12px;color:#b7c3ba;margin:10px 0 0}
+body.weekly-evolution-open{overflow:hidden}
+@media(max-width:600px){.weekly-evolution-page{padding-bottom:20px}.weekly-week-heading{align-items:flex-start;flex-direction:column;gap:3px}}
+</style>
 </head>
 
 <body>
@@ -4663,6 +4686,9 @@ main{padding-bottom:24px!important}
     </button>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openInfoCatalog()">
       <span class="menu-item-icon">▤</span><span>Cadastro e exclusão</span>
+    </button>
+    <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openWeeklyEvolution()">
+      <span class="menu-item-icon">↗</span><span>Evolução semanal</span>
     </button>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openSummaryPage()">
       <span class="menu-item-icon">▥</span><span>Resumo geral</span>
@@ -4943,6 +4969,24 @@ main{padding-bottom:24px!important}
     </nav>
     <div id="summaryContent" class="summary-content" aria-live="polite"></div>
     <p class="summary-page-footnote">Este resumo considera somente os exercícios atualmente ativos nos treinos. Alterações feitas em Adicionar, Editar e Cadastro são refletidas automaticamente.</p>
+  </div>
+</section>
+
+<section class="summary-page weekly-evolution-page" id="weeklyEvolutionPage" hidden aria-label="Evolução semanal">
+  <div class="summary-page-shell">
+    <div class="summary-page-topline">
+      <span class="eyebrow">ACOMPANHAMENTO DE EXERCÍCIOS CONCLUÍDOS</span>
+      <button type="button" class="btn summary-back-btn" onclick="closeWeeklyEvolution()">Voltar</button>
+    </div>
+    <h1>Evolução semanal</h1>
+    <label class="weekly-exercise-label" for="weeklyEvolutionExercise">Exercício</label>
+    <select id="weeklyEvolutionExercise" aria-label="Selecione o exercício" onchange="weeklySelectedExercise=this.value;renderWeeklyEvolution()"></select>
+    <nav class="summary-tabs weekly-evolution-tabs" aria-label="Visualização da evolução semanal">
+      <button type="button" class="summary-tab active" id="weeklyNumbersTab" onclick="weeklyView='numbers';renderWeeklyEvolution()">Cargas por semana</button>
+      <button type="button" class="summary-tab" id="weeklyChartTab" onclick="weeklyView='chart';renderWeeklyEvolution()">Gráfico de evolução</button>
+    </nav>
+    <div id="weeklyEvolutionContent" class="summary-content" aria-live="polite"></div>
+    <p class="summary-page-footnote">A média considera somente séries concluídas com carga numérica. Séries pendentes aparecem como “—”. Registros anteriores à instalação desta versão podem não conter todos os detalhes.</p>
   </div>
 </section>
 
@@ -8685,6 +8729,127 @@ function refreshAllStyledSelects(){
   document.querySelectorAll('select').forEach(refreshStyledSelect);
 }
 
+
+// Evolução semanal: leitura dos registros existentes, sem modificar os dados dos treinos.
+let weeklySelectedExercise='';
+let weeklyView='numbers';
+function weeklyStart(date){const d=new Date(date);d.setHours(0,0,0,0);d.setDate(d.getDate()-d.getDay());return d;}
+function weeklyDateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function weeklyNumber(v){const str=String(v??'').trim();return /^\d+(?:[,.]\d+)?$/.test(str)?Number(str.replace(',','.')):null;}
+function weeklyGroups(){return getActiveSummaryExercises().sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));}
+function weeklyRecords(group,weekDate){
+  const key=weeklyDateKey(weekDate), end=new Date(weekDate.getTime()+7*86400000);
+  const ids=new Set(group.ids.map(String));
+  const signature=ex=>summaryExerciseSignature(ex)===group.signature;
+  const matching=ex=>ids.has(String(ex.exerciseId||ex.id||'')) || (ex.exerciseName && comparisonKey(ex.exerciseName)===comparisonKey(group.name) && comparisonKey(ex.muscle||'')===comparisonKey(group.muscle||''));
+  const records=[];
+  // Instantâneos dos treinos encerrados preservam a carga da época e as séries pendentes.
+  (state.completedWorkouts||[]).forEach(workout=>{
+    const t=new Date(workout.finishedAt||workout.startedAt||'');
+    if(!(t>=weekDate && t<end))return;
+    (workout.exercises||[]).filter(matching).forEach(ex=>records.push({date:t,loads:ex.loads||[],done:ex.completedSets||[],source:'finished'}));
+  });
+  // Semana em curso: inclui as séries feitas mesmo antes de finalizar o treino.
+  if(key===weekKey()){
+    days.forEach(dayName=>(state.workouts[dayName]||[]).forEach((ex,i)=>{
+      if(!signature(ex))return;
+      const done=(state.weeklyChecks?.[key]?.[dayName+'_'+i]||[]);
+      if(!done.some(v=>v===true))return;
+      const n=Number(ex.sets)||1;
+      const loads=Array.from({length:n},(_,j)=>done[j]===true?String((ex.loads||[])[j]??''):'');
+      // Evita contar novamente as mesmas séries se o treino já foi finalizado.
+      const alreadyFinished=records.some(r=>r.source==='finished' && r.loads.length===n && r.done.every((v,j)=>v=== (done[j]===true)));
+      if(!alreadyFinished)records.push({date:new Date(),loads,done:Array.from({length:n},(_,j)=>done[j]===true),source:'current'});
+    }));
+  }
+  // Registros históricos de marcação servem como alternativa quando não existe
+  // instantâneo do treino. Nunca são somados a um treino já registrado.
+  if(!records.length){
+    const historical=(state.loadHistory||[]).filter(item=>{
+      const t=new Date(item.timestamp||item.date||'');
+      return t>=weekDate && t<end && matching(item);
+    });
+    if(historical.length){
+      const byDay=new Map();
+      historical.forEach(item=>{
+        const date=String(item.date||item.timestamp||'').slice(0,10);
+        if(!byDay.has(date))byDay.set(date,[]);
+        byDay.get(date).push(item);
+      });
+      byDay.forEach((items,date)=>{
+        const max=Math.max(...items.map(item=>Number(item.set)||0));
+        const loads=Array(max).fill(''),done=Array(max).fill(false);
+        items.forEach(item=>{const i=Number(item.set)-1;if(i>=0){loads[i]=String(item.load??'');done[i]=true;}});
+        records.push({date:new Date(date+'T12:00:00'),loads,done,source:'events'});
+      });
+    }
+  }
+  records.sort((a,b)=>a.date-b.date);
+  const values=records.flatMap(r=>r.loads.filter((_,i)=>r.done[i]===true).map(weeklyNumber).filter(v=>v!==null));
+  const average=values.length?values.reduce((a,b)=>a+b,0)/values.length:null;
+  return {key,records,average};
+}
+function weeklyFormatLoad(v){const str=String(v??'').trim();return str?esc(str)+(weeklyNumber(str)!==null?' kg':''):'carga não informada';}
+function weeklyFmtAvg(v){return v===null?'Sem média':v.toLocaleString('pt-BR',{maximumFractionDigits:2})+' kg';}
+function weeklyPeriods(){const start=weeklyStart(new Date());return [1,2,3,4].map(n=>{const d=new Date(start);d.setDate(d.getDate()-7*n);return d;});}
+function renderWeeklyEvolution(){
+  weeklyLastRenderedWeek=weeklyDateKey(weeklyStart(new Date()));
+  const page=document.getElementById('weeklyEvolutionPage');if(!page||page.hidden)return;
+  const groups=weeklyGroups(), select=document.getElementById('weeklyEvolutionExercise');
+  if(!groups.length){select.innerHTML='<option>Nenhum exercício ativo</option>';document.getElementById('weeklyEvolutionContent').innerHTML='<div class="summary-empty-state">Cadastre exercícios ativos para acompanhar sua evolução.</div>';return;}
+  if(!groups.some(g=>g.signature===weeklySelectedExercise))weeklySelectedExercise=groups[0].signature;
+  select.innerHTML=groups.map(g=>`<option value="${esc(g.signature)}" ${g.signature===weeklySelectedExercise?'selected':''}>${esc(g.name)} · ${esc(g.muscle)} · ${esc(g.equipment)}</option>`).join('');
+  const group=groups.find(g=>g.signature===weeklySelectedExercise);
+  const weeks=weeklyPeriods().map(d=>({...weeklyRecords(group,d),date:d,label:d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' a '+new Date(d.getTime()+6*86400000).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}));
+  document.getElementById('weeklyNumbersTab').classList.toggle('active',weeklyView==='numbers');
+  document.getElementById('weeklyChartTab').classList.toggle('active',weeklyView==='chart');
+  const target=document.getElementById('weeklyEvolutionContent');
+  if(weeklyView==='numbers'){
+    target.innerHTML=weeks.map((w,i)=>{
+      const items=w.records.flatMap((r,sessionIndex)=>r.loads.map((load,j)=>`<span class="${r.done[j]?'':'missing'}">${w.records.length>1?'T'+(sessionIndex+1)+' · ':''}S${j+1}: ${r.done[j]?weeklyFormatLoad(load):'—'}</span>`));
+      const hasPending=w.records.some(r=>r.done.some(v=>v!==true));
+      const status=!w.records.length?'Exercício não realizado nesta semana.':hasPending?'— Há séries não concluídas.':'Todas as séries registradas foram concluídas.';
+      return `<article class="weekly-week-card"><div class="weekly-week-heading"><strong>Semana ${i+1} · ${esc(w.label)}</strong><span class="weekly-week-average">${esc(weeklyFmtAvg(w.average))}</span></div>${items.length?`<div class="weekly-series">${items.join('')}</div>`:''}<p class="weekly-week-status">${esc(status)}</p></article>`;
+    }).join('');
+  }else{
+    const chartWeeks=[...weeks].reverse(); // Da semana mais antiga à mais recente, para leitura temporal do gráfico.
+    const available=chartWeeks.map((w,i)=>({...w,i})).filter(w=>w.average!==null);
+    if(!available.length){target.innerHTML='<div class="summary-empty-state">Ainda não há cargas numéricas concluídas nas últimas quatro semanas para gerar o gráfico.</div>';return;}
+    const width=680,height=270,left=65,right=30,top=28,bottom=58;
+    const vals=available.map(w=>w.average), min=Math.min(...vals),max=Math.max(...vals),pad=Math.max((max-min)*.15,1),low=Math.max(0,min-pad),high=max+pad;
+    const x=i=>left+i*(width-left-right)/3,y=v=>top+(high-v)/(high-low)*(height-top-bottom);
+    const grid=[0,.25,.5,.75,1].map(f=>{const yy=top+f*(height-top-bottom);return `<line class="gridline" x1="${left}" y1="${yy}" x2="${width-right}" y2="${yy}"/><text x="${left-9}" y="${yy+4}" text-anchor="end">${esc((high-f*(high-low)).toLocaleString('pt-BR',{maximumFractionDigits:1}))}</text>`}).join('');
+    // Interrompe a linha em semanas sem dados, sem sugerir uma evolução inexistente.
+    let paths='',segment=[];
+    chartWeeks.forEach((w,i)=>{if(w.average===null){if(segment.length>1)paths+=`<polyline class="trend" points="${segment.join(' ')}"/>`;segment=[];}else segment.push(`${x(i)},${y(w.average)}`)});
+    if(segment.length>1)paths+=`<polyline class="trend" points="${segment.join(' ')}"/>`;
+    const dots=available.map(w=>`<circle class="dot" cx="${x(w.i)}" cy="${y(w.average)}" r="5"><title>Semana ${4-w.i}: ${esc(weeklyFmtAvg(w.average))}</title></circle><text x="${x(w.i)}" y="${y(w.average)-13}" text-anchor="middle">${esc(weeklyFmtAvg(w.average))}</text>`).join('');
+    const labels=chartWeeks.map((w,i)=>`<text x="${x(i)}" y="${height-19}" text-anchor="middle">Sem. ${4-i}</text>`).join('');
+    target.innerHTML=`<div class="weekly-chart-wrap"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Média de cargas concluídas por semana, da mais antiga à mais recente, com lacunas nas semanas sem dados">${grid}${paths}${dots}${labels}</svg><p class="weekly-chart-legend">${weeks.map((w,i)=>`Sem. ${i+1}: ${esc(w.label)} — ${esc(weeklyFmtAvg(w.average))}`).join('<br>')}</p><p class="weekly-week-status">Semanas sem cargas concluídas não recebem ponto no gráfico. A linha não atravessa períodos sem registros.</p></div>`;
+  }
+  if(typeof setupStyledSelects==='function')setupStyledSelects();
+}
+// Ao retornar ao aplicativo após a virada de semana, recalcula as quatro semanas encerradas.
+let weeklyLastRenderedWeek='';
+function refreshWeeklyEvolutionOnResume(){
+  const page=document.getElementById('weeklyEvolutionPage');
+  if(page && !page.hidden && weeklyLastRenderedWeek!==weeklyDateKey(weeklyStart(new Date())))renderWeeklyEvolution();
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshWeeklyEvolutionOnResume();});
+window.addEventListener('focus',refreshWeeklyEvolutionOnResume);
+function openWeeklyEvolution(restoring=false){
+  closeSummaryPage();
+  const page=document.getElementById('weeklyEvolutionPage');page.hidden=false;
+  document.body.classList.add('weekly-evolution-open');
+  renderWeeklyEvolution();
+  if(!restoring)persistUiState();
+}
+function closeWeeklyEvolution(){
+  document.getElementById('weeklyEvolutionPage').hidden=true;
+  document.body.classList.remove('weekly-evolution-open');
+  persistUiState();
+}
+
 // ========================================
 // RESUMO GERAL DOS TREINOS ATIVOS
 // ========================================
@@ -8700,7 +8865,7 @@ function persistUiState(){
   try {
     const summary=document.getElementById('summaryPage');
     localStorage.setItem(UI_STATE_KEY,JSON.stringify({
-      screen:summary && !summary.hidden?'summary':'workout',
+      screen:document.getElementById('weeklyEvolutionPage')?.hidden===false?'weekly':summary && !summary.hidden?'summary':'workout',
       filter:activeSummaryFilter,
       selectedDay:day,
       scrollY:window.scrollY||0,
@@ -8718,7 +8883,9 @@ function restoreUiState(){
   }
   const allowed=['days','muscle','muscleSets','equipment','execution','grip'];
   if(allowed.includes(ui.filter)) activeSummaryFilter=ui.filter;
-  if(ui.screen==='summary'){
+  if(ui.screen==='weekly'){
+    openWeeklyEvolution(true);
+  } else if(ui.screen==='summary'){
     openSummaryPage(true);
     requestAnimationFrame(()=>{
       const page=document.getElementById('summaryPage');
@@ -8878,6 +9045,7 @@ function renderSummaryPage(){
 }
 
 function openSummaryPage(restoring=false){
+  if(!document.getElementById('weeklyEvolutionPage').hidden)closeWeeklyEvolution();
   const page=document.getElementById('summaryPage');
   if(!page) return;
   page.hidden=false;
