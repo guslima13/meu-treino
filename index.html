@@ -5042,6 +5042,26 @@ const initial = {
 // ========================================
 
 const days=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const SELECTED_DAY_STORAGE_KEY='smartWorkoutSelectedDay';
+
+function readSavedSelectedDay(){
+  try{
+    const saved=localStorage.getItem(SELECTED_DAY_STORAGE_KEY);
+    return days.includes(saved)?saved:null;
+  }catch(error){
+    return null;
+  }
+}
+
+function persistSelectedDay(value){
+  if(!days.includes(value)) return false;
+  try{
+    localStorage.setItem(SELECTED_DAY_STORAGE_KEY,value);
+    return true;
+  }catch(error){
+    return false;
+  }
+}
 
 let day=null;
 // O estado do controle geral é independente para cada dia da semana.
@@ -5050,7 +5070,11 @@ let allExercisesCollapsed=true;
 const exerciseCollapseOverrides=new Map();
 let editIndex=null;
 let state=loadState();
-day=days.includes(state.selectedDay)?state.selectedDay:days[0];
+// A preferência independente tem prioridade; o campo dentro do backup/estado
+// continua como compatibilidade para versões anteriores.
+day=readSavedSelectedDay() || (days.includes(state.selectedDay)?state.selectedDay:days[0]);
+state.selectedDay=day;
+persistSelectedDay(day);
 
 // Rotina de reset de teste removida: o aplicativo não apaga o progresso ao abrir.
 
@@ -5279,6 +5303,7 @@ function save(){
   state.progressVersion=2;
   applyHistoryRetention(state);
   try{
+    persistSelectedDay(day);
     localStorage.setItem('smartWorkoutData',JSON.stringify(state));
   }catch(error){
     if(!storageWarningShown){
@@ -5995,6 +6020,7 @@ document.querySelectorAll('.day-item .daybtn').forEach(b=>{
     if(longPressTriggered || suppressClick){event.preventDefault();event.stopPropagation();return;}
     closeDayWorkoutPreview();
     day=b.dataset.day;
+    persistSelectedDay(day);
     save();
     render();
   });
@@ -8278,9 +8304,11 @@ function importData(file){
       }
       state=candidate;
       day=days.includes(state.selectedDay)?state.selectedDay:days[0];
+      persistSelectedDay(day);
       if(!save()){
         state=previousState;
         day=previousDay;
+        persistSelectedDay(previousDay);
         alert('Não foi possível salvar o backup importado. Os dados que estavam abertos no aplicativo foram mantidos.');
         return;
       }
@@ -8289,6 +8317,7 @@ function importData(file){
     }catch(error){
       state=previousState;
       day=previousDay;
+      persistSelectedDay(previousDay);
       alert('Não foi possível importar esse backup. O arquivo pode estar inválido ou incompleto. Os dados atuais foram mantidos.');
     }
   };
@@ -8885,8 +8914,17 @@ document.addEventListener('click',event=>{
 document.addEventListener('keydown',event=>{
   if(event.key==='Escape') closeHeaderMenu();
 });
-window.addEventListener('beforeunload',()=>{
-  try{state.selectedDay=day;save();}catch(_){}
+function persistAppPosition(){
+  try{
+    state.selectedDay=day;
+    persistSelectedDay(day);
+    save();
+  }catch(_){}
+}
+window.addEventListener('beforeunload',persistAppPosition);
+window.addEventListener('pagehide',persistAppPosition);
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden') persistAppPosition();
 });
 
 // ========================================
