@@ -6698,7 +6698,9 @@ function adjustEditLoadStep(index,direction,button){
 }
 
 function readLoadFields(){
-  return Array.from(document.querySelectorAll('.edit-load-input'))
+  const container=document.getElementById('loadsBySet');
+  if(!container) return [];
+  return Array.from(container.querySelectorAll('.edit-load-input'))
     .map(input=>{
       const value=input.value.trim();
       if(!isAerobicExercise({muscle:fMuscle.value}) || !value) return value;
