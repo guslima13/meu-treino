@@ -4675,35 +4675,6 @@ main{padding-bottom:24px!important}
 body.weekly-evolution-open{overflow:hidden}
 @media(max-width:600px){.weekly-evolution-page{padding-bottom:20px}.weekly-week-heading{align-items:flex-start;flex-direction:column;gap:3px}}
 </style>
-<script id="meu-treino-teste-dias-isolados">
-/* Teste: os seis dias podem ser selecionados normalmente; dados gravados separadamente. */
-window.meuTreinoTestStorage={
- getItem(k){return localStorage.getItem('meuTreinoDiasZerados_20261112__'+k);},
- setItem(k,v){localStorage.setItem('meuTreinoDiasZerados_20261112__'+k,String(v));},
- removeItem(k){localStorage.removeItem('meuTreinoDiasZerados_20261112__'+k);}
-};
-</script>
-<style id="approved-workout-corner-icons-20261112">
-/* Ícones centralizados: área clicável de 30x30 e desenho de 24x24. */
-.bottom-dashboard .finish-control .reset-workout-icon,
-.bottom-dashboard .finish-control .cancel-workout-icon{
-  width:30px!important;height:30px!important;min-width:30px!important;
-  padding:0!important;border:0!important;border-radius:0!important;
-  background:transparent!important;box-shadow:none!important;
-  display:inline-flex;align-items:center;justify-content:center;
-}
-.bottom-dashboard .finish-control .reset-workout-icon[hidden],
-.bottom-dashboard .finish-control .cancel-workout-icon[hidden]{display:none!important}
-.bottom-dashboard .finish-control .reset-workout-icon svg,
-.bottom-dashboard .finish-control .cancel-workout-icon svg{
-  display:block;width:24px!important;height:24px!important;
-  fill:none!important;stroke-linecap:round!important;stroke-linejoin:round!important;
-}
-.bottom-dashboard .finish-control .cancel-workout-icon{color:#40503c!important}
-.bottom-dashboard .finish-control .cancel-workout-icon svg{stroke-width:2.5!important}
-.bottom-dashboard .finish-control #resetBtn{color:#d7ff00!important}
-.bottom-dashboard .finish-control #resetBtn svg{stroke-width:2.3!important}
-</style>
 </head>
 
 <body>
@@ -4811,7 +4782,7 @@ window.meuTreinoTestStorage={
 
 <div class="confirm-backdrop" id="resetConfirm" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="resetConfirmTitle">
-    <h2 id="resetConfirmTitle">Reiniciar treino</h2>
+    <h2 id="resetConfirmTitle">Reiniciar</h2>
     <p>Todas as séries concluídas no treino anterior se manterão salvas no histórico.</p>
     <div class="confirm-actions">
       <button type="button" class="btn" id="cancelResetBtn">Voltar</button>
@@ -4968,14 +4939,14 @@ window.meuTreinoTestStorage={
       title="Cancelar treino" aria-label="Cancelar treino"
       onclick="openCancelWorkoutDialog()" hidden>
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M6.5 6.5L17.5 17.5M17.5 6.5L6.5 17.5"/>
+        <path d="M18 6 6 18M6 6l12 12"/>
       </svg>
     </button>
     <button type="button" class="reset-workout-icon" id="resetBtn"
       title="Reiniciar este treino" aria-label="Reiniciar este treino"
       onclick="resetDay()" hidden>
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M19.5 10.5a7.5 7.5 0 0 0-13-4.5L4.5 8M4.5 4.5V8H8M4.5 13.5a7.5 7.5 0 0 0 13 4.5l2-2M19.5 19.5V16H16"/>
+        <path d="M20 7v5h-5M4.8 9a7.5 7.5 0 0 1 12.7-2L20 12M4 17v-5h5m10.2 3a7.5 7.5 0 0 1-12.7 2L4 12"/>
       </svg>
     </button>
   </div>
@@ -5394,7 +5365,7 @@ function loadState(){
 try{
 
 const x=JSON.parse(
-meuTreinoTestStorage.getItem('smartWorkoutData')
+localStorage.getItem('smartWorkoutData')
 );
 
 if(x&&x.workouts)
@@ -5428,8 +5399,8 @@ state.progressVersion=2;
 // Não depende do evento de fechamento, que pode não ocorrer no celular.
 try {
   const serialized=JSON.stringify(state);
-  meuTreinoTestStorage.setItem('smartWorkoutData',serialized);
-  if(meuTreinoTestStorage.getItem('smartWorkoutData')!==serialized) throw new Error('Falha na verificação da gravação');
+  localStorage.setItem('smartWorkoutData',serialized);
+  if(localStorage.getItem('smartWorkoutData')!==serialized) throw new Error('Falha na verificação da gravação');
   window.__workoutStorageWarningShown=false;
 } catch(error) {
   console.error('Não foi possível salvar os dados do Meu Treino:',error);
@@ -7745,7 +7716,7 @@ let exercisePickerVariants=[];
 const NEW_EXERCISE_PICKER_STORAGE_KEY='smartWorkoutNewExercisePickerSignatures';
 function loadNewExercisePickerSignatures(){
   try{
-    const saved=JSON.parse(meuTreinoTestStorage.getItem(NEW_EXERCISE_PICKER_STORAGE_KEY)||'[]');
+    const saved=JSON.parse(localStorage.getItem(NEW_EXERCISE_PICKER_STORAGE_KEY)||'[]');
     return new Set(Array.isArray(saved)?saved.filter(value=>typeof value==='string') : []);
   }catch(error){
     return new Set();
@@ -7754,7 +7725,7 @@ function loadNewExercisePickerSignatures(){
 const newExercisePickerSignatures=loadNewExercisePickerSignatures();
 function persistNewExercisePickerSignatures(){
   try{
-    meuTreinoTestStorage.setItem(NEW_EXERCISE_PICKER_STORAGE_KEY,JSON.stringify([...newExercisePickerSignatures]));
+    localStorage.setItem(NEW_EXERCISE_PICKER_STORAGE_KEY,JSON.stringify([...newExercisePickerSignatures]));
   }catch(error){}
 }
 function markNewExerciseForPicker(exercise){
@@ -8910,13 +8881,13 @@ let summaryLoadGroupIndex='0';
 // Persistência da navegação: independe do ciclo de vida da página.
 const UI_STATE_KEY='smartWorkoutUiState_v1';
 function readUiState(){
-  try { return JSON.parse(meuTreinoTestStorage.getItem(UI_STATE_KEY)||'{}')||{}; }
+  try { return JSON.parse(localStorage.getItem(UI_STATE_KEY)||'{}')||{}; }
   catch(_){ return {}; }
 }
 function persistUiState(){
   try {
     const summary=document.getElementById('summaryPage');
-    meuTreinoTestStorage.setItem(UI_STATE_KEY,JSON.stringify({
+    localStorage.setItem(UI_STATE_KEY,JSON.stringify({
       screen:document.getElementById('weeklyEvolutionPage')?.hidden===false?'weekly':summary && !summary.hidden?'summary':'workout',
       filter:activeSummaryFilter,
       selectedDay:day,
@@ -9752,8 +9723,8 @@ if ('serviceWorker' in navigator) {
  const prompt=document.getElementById('historyReviewPrompt');
  const fmt=new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'});
  const monthText=date=>fmt.format(date).replace(/^\p{L}/u,letter=>letter.toLocaleLowerCase('pt-BR'));
- function getNext(){try{return Number(meuTreinoTestStorage.getItem(REVIEW_KEY))||0}catch(_){return 0}}
- function setNext(ms){try{meuTreinoTestStorage.setItem(REVIEW_KEY,String(ms))}catch(e){console.warn('Não foi possível salvar a data de revisão:',e)}}
+ function getNext(){try{return Number(localStorage.getItem(REVIEW_KEY))||0}catch(_){return 0}}
+ function setNext(ms){try{localStorage.setItem(REVIEW_KEY,String(ms))}catch(e){console.warn('Não foi possível salvar a data de revisão:',e)}}
  if(!getNext())setNext(Date.now()+YEAR);
  function monthStart(offset){const now=new Date();return new Date(now.getFullYear(),now.getMonth()+offset,1)}
  function monthList(first,last){const names=[];for(let i=first;i<=last;i++)names.push(monthText(monthStart(i)));return names.join(', ')}
@@ -9787,8 +9758,8 @@ if ('serviceWorker' in navigator) {
      state.weeklyChecks=filtered;state.completedWorkouts=completed;
      try{
        const serialized=JSON.stringify(state);
-       meuTreinoTestStorage.setItem('smartWorkoutData',serialized);
-       if(meuTreinoTestStorage.getItem('smartWorkoutData')!==serialized)throw new Error('Gravação não confirmada');
+       localStorage.setItem('smartWorkoutData',serialized);
+       if(localStorage.getItem('smartWorkoutData')!==serialized)throw new Error('Gravação não confirmada');
      }catch(err){state.weeklyChecks=oldWeekly;state.completedWorkouts=oldCompleted;throw err}
      close(365);
      if(typeof render==='function')render();
