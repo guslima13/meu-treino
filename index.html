@@ -6657,8 +6657,8 @@ function renderLoadFields(loads,sets,aerobic=isAerobicExercise({muscle:fMuscle.v
           onblur="${aerobic?'normalizeTimeInput(this)':''}"
           value="${esc(aerobic?formatTimeValue(loads[index]):(loads[index]??''))}">
         <div class="load-stepper" aria-label="${aerobic?'Ajustar tempo':'Ajustar carga'}">
-          <button type="button" aria-label="${aerobic?'Aumentar tempo em 10 minutos':'Aumentar carga em 1,25 kg'}" onclick="adjustEditLoadStep(${index},1,this,${aerobic})">▲</button>
-          <button type="button" aria-label="${aerobic?'Diminuir tempo em 10 minutos':'Diminuir carga em 1,25 kg'}" onclick="adjustEditLoadStep(${index},-1,this,${aerobic})">▼</button>
+          <button type="button" aria-label="${aerobic?'Aumentar tempo em 5 minutos':'Aumentar carga em 1,25 kg'}" onclick="adjustEditLoadStep(${index},1,this,${aerobic})">▲</button>
+          <button type="button" aria-label="${aerobic?'Diminuir tempo em 5 minutos':'Diminuir carga em 1,25 kg'}" onclick="adjustEditLoadStep(${index},-1,this,${aerobic})">▼</button>
         </div>
       </div>
     </div>
@@ -6682,14 +6682,16 @@ function adjustEditLoadStep(index,direction,button,aerobic=false){
   if(aerobic){
     const minutes=current===''?0:parseTimeMinutes(current);
     if(minutes===null) return;
-    input.value=formatTimeMinutes(Math.max(0,minutes+direction*10));
+    input.value=formatTimeMinutes(Math.max(0,minutes+direction*5));
   }else{
     if(current!=='' && !/^[-+]?\d+(?:[,.]\d+)?$/.test(current)) return;
     const numeric=current===''?0:Number(current.replace(',','.'));
     const next=Math.max(0,Math.round((numeric+direction*1.25)*100)/100);
     input.value=Number.isInteger(next)?String(next):String(next).replace('.',',');
   }
-  toggleEditLoadStepper(input);
+  // Em exercícios aeróbicos o valor HH:MM é válido, mas não é um número decimal.
+  // Não desabilitar as setas após o primeiro toque.
+  if(!aerobic) toggleEditLoadStepper(input);
   control.classList.remove('adjusting');
   void control.offsetWidth;
   control.classList.add('adjusting');
