@@ -5310,7 +5310,7 @@ function save(){
       const message=document.getElementById('undoMessage');
       const undo=document.getElementById('undoBtn');
       if(toast && message){
-        message.textContent='Atenção: não foi possível salvar no navegador. Exporte um backup assim que possível.';
+        message.textContent='Falha ao salvar: '+String(error?.message||error)+'. Não feche esta janela; tente novamente após atualizar o aplicativo.';
         if(undo) undo.hidden=true;
         toast.classList.add('show');
       }else{
@@ -7141,11 +7141,11 @@ clearChecks(editIndex);
 
 if(editIndex!==null) upsertExerciseCatalog(e,old||null);
 if(editIndex===null && fDay?.value==='-'){
-  save(); renderAllCatalogLists(); refreshAllStyledSelects(); renderEquipmentOptions(); closeModal();
+  if(!save()) return; renderAllCatalogLists(); refreshAllStyledSelects(); renderEquipmentOptions(); closeModal();
   document.getElementById('catalogFeedback')?.replaceChildren();
   render(); return;
 }
-save();
+if(!save()) return;
 
 // Mantém a lista de exclusão sincronizada imediatamente após adicionar,
 // editar ou renomear um exercício. A lista é derivada dos treinos salvos.
