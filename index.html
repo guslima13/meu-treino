@@ -4129,6 +4129,138 @@ main { overflow: visible !important; }
   font-weight:800;
   white-space:pre;
 }
+
+/* Exercício concluído: esmaecimento suave do cartão inteiro somente no treino ativo. */
+.exercise.exercise-finished-active {
+  opacity: .56;
+  filter: saturate(.65);
+  transition: opacity .22s ease, filter .22s ease;
+}
+.exercise.exercise-finished-active:focus-within {
+  opacity: .78;
+}
+@media (prefers-reduced-motion: reduce) {
+  .exercise.exercise-finished-active { transition: none; }
+}
+
+
+/* Cards: carga/tempo apenas para consulta; edição exclusiva na janela Editar. */
+.saved-load-value{display:flex;align-items:center;min-height:42px;padding:6px 9px;color:var(--text);font-size:14px;font-weight:750;overflow-wrap:anywhere;}
+/* Na janela de edição, campo e setas permanecem lado a lado. */
+#loadsBySet .load-control{display:flex;align-items:stretch;gap:5px;min-width:0;}
+#loadsBySet .set-input{flex:1 1 auto;width:0;min-width:0;}
+#loadsBySet .load-stepper{flex:0 0 30px;}
+
+
+
+/* Refinamento da tabela de séries: carga centralizada no espaço disponível
+   e divisórias verticais discretas, sem alterar a janela Editar. */
+.exercise .sets-table {
+  width: min(100%, 320px);
+}
+.exercise.single-row-actions .sets-table {
+  width: min(100%, 320px);
+}
+.exercise .sets-head,
+.exercise .set-row {
+  grid-template-columns: 40px minmax(0, 1fr) 48px;
+  column-gap: 0;
+}
+.exercise .sets-head > :first-child,
+.exercise .set-row > :first-child {
+  border-right: 1px solid rgba(181, 203, 186, .13);
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.exercise .sets-head > :nth-child(2),
+.exercise .set-row > :nth-child(2) {
+  border-right: 1px solid rgba(181, 203, 186, .13);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: clamp(15px, 5vw, 29px);
+  padding-right: 5px;
+  min-width: 0;
+}
+.exercise .sets-head > :last-child {
+  justify-self: center;
+}
+.exercise .set-row > .set-done-btn {
+  justify-self: end;
+  align-self: center;
+}
+.exercise .set-row .saved-load-value {
+  min-height: 0;
+}
+@media (max-width: 420px) {
+  .exercise .sets-head, .exercise .set-row {
+    grid-template-columns: 34px minmax(0, 1fr) 45px;
+  }
+  .exercise .sets-head > :nth-child(2),
+  .exercise .set-row > :nth-child(2) { padding-left: 14px; }
+}
+
+
+/* Ajuste de respiro entre as três colunas, com carga mais à direita. */
+.exercise .sets-table,
+.exercise.single-row-actions .sets-table { width: min(100%, 340px); }
+.exercise .sets-head,
+.exercise .set-row {
+  grid-template-columns: 54px minmax(0, 1fr) 60px;
+  column-gap: 0;
+}
+.exercise .sets-head > :first-child,
+.exercise .set-row > :first-child { padding-left: 5px; padding-right: 12px; }
+.exercise .sets-head > :nth-child(2),
+.exercise .set-row > :nth-child(2) {
+  padding-left: 29px;
+  padding-right: 15px;
+}
+.exercise .sets-head > :last-child { justify-self: center; }
+.exercise .set-row > .set-done-btn { justify-self: center; }
+.exercise .sets-head > :first-child,
+.exercise .set-row > :first-child,
+.exercise .sets-head > :nth-child(2),
+.exercise .set-row > :nth-child(2) { border-right-color: rgba(181,203,186,.10); }
+@media (max-width: 420px) {
+  .exercise .sets-head, .exercise .set-row {
+    grid-template-columns: 48px minmax(0,1fr) 55px;
+  }
+  .exercise .sets-head > :first-child,
+  .exercise .set-row > :first-child { padding-left: 3px; padding-right: 9px; }
+  .exercise .sets-head > :nth-child(2),
+  .exercise .set-row > :nth-child(2) { padding-left: 23px; padding-right: 10px; }
+}
+
+
+/* Respiro adicional antes da coluna FEITO?: desloca apenas a divisória,
+   sem movimentar os botões ou alterar a largura das colunas. */
+.exercise .sets-head > :nth-child(2),
+.exercise .set-row > :nth-child(2) {
+  position: relative;
+  border-right: 0;
+}
+.exercise .sets-head > :nth-child(2)::after,
+.exercise .set-row > :nth-child(2)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 12px;
+  width: 1px;
+  background: rgba(181,203,186,.10);
+  pointer-events: none;
+}
+/* Alinha o início de FEITO? à borda esquerda dos botões OK. */
+.exercise .sets-head > :last-child {
+  width: 44px;
+  justify-self: center;
+  text-align: left;
+}
+@media (max-width: 600px) {
+  .exercise .sets-head > :last-child { width: 40px; }
+}
 </style>
 <style>
 
@@ -4491,6 +4623,18 @@ main{padding-bottom:24px!important}
 
 
 
+<style id="active-workout-pulse-enhancement">
+/* Pulsação ligeiramente mais evidente somente durante o treino ativo. */
+@keyframes activeWorkoutPulseEnhanced {
+  0%, 100% { transform:scale(1); filter:drop-shadow(0 0 2px #d7ff0060); opacity:1; }
+  50% { transform:scale(1.14); filter:drop-shadow(0 0 3px #d7ff0080); opacity:.88; }
+}
+.workout-btn.start.active .workout-indicator {
+  animation:activeWorkoutPulseEnhanced 1.55s ease-in-out infinite!important;
+  transform-origin:center center;
+  box-shadow:0 0 0 2px #d7ff0025,0 0 3px #d7ff0055!important;
+}
+</style>
 </head>
 
 <body>
@@ -4620,8 +4764,8 @@ main{padding-bottom:24px!important}
     <h2 id="deleteConfirmTitle">Excluir exercício</h2>
     <p id="deleteConfirmMessage">Tem certeza de que deseja excluir este exercício?</p>
     <div class="confirm-actions">
-      <button type="button" class="btn" id="cancelDeleteBtn">Cancelar</button>
-      <button type="button" class="btn primary" id="confirmDeleteBtn">Excluir exercício</button>
+      <button type="button" class="btn" id="cancelDeleteBtn">Voltar</button>
+      <button type="button" class="btn primary" id="confirmDeleteBtn">Confirmar</button>
     </div>
   </section>
 </div>
@@ -4793,7 +4937,6 @@ main{padding-bottom:24px!important}
       <button type="button" class="summary-tab" data-summary-filter="equipment" aria-pressed="false">Equipamento</button>
       <button type="button" class="summary-tab" data-summary-filter="execution" aria-pressed="false">Execução</button>
       <button type="button" class="summary-tab" data-summary-filter="grip" aria-pressed="false">Pegada</button>
-      <button type="button" class="summary-tab" data-summary-filter="loads" aria-pressed="false">Evolução de carga</button>
     </nav>
     <div id="summaryContent" class="summary-content" aria-live="polite"></div>
     <p class="summary-page-footnote">Este resumo considera somente os exercícios atualmente ativos nos treinos. Alterações feitas em Adicionar, Editar e Cadastro são refletidas automaticamente.</p>
@@ -5042,30 +5185,8 @@ let editIndex=null;
 let state=loadState();
 day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 
-// Entrega limpa: preserva exercícios e cargas, mas inicia todos os dias sem progresso.
-// Executa uma única vez nesta versão para não apagar o progresso criado depois.
-(function(){
-  const resetKey='smartWorkout_test_all_days_open_20261111_v1';
-  if(localStorage.getItem(resetKey)==='1') return;
-  // Arquivo de teste: deixa todos os dias disponíveis para iniciar um novo treino.
-  state.weeklyChecks={};
-  state.checks={};
-  state.completedWorkouts=[];
-  state.sessions=state.sessions||{};
-  days.forEach(workoutDay=>{
-    state.sessions[workoutDay]={
-      status:'idle',startedAt:null,finishedAt:null,
-      resetExpiresAt:null,restartCount:0,week:weekKey(),
-      cancelOpportunityConsumed:false,cancelAvailableUntil:null,
-      preStartSnapshot:null
-    };
-  });
-  state.selectedDay=days[0];
-  state.todayNoticeDismissedDate=null;
-  state.todayNoticeResumeAt=null;
-  localStorage.setItem('smartWorkoutData',JSON.stringify(state));
-  localStorage.setItem(resetKey,'1');
-})();
+// A inicialização nunca deve apagar sessões ou progresso persistidos.
+// A limpeza automática de dados de teste foi removida para proteger treinos ativos.
 
 
 const undoHistory=[];
@@ -5213,10 +5334,20 @@ function save(){
 state.selectedDay=day;
 state.progressVersion=2;
 
-localStorage.setItem(
-'smartWorkoutData',
-JSON.stringify(state)
-);
+// Gravação imediata com verificação e aviso em caso de falha.
+// Não depende do evento de fechamento, que pode não ocorrer no celular.
+try {
+  const serialized=JSON.stringify(state);
+  localStorage.setItem('smartWorkoutData',serialized);
+  if(localStorage.getItem('smartWorkoutData')!==serialized) throw new Error('Falha na verificação da gravação');
+  window.__workoutStorageWarningShown=false;
+} catch(error) {
+  console.error('Não foi possível salvar os dados do Meu Treino:',error);
+  if(!window.__workoutStorageWarningShown){
+    window.__workoutStorageWarningShown=true;
+    setTimeout(()=>alert('ATENÇÃO: o navegador não conseguiu salvar suas alterações. Não feche o aplicativo. Verifique o armazenamento disponível e exporte um backup dos seus treinos.'),0);
+  }
+}
 
 const summaryPage=document.getElementById('summaryPage');
 if(summaryPage && !summaryPage.hidden && typeof renderSummaryPage==='function') renderSummaryPage();
@@ -5317,7 +5448,7 @@ let session=state.sessions[day];
 // Cada sessão pertence a um ciclo semanal.
 // Quando a semana muda (segunda-feira), o status volta automaticamente
 // para "idle", mesmo que o treino tenha sido finalizado ou ficado pendente.
-if(!session || session.week!==currentWeek){
+if(!session || (session.week!==currentWeek && session.status!=='active')){
 
 session={
 
@@ -5522,7 +5653,7 @@ function getWorkoutStatusForDay(targetDay){
 state.sessions=state.sessions||{};
 const currentWeek=weekKey();
 let session=state.sessions[targetDay];
-if(!session || session.week!==currentWeek){
+if(!session || (session.week!==currentWeek && session.status!=='active')){
 session={status:'idle',startedAt:null,finishedAt:null,resetExpiresAt:null,restartCount:0,week:currentWeek,cancelOpportunityConsumed:false,cancelAvailableUntil:null,preStartSnapshot:null};
 state.sessions[targetDay]=session;
 }
@@ -5992,7 +6123,7 @@ const exerciseCollapsed=exerciseCollapseOverrides.has(collapseKey)
 
 return `
 
-<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${String(e.name||'').trim().toLocaleLowerCase('pt-BR')==='corrida'?'exercise-running':''} ${exerciseCollapsed?'is-collapsed':''}" data-exercise-index="${i}">
+<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${String(e.name||'').trim().toLocaleLowerCase('pt-BR')==='corrida'?'exercise-running':''} ${exerciseCollapsed?'is-collapsed':''} ${getWorkoutStatus().status==='active' && Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Boolean)?'exercise-finished-active':''}" data-exercise-index="${i}">
 
 <div class="exercise-main">
 
@@ -6056,23 +6187,8 @@ ${Array.from(
 ${j+1}
 </span>
 
-<div class="load-control ${isAbdominalExercise(e)?'abdominal-load':''}">
-<input
-class="set-input"
-aria-label="${isAerobicExercise(e)?'Tempo':'Carga'} da série ${j+1}"
-inputmode="${isAerobicExercise(e)?'numeric':(isAbdominalExercise(e)?'text':'decimal')}"
-maxlength="${isAerobicExercise(e)?5:undefined}"
-value="${esc(isAerobicExercise(e)?formatTimeValue((e.loads||[])[j]):((e.loads||[])[j]??''))}"
-oninput="${isAerobicExercise(e)?'formatTimeInput(this)':(isAbdominalExercise(e)?'toggleDisplayLoadStepper(this)':'')}"
-onblur="${isAerobicExercise(e)?'normalizeTimeInput(this)':''}"
-onchange="changeLoad(${i},${j},this.value)"
-placeholder="${isAerobicExercise(e)?'00:00':(isAbdominalExercise(e)?'Carga':'Carga')}">
-<div class="load-stepper" aria-label="${isAerobicExercise(e)?'Ajustar tempo em 10 minutos':'Ajustar carga em 1,25 kg'}">
-<button type="button" aria-label="${isAerobicExercise(e)?'Aumentar tempo em 10 minutos':'Aumentar carga em 1,25 kg'}"
-onpointerdown="event.preventDefault(); event.stopPropagation(); ${isAerobicExercise(e)?'adjustTimeStep':'adjustLoadStep'}(${i},${j},1,this)">▲</button>
-<button type="button" aria-label="${isAerobicExercise(e)?'Diminuir tempo em 10 minutos':'Diminuir carga em 1,25 kg'}"
-onpointerdown="event.preventDefault(); event.stopPropagation(); ${isAerobicExercise(e)?'adjustTimeStep':'adjustLoadStep'}(${i},${j},-1,this)">▼</button>
-</div>
+<div class="saved-load-value" aria-label="${isAerobicExercise(e)?'Tempo':'Carga'} salva da série ${j+1}">
+${esc(isAerobicExercise(e)?formatTimeValue((e.loads||[])[j]):String((e.loads||[])[j]??'')) || '—'}
 </div>
 
 <button
@@ -6122,7 +6238,7 @@ alignExerciseDragHandles();
 // Desativa as setas apenas quando a carga abdominal salva é texto.
 updateExerciseListToggle();
 
-exerciseList.querySelectorAll('.abdominal-load .set-input').forEach(toggleDisplayLoadStepper);
+// Os valores dos cards são somente leitura; a edição ocorre na janela Editar.
 
 // ATUALIZA OS BOTÕES DE CONTROLE
 
@@ -6170,7 +6286,50 @@ if(v && !wasDone) recordLoadHistory(day,state.workouts[day][i],j);
 
 save();
 
-render();
+// Atualização pontual: não reconstrói os cartões nem a barra lateral de ícones.
+// Reconstruir exerciseList com innerHTML a cada OK causava o salto/piscada.
+const card=document.querySelector(`#exerciseList .exercise[data-exercise-index="${i}"]`);
+const row=card?.querySelectorAll('.set-row')[j];
+if(row){
+  row.classList.toggle('completed',!!v);
+  const btn=row.querySelector('.set-done-btn');
+  if(btn){
+    btn.classList.toggle('done',!!v);
+    btn.setAttribute('aria-label',`${v?'Desmarcar':'Marcar'} série ${j+1} como feita`);
+    btn.innerHTML=v?'<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5 9.2 18 20 6"/></svg>':'OK';
+    btn.setAttribute('onclick',`toggleSet(${i},${j},${!v})`);
+  }
+}
+const exercises=state.workouts[day]||[];
+let finishedExercises=0, finishedSets=0;
+for(let k=0;k<exercises.length;k++){
+  const c=checksFor(day,k), n=+exercises[k].sets||1;
+  finishedSets+=Array.from({length:n},(_,t)=>c[t]===true).filter(Boolean).length;
+  const complete=Array.from({length:n},(_,t)=>c[t]===true).every(Boolean);
+  if(complete) finishedExercises++;
+  if(k===i && card){
+    const exerciseButton=card.querySelector('.exercise-done-btn');
+    if(exerciseButton){
+      card.classList.toggle('exercise-finished-active',complete && getWorkoutStatus().status==='active');
+      exerciseButton.classList.toggle('done',complete);
+      exerciseButton.title=complete?'Desmarcar exercício':'Concluir todas as séries';
+      exerciseButton.setAttribute('aria-label',complete?'Desmarcar exercício':'Concluir todas as séries do exercício');
+    }
+  }
+}
+const totalSets=plannedSets(exercises);
+const dailyPercent=totalSets?Math.min(100,finishedSets/totalSets*100):0;
+document.getElementById('exerciseProgress').textContent=finishedExercises+'/'+exercises.length;
+document.getElementById('setProgress').textContent=finishedSets+'/'+totalSets;
+document.getElementById('progressBar').style.width=dailyPercent+'%';
+document.getElementById('dailyPercent').textContent=Math.round(dailyPercent)+'%';
+const weekly=weeklyTotals();
+const weeklyPercent=weekly.total?Math.min(100,weekly.done/weekly.total*100):0;
+document.getElementById('weeklyProgressBar').style.width=weeklyPercent+'%';
+document.getElementById('weeklyPercent').textContent=Math.round(weeklyPercent)+'%';
+document.getElementById('weeklyDescription').textContent=weekly.done+' de '+weekly.total+' séries concluídas nesta semana.';
+// Os botões de início/fim continuam sincronizados sem substituir os exercícios.
+renderWorkoutButtons();
 
 }
 
@@ -6437,8 +6596,6 @@ function renderLoadFields(loads,sets,aerobic=isAerobicExercise({muscle:fMuscle.v
   const container=document.getElementById('loadsBySet');
   if(!container) return;
   const count=Math.max(1,Math.min(20,Number(sets)||1));
-  // Nos formulários Adicionar/Editar, Abdômen usa somente campo de texto:
-  // sem setas, permitindo informar cargas em palavras ou números.
   const abdominal=isAbdominalExercise({muscle:fMuscle.value});
   const label=document.getElementById('loadsLabel');
   if(label) label.textContent=aerobic?'Tempo de cada série':'Carga de cada série';
@@ -6447,14 +6604,19 @@ function renderLoadFields(loads,sets,aerobic=isAerobicExercise({muscle:fMuscle.v
       <label for="editLoad${index}">Série ${index+1}</label>
       <div class="load-control ${abdominal?'abdominal-load':''}">
         <input id="editLoad${index}" class="edit-load-input set-input" type="text"
-          inputmode="${aerobic?'numeric':(abdominal?'text':'decimal')}" maxlength="${aerobic?5:undefined}"
+          inputmode="${aerobic?'numeric':(abdominal?'text':'decimal')}" ${aerobic?'maxlength="5"':''}
           placeholder="${aerobic?'00:00':(abdominal?'Carga':'Carga (kg)')}"
-          oninput="${aerobic?'formatTimeInput(this)':''}"
+          oninput="${aerobic?'formatTimeInput(this)':(abdominal?'toggleEditLoadStepper(this)':'')}"
           onblur="${aerobic?'normalizeTimeInput(this)':''}"
           value="${esc(aerobic?formatTimeValue(loads[index]):(loads[index]??''))}">
+        <div class="load-stepper" aria-label="${aerobic?'Ajustar tempo':'Ajustar carga'}">
+          <button type="button" aria-label="${aerobic?'Aumentar tempo em 10 minutos':'Aumentar carga em 1,25 kg'}" onclick="adjustEditLoadStep(${index},1,this,${aerobic})">▲</button>
+          <button type="button" aria-label="${aerobic?'Diminuir tempo em 10 minutos':'Diminuir carga em 1,25 kg'}" onclick="adjustEditLoadStep(${index},-1,this,${aerobic})">▼</button>
+        </div>
       </div>
     </div>
   `).join('');
+  if(abdominal) container.querySelectorAll('.edit-load-input').forEach(toggleEditLoadStepper);
 }
 
 function toggleEditLoadStepper(input){
@@ -6465,18 +6627,27 @@ function toggleEditLoadStepper(input){
   control.querySelectorAll('.load-stepper button').forEach(button=>button.disabled=!numeric);
 }
 
-function adjustEditLoadStep(index,direction,button){
+function adjustEditLoadStep(index,direction,button,aerobic=false){
   const control=button?.closest('.load-control');
   const input=control?.querySelector('.edit-load-input');
   if(!input) return;
   const current=String(input.value||'').trim();
-  if(current!=='' && !/^[-+]?\d+(?:[,.]\d+)?$/.test(current)) return;
-  const numeric=current===''?0:Number(current.replace(',','.'));
-  const next=Math.max(0,Math.round((numeric+direction*1.25)*100)/100);
-  input.value=Number.isInteger(next)?String(next):String(next).replace('.',',');
+  if(aerobic){
+    const minutes=current===''?0:parseTimeMinutes(current);
+    if(minutes===null) return;
+    input.value=formatTimeMinutes(Math.max(0,minutes+direction*10));
+  }else{
+    if(current!=='' && !/^[-+]?\d+(?:[,.]\d+)?$/.test(current)) return;
+    const numeric=current===''?0:Number(current.replace(',','.'));
+    const next=Math.max(0,Math.round((numeric+direction*1.25)*100)/100);
+    input.value=Number.isInteger(next)?String(next):String(next).replace('.',',');
+  }
   toggleEditLoadStepper(input);
+  control.classList.remove('adjusting');
+  void control.offsetWidth;
   control.classList.add('adjusting');
-  setTimeout(()=>control.classList.remove('adjusting'),350);
+  clearTimeout(control._adjustingTimer);
+  control._adjustingTimer=setTimeout(()=>control.classList.remove('adjusting'),350);
 }
 
 function readLoadFields(){
@@ -8105,12 +8276,9 @@ throw new Error('Treinos incompletos');
 
 state=x;
 
+day=days.includes(x.selectedDay)?x.selectedDay:days[0];
+
 save();
-
-day=days.find(d=>
-state.workouts[d]
-)||days[0];
-
 render();
 
 alert('Backup importado!');
@@ -8174,6 +8342,7 @@ document.getElementById('summaryTabs').addEventListener('click',event=>{
   if(!button) return;
   activeSummaryFilter=button.dataset.summaryFilter;
   renderSummaryPage();
+  persistUiState();
 });
 document.getElementById('summaryContent').addEventListener('change',event=>{
   if(event.target.id==='summaryLoadExercise') summaryLoadGroupIndex=event.target.value;
@@ -8518,6 +8687,46 @@ function refreshAllStyledSelects(){
 // ========================================
 let activeSummaryFilter='days';
 let summaryLoadGroupIndex='0';
+// Persistência da navegação: independe do ciclo de vida da página.
+const UI_STATE_KEY='smartWorkoutUiState_v1';
+function readUiState(){
+  try { return JSON.parse(localStorage.getItem(UI_STATE_KEY)||'{}')||{}; }
+  catch(_){ return {}; }
+}
+function persistUiState(){
+  try {
+    const summary=document.getElementById('summaryPage');
+    localStorage.setItem(UI_STATE_KEY,JSON.stringify({
+      screen:summary && !summary.hidden?'summary':'workout',
+      filter:activeSummaryFilter,
+      selectedDay:day,
+      scrollY:window.scrollY||0,
+      summaryScroll:summary?.scrollTop||0,
+      savedAt:Date.now()
+    }));
+  }catch(_){}
+}
+function restoreUiState(){
+  const ui=readUiState();
+  if(days.includes(ui.selectedDay) && ui.selectedDay!==day){
+    day=ui.selectedDay;
+    state.selectedDay=day;
+    render();
+  }
+  const allowed=['days','muscle','muscleSets','equipment','execution','grip'];
+  if(allowed.includes(ui.filter)) activeSummaryFilter=ui.filter;
+  if(ui.screen==='summary'){
+    openSummaryPage(true);
+    requestAnimationFrame(()=>{
+      const page=document.getElementById('summaryPage');
+      if(page) page.scrollTop=Math.max(0,Number(ui.summaryScroll)||0);
+      window.scrollTo(0,Math.max(0,Number(ui.scrollY)||0));
+    });
+  } else {
+    requestAnimationFrame(()=>window.scrollTo(0,Math.max(0,Number(ui.scrollY)||0)));
+  }
+}
+
 
 function summaryExerciseSignature(ex){
   return [ex?.name,ex?.muscle,ex?.equipment,ex?.execution,ex?.grip]
@@ -8665,21 +8874,22 @@ function renderSummaryPage(){
   setupStyledSelects();
 }
 
-function openSummaryPage(){
+function openSummaryPage(restoring=false){
   const page=document.getElementById('summaryPage');
   if(!page) return;
   page.hidden=false;
-  activeSummaryFilter='days';
-  summaryLoadGroupIndex='0';
+  if(!restoring){activeSummaryFilter='days';summaryLoadGroupIndex='0';}
   renderSummaryPage();
-  page.scrollTop=0;
+  if(!restoring) page.scrollTop=0;
   document.body.classList.add('summary-page-open');
+  if(!restoring) persistUiState();
 }
 
 function closeSummaryPage(){
   const page=document.getElementById('summaryPage');
   if(page) page.hidden=true;
   document.body.classList.remove('summary-page-open');
+  persistUiState();
 }
 
 
@@ -8715,8 +8925,19 @@ document.addEventListener('keydown',event=>{
   if(event.key==='Escape') closeHeaderMenu();
 });
 window.addEventListener('beforeunload',()=>{
-  try{state.selectedDay=day;save();}catch(_){}
+  try{state.selectedDay=day;save();persistUiState();}catch(_){}
 });
+window.addEventListener('pagehide',()=>{try{save();persistUiState();}catch(_){}});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){try{save();persistUiState();}catch(_){}}
+});
+let uiScrollSavePending=false;
+window.addEventListener('scroll',()=>{
+  if(uiScrollSavePending)return;
+  uiScrollSavePending=true;
+  requestAnimationFrame(()=>{uiScrollSavePending=false;persistUiState();});
+},{passive:true});
+document.getElementById('summaryPage')?.addEventListener('scroll',persistUiState,{passive:true});
 
 // ========================================
 // INICIALIZAÇÃO
@@ -8727,6 +8948,7 @@ setupEquipmentPicker();
 allExercisesCollapsed=allExercisesCollapsedByDay[day]??true;
 exerciseCollapseOverrides.clear();
 render();
+restoreUiState();
 bindExerciseDrag();
 window.addEventListener('pageshow',()=>{
   if(typeof renderWorkoutButtons==='function') renderWorkoutButtons();
@@ -9175,17 +9397,24 @@ if ('serviceWorker' in navigator) {
     const actionsStyle = getComputedStyle(actions);
     if (tableStyle.display === 'none' || actionsStyle.display === 'none') return;
 
-    // Neutraliza temporariamente os deslocamentos antigos apenas para medir
-    // a posição natural do primeiro botão. A largura e o eixo horizontal não mudam.
-    actions.style.setProperty('transform', 'none', 'important');
+    // Mede a posição já renderizada, sem retirar o transform nem provocar
+    // um quadro intermediário visível (o antigo reset causava o "pulo").
     const tableTop = table.getBoundingClientRect().top;
     const iconTop = firstIcon.getBoundingClientRect().top;
     const correction = tableTop - iconTop;
-
-    // Aplica a diferença medida entre as bordas externas superiores.
-    actions.style.setProperty(
-      'transform', 'translateY(' + correction.toFixed(3) + 'px)', 'important'
-    );
+    if (Math.abs(correction) > 0.5) {
+      const matrix = getComputedStyle(actions).transform;
+      let currentY = 0;
+      if (matrix && matrix !== 'none') {
+        const values = matrix.match(/matrix(?:3d)?\(([^)]+)\)/);
+        if (values) {
+          const parts = values[1].split(',').map(Number);
+          currentY = parts.length === 16 ? parts[13] : parts[5];
+        }
+      }
+      actions.style.setProperty('transform',
+        'translateY(' + (currentY + correction).toFixed(3) + 'px)', 'important');
+    }
 
     // Marca o estado somente após conferir a geometria já aplicada.
     const finalTableTop = table.getBoundingClientRect().top;
