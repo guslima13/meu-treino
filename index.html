@@ -5136,54 +5136,43 @@ function comparisonKey(value){
 }
 
 
-// RETENÇÃO DO HISTÓRICO: semana atual + 3 semanas anteriores.
-// Os ciclos semanais do aplicativo começam no domingo.
-const HISTORY_RETENTION_WEEKS=4;
+// HISTÓRICO DE SÉRIES: retenção móvel e individual de 30 dias.
+// Cadastros, fichas, atributos e sessões ativas não entram nesta limpeza.
+const HISTORY_RETENTION_DAYS=30;
 
-function retentionWeekStart(value){
-  if(value===null || value===undefined || value==='') return null;
-  const raw=String(value).trim();
-  let date=null;
-  const dateOnly=raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if(dateOnly){
-    date=new Date(Number(dateOnly[1]),Number(dateOnly[2])-1,Number(dateOnly[3]));
-  }else{
-    date=new Date(raw);
+function historyTimestamp(...values){
+  for(const value of values){
+    if(value===null || value===undefined || value==='') continue;
+    const raw=String(value).trim();
+    let date=null;
+    const dateOnly=raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(dateOnly) date=new Date(Number(dateOnly[1]),Number(dateOnly[2])-1,Number(dateOnly[3]),23,59,59,999);
+    else date=new Date(raw);
+    if(Number.isFinite(date?.getTime())) return date.getTime();
   }
-  if(!Number.isFinite(date?.getTime())) return null;
-  date.setHours(0,0,0,0);
-  date.setDate(date.getDate()-date.getDay());
-  return date;
+  return null;
 }
 
 function isWithinHistoryRetention(...values){
-  let start=null;
-  for(const value of values){
-    start=retentionWeekStart(value);
-    if(start) break;
-  }
-  // Sem uma data confiável, o registro não pode ser considerado parte das
-  // quatro semanas mais recentes e é descartado do histórico.
-  if(!start) return false;
-  const today=new Date();
-  today.setHours(0,0,0,0);
-  const currentWeekStart=new Date(today);
-  currentWeekStart.setDate(currentWeekStart.getDate()-currentWeekStart.getDay());
-  const cutoff=new Date(currentWeekStart);
-  cutoff.setDate(cutoff.getDate()-7*(HISTORY_RETENTION_WEEKS-1));
-  return start.getTime()>=cutoff.getTime();
+  const timestamp=historyTimestamp(...values);
+  if(timestamp===null) return false;
+  const cutoff=Date.now()-HISTORY_RETENTION_DAYS*24*60*60*1000;
+  return timestamp>=cutoff;
 }
 
 function applyHistoryRetention(target=state){
   if(!target || typeof target!=='object') return;
-  if(Array.isArray(target.completedWorkouts)){
-    target.completedWorkouts=target.completedWorkouts.filter(item=>
-      isWithinHistoryRetention(item?.week,item?.finishedAt,item?.startedAt)
-    );
-  }
+  // Cada série concluída é um registro próprio em loadHistory e expira após 30 dias.
   if(Array.isArray(target.loadHistory)){
     target.loadHistory=target.loadHistory.filter(item=>
-      isWithinHistoryRetention(item?.date,item?.timestamp)
+      isWithinHistoryRetention(item?.timestamp,item?.date)
+    );
+  }
+  // Resumos de treinos finalizados também são temporários; a ficha de exercícios
+  // e o catálogo mestre nunca são alterados por esta rotina.
+  if(Array.isArray(target.completedWorkouts)){
+    target.completedWorkouts=target.completedWorkouts.filter(item=>
+      isWithinHistoryRetention(item?.finishedAt,item?.startedAt,item?.week)
     );
   }
   if(target.weeklyChecks && typeof target.weeklyChecks==='object' && !Array.isArray(target.weeklyChecks)){
@@ -5191,14 +5180,7 @@ function applyHistoryRetention(target=state){
       if(!isWithinHistoryRetention(key)) delete target.weeklyChecks[key];
     });
   }
-  if(target.sessions && typeof target.sessions==='object' && !Array.isArray(target.sessions)){
-    Object.keys(target.sessions).forEach(key=>{
-      const session=target.sessions[key];
-      if(!isWithinHistoryRetention(session?.week)){
-        delete target.sessions[key];
-      }
-    });
-  }
+  // Sessões ativas e seus dados de retomada nunca são removidos automaticamente.
 }
 
 function normalizeState(x){
@@ -5269,16 +5251,16 @@ return x;
 
 function loadState(){
 
-try{
-
-const x=JSON.parse(
-localStorage.getItem('smartWorkoutData')
-);
-
-if(x&&x.workouts)
-return normalizeState(x);
-
-}catch(e){}
+// Recupera primeiro o armazenamento principal; se estiver ausente/corrompido,
+// tenta a cópia local de segurança criada a cada salvamento.
+for(const storageKey of ['smartWorkoutData','smartWorkoutData_backup']){
+  try{
+    const raw=localStorage.getItem(storageKey);
+    if(!raw) continue;
+    const x=JSON.parse(raw);
+    if(x&&x.workouts) return normalizeState(x);
+  }catch(e){}
+}
 
 return normalizeState({
 
@@ -5304,7 +5286,11 @@ function save(){
   applyHistoryRetention(state);
   try{
     persistSelectedDay(day);
-    localStorage.setItem('smartWorkoutData',JSON.stringify(state));
+    const serialized=JSON.stringify(state);
+    // O dado principal é gravado de forma síncrona antes de a ação ser concluída.
+    localStorage.setItem('smartWorkoutData',serialized);
+    // A segunda chave permite recuperação caso a chave principal seja danificada.
+    try{localStorage.setItem('smartWorkoutData_backup',serialized);}catch(backupError){}
   }catch(error){
     if(!storageWarningShown){
       storageWarningShown=true;
@@ -5410,6 +5396,20 @@ return {total,done};
 // CONTROLE DE INÍCIO E FINALIZAÇÃO
 // ========================================
 
+function carryActiveWorkoutIntoCurrentWeek(targetDay,session){
+  const currentWeek=weekKey();
+  if(!session || session.status!=='active' || session.week===currentWeek) return false;
+  state.weeklyChecks=state.weeklyChecks||{};
+  const oldProgress=state.weeklyChecks[session.week]||{};
+  const currentProgress=state.weeklyChecks[currentWeek]||(state.weeklyChecks[currentWeek]={});
+  Object.keys(oldProgress).filter(key=>key.startsWith(targetDay+'_')).forEach(key=>{
+    currentProgress[key]=structuredClone(oldProgress[key]);
+  });
+  // A sessão continua ativa e passa a usar o ciclo atual sem perder marcações.
+  session.week=currentWeek;
+  return true;
+}
+
 function getWorkoutStatus(){
 
 state.sessions=state.sessions||{};
@@ -5417,10 +5417,13 @@ state.sessions=state.sessions||{};
 const currentWeek=weekKey();
 let session=state.sessions[day];
 
-// Cada sessão pertence a um ciclo semanal.
-// Quando a semana muda (segunda-feira), o status volta automaticamente
-// para "idle", mesmo que o treino tenha sido finalizado ou ficado pendente.
-if(!session || session.week!==currentWeek){
+// Uma sessão ativa atravessa a virada da semana sem ser encerrada ou reiniciada.
+if(session && session.status==='active' && carryActiveWorkoutIntoCurrentWeek(day,session)){
+  save();
+}
+
+// Sessões concluídas/ociosas podem iniciar um novo ciclo semanal normalmente.
+if(!session || (session.week!==currentWeek && session.status!=='active')){
 
 session={
 
@@ -5631,7 +5634,10 @@ function getWorkoutStatusForDay(targetDay){
 state.sessions=state.sessions||{};
 const currentWeek=weekKey();
 let session=state.sessions[targetDay];
-if(!session || session.week!==currentWeek){
+if(session && session.status==='active' && carryActiveWorkoutIntoCurrentWeek(targetDay,session)){
+  save();
+}
+if(!session || (session.week!==currentWeek && session.status!=='active')){
 session={status:'idle',startedAt:null,finishedAt:null,resetExpiresAt:null,restartCount:0,week:currentWeek,cancelOpportunityConsumed:false,cancelAvailableUntil:null,preStartSnapshot:null};
 state.sessions[targetDay]=session;
 }
@@ -8313,7 +8319,7 @@ function importData(file){
         return;
       }
       render();
-      alert('Backup importado com sucesso! A ficha de exercícios foi preservada e o histórico foi limitado às quatro últimas semanas.');
+      alert('Backup importado com sucesso! A ficha de exercícios foi preservada e o histórico foi limitado aos últimos 30 dias.');
     }catch(error){
       state=previousState;
       day=previousDay;
@@ -8812,18 +8818,25 @@ function summaryChartMarkup(workouts){
   }).join('');
   const xLabels=points.map((point,index)=>`<text x="${x(index)}" y="${height-10}" text-anchor="middle">${esc(point.label)}</text>`).join('');
   const dots=points.map((point,index)=>`<circle cx="${x(index)}" cy="${y(point.value)}" r="5"><title>${esc(point.label)} · média ${summaryLoadValue(point.value)}</title></circle>`).join('');
-  return `<div class="summary-chart-wrap"><h3>Comparações</h3><p>Média das cargas das séries concluídas em cada um dos últimos três treinos finalizados.</p><svg class="summary-load-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Comparação da média das cargas nos últimos três treinos concluídos"><g class="summary-chart-grid">${yLabels}</g>${points.length>1?`<polyline points="${coords.join(' ')}" />`:''}${dots}<g class="summary-chart-labels">${xLabels}</g></svg></div>`;
+  return `<div class="summary-chart-wrap"><h3>Comparações</h3><p>Média das cargas das séries concluídas em cada treino finalizado nas últimas três semanas.</p><svg class="summary-load-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Comparação da média das cargas nos treinos concluídos nas últimas três semanas"><g class="summary-chart-grid">${yLabels}</g>${points.length>1?`<polyline points="${coords.join(' ')}" />`:''}${dots}<g class="summary-chart-labels">${xLabels}</g></svg></div>`;
 }
 
 function summaryLoadsMarkup(){
   const groups=getActiveSummaryExercises();
-  if(!groups.length) return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Acompanhe as cargas das séries dos três últimos treinos finalizados.</p></div></div><div class="summary-empty-state">Adicione exercícios aos treinos para consultar a evolução das cargas.</div>`;
+  if(!groups.length) return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Acompanhe as cargas registradas nos treinos finalizados das últimas três semanas.</p></div></div><div class="summary-empty-state">Adicione exercícios aos treinos para consultar a evolução das cargas.</div>`;
   const selectedIndex=Math.min(Math.max(Number(summaryLoadGroupIndex)||0,0),groups.length-1);
   summaryLoadGroupIndex=String(selectedIndex);
   const options=groups.map((group,index)=>`<option value="${index}" ${index===selectedIndex?'selected':''}>${esc(group.name)} · ${esc(group.muscle)} · ${esc(group.equipment)}</option>`).join('');
   const group=groups[selectedIndex];
   const ids=new Set(group.ids);
+  // A evolução de carga considera os últimos 21 dias corridos (3 semanas)
+  // e somente sessões explicitamente finalizadas pelo usuário.
+  const threeWeeksAgo=Date.now()-(21*24*60*60*1000);
   const recentWorkouts=(state.completedWorkouts||[])
+    .filter(workout=>{
+      const finishedMs=Date.parse(workout.finishedAt||'');
+      return Number.isFinite(finishedMs) && finishedMs>=threeWeeksAgo && finishedMs<=Date.now();
+    })
     .map(workout=>{
       const exercise=(workout.exercises||[]).find(item=>ids.has(item.exerciseId));
       if(!exercise) return null;
@@ -8832,14 +8845,13 @@ function summaryLoadsMarkup(){
       return {...workout,exercise,average:numericLoads.reduce((sum,value)=>sum+value,0)/numericLoads.length};
     })
     .filter(Boolean)
-    .sort((a,b)=>new Date(a.finishedAt).getTime()-new Date(b.finishedAt).getTime())
-    .slice(-3);
+    .sort((a,b)=>new Date(a.finishedAt).getTime()-new Date(b.finishedAt).getTime());
   const historyMarkup=recentWorkouts.length?`<section class="summary-history-table-wrap"><h3>Últimos ${recentWorkouts.length} ${recentWorkouts.length===1?'treino finalizado':'treinos finalizados'}</h3><div class="summary-history-list">${[...recentWorkouts].reverse().map((workout,index)=>{
     const date=new Date(workout.finishedAt).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
     const chips=(workout.exercise.loads||[]).map((load,setIndex)=>({load,setIndex})).filter(item=>Array.isArray(workout.exercise.completedSets)?workout.exercise.completedSets[item.setIndex]===true:true).map(({load,setIndex})=>`<span>${setIndex+1}: ${esc(summaryLoadValue(load))}</span>`).join('');
     return `<article class="summary-history-session"><div class="summary-history-session-heading"><strong>${esc(workout.day)} · ${esc(date)}</strong><b>Média: ${esc(summaryLoadValue(workout.average))}</b></div><div class="summary-load-chips">${chips}</div></article>`;
-  }).join('')}</div></section>`:`<div class="summary-empty-state">Ainda não há treinos finalizados com todas as séries deste exercício confirmadas. Finalize um treino após marcar as séries como feitas para registrar as cargas aqui.</div>`;
-  return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Confira as cargas das séries nos três últimos treinos finalizados do exercício selecionado.</p></div></div>
+  }).join('')}</div></section>`:`<div class="summary-empty-state">Ainda não há registros de carga deste exercício em treinos finalizados nas últimas três semanas. O treino entra no histórico quando você toca em Finalizar treino, mesmo que não tenha concluído todas as séries; somente as séries marcadas como feitas entram na comparação.</div>`;
+  return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Confira as cargas das séries nos treinos finalizados das últimas três semanas do exercício selecionado.</p></div></div>
     <div class="summary-load-filters"><label>Exercício<select id="summaryLoadExercise">${options}</select></label></div>
     ${recentWorkouts.length?summaryChartMarkup(recentWorkouts):''}${historyMarkup}`;
 }
@@ -9464,6 +9476,19 @@ if ('serviceWorker' in navigator) {
   }
 })();
 </script>
+
+
+
+<style id="workout-indicator-pulse-refinement">
+/* Pulsação um pouco mais intensa, sem alterar o espaçamento do botão. */
+.workout-btn.start.active .workout-indicator{
+  animation:workoutPulseRefined 1.6s ease-in-out infinite!important;
+}
+@keyframes workoutPulseRefined{
+  0%,100%{transform:scale(1);box-shadow:0 0 0 4px #d7ff0038,0 0 8px #d7ff0070;opacity:1}
+  50%{transform:scale(1.13);box-shadow:0 0 0 10px #d7ff0018,0 0 19px #d7ff00aa;opacity:.80}
+}
+</style>
 
 </body>
 </html>
