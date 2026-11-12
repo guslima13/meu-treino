@@ -9485,5 +9485,86 @@ if ('serviceWorker' in navigator) {
 })();
 </script>
 
+
+<!-- Revisão anual opcional: conserva seis meses completos anteriores e o mês atual. -->
+<style>
+#historyReviewPrompt[hidden]{display:none!important}
+#historyReviewPrompt .confirm-dialog{max-width:480px}
+#historyReviewPrompt .confirm-actions{flex-wrap:wrap;gap:8px}
+#historyReviewPrompt .history-periods{background:#202b23;border:1px solid #394b3e;border-radius:10px;padding:12px;margin:12px 0;font-size:13px;line-height:1.5}
+#historyReviewPrompt .history-periods p{margin:5px 0}
+</style>
+<div class="confirm-backdrop" id="historyReviewPrompt" hidden>
+ <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="historyReviewTitle">
+  <h2 id="historyReviewTitle">Revisão do histórico</h2>
+  <p>Chegou o momento de revisar os registros antigos de exercícios concluídos. Você pode liberar espaço mantendo os seis últimos meses completos e o mês atual. Os próximos treinos continuarão sendo salvos normalmente.</p>
+  <div class="history-periods">
+   <p><strong>Serão mantidos:</strong> <span id="historyReviewKeepMonths"></span>.</p>
+   <p><strong>Serão apagados:</strong> <span id="historyReviewDeleteMonths"></span>, além dos registros ainda mais antigos.</p>
+  </div>
+  <p>Seus treinos ativos, exercícios cadastrados, cargas atuais, edições, substituições, movimentações, regras e configurações não serão alterados. O histórico de alterações de cargas também será preservado.</p>
+  <p>Nenhum registro será apagado sem sua confirmação.</p>
+  <div class="confirm-actions">
+   <button type="button" class="btn" id="historyReviewLater">Agora não</button>
+   <button type="button" class="btn" id="historyReviewKeep">Manter históricos</button>
+   <button type="button" class="btn danger" id="historyReviewDelete">Apagar históricos antigos</button>
+  </div>
+ </section>
+</div>
+<script>
+(function(){
+ const REVIEW_KEY='meuTreinoHistoryReviewAtV1';
+ const YEAR=365*24*60*60*1000;
+ const DAY=24*60*60*1000;
+ const prompt=document.getElementById('historyReviewPrompt');
+ const fmt=new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'});
+ function getNext(){try{return Number(localStorage.getItem(REVIEW_KEY))||0}catch(_){return 0}}
+ function setNext(ms){try{localStorage.setItem(REVIEW_KEY,String(ms))}catch(e){console.warn('Não foi possível salvar a data de revisão:',e)}}
+ if(!getNext())setNext(Date.now()+YEAR);
+ function monthStart(offset){const now=new Date();return new Date(now.getFullYear(),now.getMonth()+offset,1)}
+ function monthList(first,last){const names=[];for(let i=first;i<=last;i++)names.push(fmt.format(monthStart(i)));return names.join(', ')}
+ function updateDescription(){
+   document.getElementById('historyReviewKeepMonths').textContent=monthList(-6,-1)+' (e o mês atual, '+fmt.format(monthStart(0))+')';
+   document.getElementById('historyReviewDeleteMonths').textContent=monthList(-12,-7);
+ }
+ function maybeShow(){if(!prompt.hidden)return;if(Date.now()>=getNext()){updateDescription();prompt.hidden=false}}
+ function close(days){prompt.hidden=true;setNext(Date.now()+days*DAY)}
+ document.getElementById('historyReviewLater').addEventListener('click',()=>close(30));
+ document.getElementById('historyReviewKeep').addEventListener('click',()=>close(365));
+ document.getElementById('historyReviewDelete').addEventListener('click',()=>{
+   updateDescription();
+   if(!confirm('Confirmar exclusão definitiva somente das marcações semanais e dos registros de treinos concluídos anteriores a '+fmt.format(monthStart(-6))+'? Os seis meses completos mais recentes, o mês atual, o treino ativo, os exercícios, as cargas e as configurações serão preservados.'))return;
+   try{
+     if(typeof state==='undefined'||typeof save!=='function')throw new Error('Dados do treino indisponíveis');
+     const cutoffMs=monthStart(-6).getTime();
+     const dateMs=v=>{const d=new Date(v);return Number.isFinite(d.getTime())?d.getTime():NaN};
+     const currentWeek=typeof weekKey==='function'?weekKey():'';
+     const weekly=state.weeklyChecks||{};
+     const filtered={};
+     for(const [key,value] of Object.entries(weekly)){
+       const time=dateMs(key+'T12:00:00');
+       if(key===currentWeek||!Number.isFinite(time)||time>=cutoffMs)filtered[key]=value;
+     }
+     const completed=(state.completedWorkouts||[]).filter(item=>{
+       const time=dateMs(item.finishedAt||item.startedAt||(item.week?item.week+'T12:00:00':null));
+       return !Number.isFinite(time)||time>=cutoffMs;
+     });
+     const oldWeekly=state.weeklyChecks,oldCompleted=state.completedWorkouts;
+     state.weeklyChecks=filtered;state.completedWorkouts=completed;
+     try{
+       const serialized=JSON.stringify(state);
+       localStorage.setItem('smartWorkoutData',serialized);
+       if(localStorage.getItem('smartWorkoutData')!==serialized)throw new Error('Gravação não confirmada');
+     }catch(err){state.weeklyChecks=oldWeekly;state.completedWorkouts=oldCompleted;throw err}
+     close(365);
+     if(typeof render==='function')render();
+     alert('Registros antigos de execução excluídos. Os seis meses completos mais recentes, o mês atual, o histórico de cargas e todas as configurações foram preservados.');
+   }catch(error){console.error(error);alert('Não foi possível concluir a limpeza. Faça um backup e tente novamente.')}
+ });
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)maybeShow()});
+ window.addEventListener('pageshow',maybeShow);
+ setTimeout(maybeShow,400);
+})();
+</script>
 </body>
 </html>
