@@ -391,16 +391,6 @@ cursor:pointer;
 flex:0 0 40px
 }
 
-.exercise{
-transition:opacity .22s ease, filter .22s ease;
-}
-.exercise.exercise-completed{
-opacity:.58;
-filter:saturate(.72);
-}
-.exercise.exercise-completed:hover{
-opacity:.72;
-}
 .exercise-done-btn.done{
 background:#249b28;
 border-color:#249b28;
@@ -4630,8 +4620,8 @@ main{padding-bottom:24px!important}
     <h2 id="deleteConfirmTitle">Excluir exercício</h2>
     <p id="deleteConfirmMessage">Tem certeza de que deseja excluir este exercício?</p>
     <div class="confirm-actions">
-      <button type="button" class="btn" id="cancelDeleteBtn">Voltar</button>
-      <button type="button" class="btn primary" id="confirmDeleteBtn">Confirmar</button>
+      <button type="button" class="btn" id="cancelDeleteBtn">Cancelar</button>
+      <button type="button" class="btn primary" id="confirmDeleteBtn">Excluir exercício</button>
     </div>
   </section>
 </div>
@@ -5042,26 +5032,6 @@ const initial = {
 // ========================================
 
 const days=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const SELECTED_DAY_STORAGE_KEY='smartWorkoutSelectedDay';
-
-function readSavedSelectedDay(){
-  try{
-    const saved=localStorage.getItem(SELECTED_DAY_STORAGE_KEY);
-    return days.includes(saved)?saved:null;
-  }catch(error){
-    return null;
-  }
-}
-
-function persistSelectedDay(value){
-  if(!days.includes(value)) return false;
-  try{
-    localStorage.setItem(SELECTED_DAY_STORAGE_KEY,value);
-    return true;
-  }catch(error){
-    return false;
-  }
-}
 
 let day=null;
 // O estado do controle geral é independente para cada dia da semana.
@@ -5069,16 +5039,33 @@ const allExercisesCollapsedByDay=Object.fromEntries(days.map(workoutDay=>[workou
 let allExercisesCollapsed=true;
 const exerciseCollapseOverrides=new Map();
 let editIndex=null;
-let lastKnownPrimaryRaw=null;
 let state=loadState();
-// A preferência independente tem prioridade; o campo dentro do backup/estado
-// continua como compatibilidade para versões anteriores.
-day=readSavedSelectedDay() || (days.includes(state.selectedDay)?state.selectedDay:days[0]);
-state.selectedDay=day;
-persistSelectedDay(day);
+day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 
-// Rotina de reset de teste removida: o aplicativo não apaga o progresso ao abrir.
-
+// Entrega limpa: preserva exercícios e cargas, mas inicia todos os dias sem progresso.
+// Executa uma única vez nesta versão para não apagar o progresso criado depois.
+(function(){
+  const resetKey='smartWorkout_test_all_days_open_20261111_v1';
+  if(localStorage.getItem(resetKey)==='1') return;
+  // Arquivo de teste: deixa todos os dias disponíveis para iniciar um novo treino.
+  state.weeklyChecks={};
+  state.checks={};
+  state.completedWorkouts=[];
+  state.sessions=state.sessions||{};
+  days.forEach(workoutDay=>{
+    state.sessions[workoutDay]={
+      status:'idle',startedAt:null,finishedAt:null,
+      resetExpiresAt:null,restartCount:0,week:weekKey(),
+      cancelOpportunityConsumed:false,cancelAvailableUntil:null,
+      preStartSnapshot:null
+    };
+  });
+  state.selectedDay=days[0];
+  state.todayNoticeDismissedDate=null;
+  state.todayNoticeResumeAt=null;
+  localStorage.setItem('smartWorkoutData',JSON.stringify(state));
+  localStorage.setItem(resetKey,'1');
+})();
 
 
 const undoHistory=[];
@@ -5136,66 +5123,10 @@ function comparisonKey(value){
   return String(value??'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 }
 
-
-// HISTÓRICO DE SÉRIES: retenção móvel e individual de 30 dias.
-// Cadastros, fichas, atributos e sessões ativas não entram nesta limpeza.
-const HISTORY_RETENTION_DAYS=30;
-
-function historyTimestamp(...values){
-  for(const value of values){
-    if(value===null || value===undefined || value==='') continue;
-    const raw=String(value).trim();
-    let date=null;
-    const dateOnly=raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if(dateOnly) date=new Date(Number(dateOnly[1]),Number(dateOnly[2])-1,Number(dateOnly[3]),23,59,59,999);
-    else date=new Date(raw);
-    if(Number.isFinite(date?.getTime())) return date.getTime();
-  }
-  return null;
-}
-
-function isWithinHistoryRetention(...values){
-  const timestamp=historyTimestamp(...values);
-  if(timestamp===null) return false;
-  const cutoff=Date.now()-HISTORY_RETENTION_DAYS*24*60*60*1000;
-  return timestamp>=cutoff;
-}
-
-function applyHistoryRetention(target=state){
-  if(!target || typeof target!=='object') return;
-  // Cada série concluída é um registro próprio em loadHistory e expira após 30 dias.
-  if(Array.isArray(target.loadHistory)){
-    target.loadHistory=target.loadHistory.filter(item=>
-      isWithinHistoryRetention(item?.timestamp,item?.date)
-    );
-  }
-  // Resumos de treinos finalizados também são temporários; a ficha de exercícios
-  // e o catálogo mestre nunca são alterados por esta rotina.
-  if(Array.isArray(target.completedWorkouts)){
-    target.completedWorkouts=target.completedWorkouts.filter(item=>
-      isWithinHistoryRetention(item?.finishedAt,item?.startedAt,item?.week)
-    );
-  }
-  if(target.weeklyChecks && typeof target.weeklyChecks==='object' && !Array.isArray(target.weeklyChecks)){
-    Object.keys(target.weeklyChecks).forEach(key=>{
-      if(!isWithinHistoryRetention(key)) delete target.weeklyChecks[key];
-    });
-  }
-  // Sessões ativas e seus dados de retomada nunca são removidos automaticamente.
-}
-
 function normalizeState(x){
 
-if(!x || typeof x!=='object' || Array.isArray(x) || !x.workouts || typeof x.workouts!=='object' || Array.isArray(x.workouts))
-throw new Error('Backup inválido: estrutura principal ausente.');
-if(!days.every(d=>Array.isArray(x.workouts[d])))
-throw new Error('Backup inválido: faltam dias da ficha de treinos.');
-for(const workoutDay of days){
-  if(x.workouts[workoutDay].length>300) throw new Error('Backup inválido: quantidade excessiva de exercícios.');
-  for(const exercise of x.workouts[workoutDay]){
-    if(!exercise || typeof exercise!=='object' || Array.isArray(exercise)) throw new Error('Backup inválido: exercício malformado.');
-  }
-}
+if(!x||!x.workouts)
+throw new Error('Backup inválido');
 
 x.checks=x.checks||{};
 x.notes=x.notes||{};
@@ -5243,29 +5174,22 @@ x.progressVersion=2;
 
 }
 
-// A estrutura antiga 'checks' já foi migrada para weeklyChecks.
-x.checks={};
-applyHistoryRetention(x);
 return x;
 
 }
 
 function loadState(){
 
-// Guarda a versão principal lida nesta aba para impedir que uma aba antiga
-// sobrescreva silenciosamente alterações mais recentes feitas em outra.
-try{lastKnownPrimaryRaw=localStorage.getItem('smartWorkoutData');}catch(error){lastKnownPrimaryRaw=null;}
+try{
 
-// Recupera primeiro o armazenamento principal; se estiver ausente/corrompido,
-// tenta a cópia local de segurança criada a cada salvamento.
-for(const storageKey of ['smartWorkoutData','smartWorkoutData_backup']){
-  try{
-    const raw=localStorage.getItem(storageKey);
-    if(!raw) continue;
-    const x=JSON.parse(raw);
-    if(x&&x.workouts) return normalizeState(x);
-  }catch(e){}
-}
+const x=JSON.parse(
+localStorage.getItem('smartWorkoutData')
+);
+
+if(x&&x.workouts)
+return normalizeState(x);
+
+}catch(e){}
 
 return normalizeState({
 
@@ -5284,44 +5208,19 @@ progressVersion:2
 
 }
 
-let storageWarningShown=false;
 function save(){
-  state.selectedDay=day;
-  state.progressVersion=2;
-  applyHistoryRetention(state);
-  try{
-    persistSelectedDay(day);
-    // Se outra aba gravou desde a última leitura desta aba, não sobrescreve
-    // os dados novos com um estado possivelmente desatualizado.
-    const currentPrimaryRaw=localStorage.getItem('smartWorkoutData');
-    if(currentPrimaryRaw!==lastKnownPrimaryRaw){
-      throw new Error('Os dados foram alterados em outra aba. Atualize o aplicativo antes de salvar novamente.');
-    }
-    const serialized=JSON.stringify(state);
-    // O dado principal é gravado de forma síncrona antes de a ação ser concluída.
-    localStorage.setItem('smartWorkoutData',serialized);
-    lastKnownPrimaryRaw=serialized;
-    // A segunda chave permite recuperação caso a chave principal seja danificada.
-    try{localStorage.setItem('smartWorkoutData_backup',serialized);}catch(backupError){}
-  }catch(error){
-    if(!storageWarningShown){
-      storageWarningShown=true;
-      const toast=document.getElementById('undoToast');
-      const message=document.getElementById('undoMessage');
-      const undo=document.getElementById('undoBtn');
-      if(toast && message){
-        message.textContent='Falha ao salvar: '+String(error?.message||error)+'. Não feche esta janela; tente novamente após atualizar o aplicativo.';
-        if(undo) undo.hidden=true;
-        toast.classList.add('show');
-      }else{
-        alert('Não foi possível salvar os dados no navegador. Exporte um backup assim que possível.');
-      }
-    }
-    return false;
-  }
-  const summaryPage=document.getElementById('summaryPage');
-  if(summaryPage && !summaryPage.hidden && typeof renderSummaryPage==='function') renderSummaryPage();
-  return true;
+
+state.selectedDay=day;
+state.progressVersion=2;
+
+localStorage.setItem(
+'smartWorkoutData',
+JSON.stringify(state)
+);
+
+const summaryPage=document.getElementById('summaryPage');
+if(summaryPage && !summaryPage.hidden && typeof renderSummaryPage==='function') renderSummaryPage();
+
 }
 
 // ========================================
@@ -5408,20 +5307,6 @@ return {total,done};
 // CONTROLE DE INÍCIO E FINALIZAÇÃO
 // ========================================
 
-function carryActiveWorkoutIntoCurrentWeek(targetDay,session){
-  const currentWeek=weekKey();
-  if(!session || session.status!=='active' || session.week===currentWeek) return false;
-  state.weeklyChecks=state.weeklyChecks||{};
-  const oldProgress=state.weeklyChecks[session.week]||{};
-  const currentProgress=state.weeklyChecks[currentWeek]||(state.weeklyChecks[currentWeek]={});
-  Object.keys(oldProgress).filter(key=>key.startsWith(targetDay+'_')).forEach(key=>{
-    currentProgress[key]=structuredClone(oldProgress[key]);
-  });
-  // A sessão continua ativa e passa a usar o ciclo atual sem perder marcações.
-  session.week=currentWeek;
-  return true;
-}
-
 function getWorkoutStatus(){
 
 state.sessions=state.sessions||{};
@@ -5429,13 +5314,10 @@ state.sessions=state.sessions||{};
 const currentWeek=weekKey();
 let session=state.sessions[day];
 
-// Uma sessão ativa atravessa a virada da semana sem ser encerrada ou reiniciada.
-if(session && session.status==='active' && carryActiveWorkoutIntoCurrentWeek(day,session)){
-  save();
-}
-
-// Sessões concluídas/ociosas podem iniciar um novo ciclo semanal normalmente.
-if(!session || (session.week!==currentWeek && session.status!=='active')){
+// Cada sessão pertence a um ciclo semanal.
+// Quando a semana muda (segunda-feira), o status volta automaticamente
+// para "idle", mesmo que o treino tenha sido finalizado ou ficado pendente.
+if(!session || session.week!==currentWeek){
 
 session={
 
@@ -5519,7 +5401,6 @@ function startWorkout(){
   });
   session.preStartSnapshot={
     progress:dayProgressSnapshot,
-    loadHistoryLength:(Array.isArray(state.loadHistory)?state.loadHistory.length:0),
     todayNoticeDismissedDate:state.todayNoticeDismissedDate??null,
     todayNoticeResumeAt:state.todayNoticeResumeAt??null
   };
@@ -5564,9 +5445,6 @@ function confirmCancelWorkout(){
   if(snapshot){
     state.todayNoticeDismissedDate=snapshot.todayNoticeDismissedDate;
     state.todayNoticeResumeAt=snapshot.todayNoticeResumeAt;
-    if(Number.isInteger(snapshot.loadHistoryLength) && Array.isArray(state.loadHistory)){
-      state.loadHistory=state.loadHistory.slice(0,Math.max(0,snapshot.loadHistoryLength));
-    }
   }
   session.status='idle';
   session.startedAt=null;
@@ -5609,16 +5487,14 @@ function finishWorkout(){
       average:numericLoads.length?numericLoads.reduce((sum,value)=>sum+value,0)/numericLoads.length:null
     }];
   });
-  if(completedExercises.length){
-    state.completedWorkouts.push({
-      id:'workout_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),
-      day,
-      week:weekKey(),
-      startedAt:session.startedAt,
-      finishedAt:session.finishedAt,
-      exercises:completedExercises
-    });
-  }
+  state.completedWorkouts.push({
+    id:'workout_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),
+    day,
+    week:weekKey(),
+    startedAt:session.startedAt,
+    finishedAt:session.finishedAt,
+    exercises:completedExercises
+  });
   // O primeiro encerramento válido do ciclo libera Reiniciar por até 30 minutos.
   // Depois de usar Reiniciar uma vez, o segundo encerramento não libera outro reinício.
   session.resetExpiresAt=(Number(session.restartCount)||0)===0?Date.now()+30*60*1000:null;
@@ -5646,10 +5522,7 @@ function getWorkoutStatusForDay(targetDay){
 state.sessions=state.sessions||{};
 const currentWeek=weekKey();
 let session=state.sessions[targetDay];
-if(session && session.status==='active' && carryActiveWorkoutIntoCurrentWeek(targetDay,session)){
-  save();
-}
-if(!session || (session.week!==currentWeek && session.status!=='active')){
+if(!session || session.week!==currentWeek){
 session={status:'idle',startedAt:null,finishedAt:null,resetExpiresAt:null,restartCount:0,week:currentWeek,cancelOpportunityConsumed:false,cancelAvailableUntil:null,preStartSnapshot:null};
 state.sessions[targetDay]=session;
 }
@@ -6038,7 +5911,6 @@ document.querySelectorAll('.day-item .daybtn').forEach(b=>{
     if(longPressTriggered || suppressClick){event.preventDefault();event.stopPropagation();return;}
     closeDayWorkoutPreview();
     day=b.dataset.day;
-    persistSelectedDay(day);
     save();
     render();
   });
@@ -6120,7 +5992,7 @@ const exerciseCollapsed=exerciseCollapseOverrides.has(collapseKey)
 
 return `
 
-<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${String(e.name||'').trim().toLocaleLowerCase('pt-BR')==='corrida'?'exercise-running':''} ${exerciseCollapsed?'is-collapsed':''} ${Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Boolean)?'exercise-completed':''}" data-exercise-index="${i}">
+<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${String(e.name||'').trim().toLocaleLowerCase('pt-BR')==='corrida'?'exercise-running':''} ${exerciseCollapsed?'is-collapsed':''}" data-exercise-index="${i}">
 
 <div class="exercise-main">
 
@@ -6282,110 +6154,24 @@ function recordLoadHistory(dayName,exercise,setIndex){
   });
 }
 
-// Remove do histórico provisório uma série desmarcada nesta sessão.
-// Registros anteriores ao início da sessão nunca são removidos.
-function removeSessionLoadHistory(dayName,exercise,setIndex,startedAt){
-  if(!Array.isArray(state.loadHistory) || !exercise) return;
-  const exerciseId=exercise.id;
-  const startedMs=Date.parse(startedAt||'');
-  if(!exerciseId || !Number.isFinite(startedMs)) return;
-  state.loadHistory=state.loadHistory.filter(entry=>{
-    if(entry.day!==dayName || entry.exerciseId!==exerciseId || Number(entry.set)!==setIndex+1) return true;
-    const entryMs=Date.parse(entry.timestamp||'');
-    return !Number.isFinite(entryMs) || entryMs<startedMs;
-  });
-}
-
 // ========================================
 // MARCAÇÃO DE SÉRIES
 // ========================================
 
-// Atualiza somente os indicadores de progresso e o cartão afetado.
-// Não reconstrói a lista de exercícios: a barra lateral permanece no mesmo DOM,
-// evitando o salto/piscada ao marcar uma série.
-function syncProgressAfterSetChange(){
-  const list=state.workouts[day]||[];
-  let total=0,done=0,completedExercises=0;
-
-  list.forEach((exercise,index)=>{
-    const setCount=Number(exercise.sets)||1;
-    const checks=checksFor(day,index);
-    total+=setCount;
-    done+=checks.filter(Boolean).length;
-    if(Array.from({length:setCount},(_,j)=>checks[j]===true).every(Boolean)){
-      completedExercises++;
-    }
-  });
-
-  const pct=total?Math.min(100,done/total*100):0;
-  const exerciseProgress=document.getElementById('exerciseProgress');
-  const setProgress=document.getElementById('setProgress');
-  const progressBar=document.getElementById('progressBar');
-  const dailyPercent=document.getElementById('dailyPercent');
-  if(exerciseProgress) exerciseProgress.textContent=completedExercises+'/'+list.length;
-  if(setProgress) setProgress.textContent=done+'/'+total;
-  if(progressBar) progressBar.style.width=pct+'%';
-  if(dailyPercent) dailyPercent.textContent=Math.round(pct)+'%';
-
-  const weekly=weeklyTotals();
-  const weeklyPct=weekly.total?Math.min(100,weekly.done/weekly.total*100):0;
-  const weeklyBar=document.getElementById('weeklyProgressBar');
-  const weeklyPercent=document.getElementById('weeklyPercent');
-  const weeklyDescription=document.getElementById('weeklyDescription');
-  if(weeklyBar) weeklyBar.style.width=weeklyPct+'%';
-  if(weeklyPercent) weeklyPercent.textContent=Math.round(weeklyPct)+'%';
-  if(weeklyDescription){
-    weeklyDescription.textContent=weekly.done+' de '+weekly.total+' séries concluídas nesta semana.';
-  }
-}
-
-function syncExerciseCompletionUI(exerciseIndex){
-  const exercise=state.workouts[day]?.[exerciseIndex];
-  const card=document.querySelector(`#exerciseList .exercise[data-exercise-index="${exerciseIndex}"]`);
-  if(!exercise || !card) return;
-
-  const checks=checksFor(day,exerciseIndex);
-  const setCount=Number(exercise.sets)||1;
-  const allDone=Array.from({length:setCount},(_,j)=>checks[j]===true).every(Boolean);
-  card.classList.toggle('exercise-completed',allDone);
-  const doneButton=card.querySelector('.exercise-done-btn');
-  if(doneButton){
-    doneButton.classList.toggle('done',allDone);
-    doneButton.title=allDone?'Desmarcar exercício':'Concluir todas as séries';
-    doneButton.setAttribute('aria-label',allDone?'Desmarcar exercício':'Concluir todas as séries do exercício');
-  }
-
-  card.querySelectorAll('.set-row').forEach((row,index)=>{
-    const checked=checks[index]===true;
-    row.classList.toggle('completed',checked);
-    const button=row.querySelector('.set-done-btn');
-    if(button){
-      button.classList.toggle('done',checked);
-      button.setAttribute('aria-label',(checked?'Desmarcar':'Marcar')+' série '+(index+1)+' como feita');
-      button.setAttribute('onclick',`toggleSet(${exerciseIndex},${index},${!checked})`);
-      button.title=checked?'Desmarcar série':'Marcar série como feita';
-      button.innerHTML=checked
-        ?'<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5 9.2 18 20 6"/></svg>'
-        :'OK';
-    }
-  });
-}
-
 function toggleSet(i,j,v){
-  if(getWorkoutStatus().status!=='active') return;
 
-  const a=checksFor(day,i);
-  const wasDone=a[j]===true;
-  a[j]=v;
-  const exercise=state.workouts[day][i];
-  const session=getWorkoutStatus();
-  if(v && !wasDone) recordLoadHistory(day,exercise,j);
-  else if(!v && wasDone) removeSessionLoadHistory(day,exercise,j,session.startedAt);
+if(getWorkoutStatus().status!=='active') return;
 
-  save();
-  syncExerciseCompletionUI(i);
-  syncProgressAfterSetChange();
-  renderWorkoutButtons();
+
+const a=checksFor(day,i);
+const wasDone=a[j]===true;
+a[j]=v;
+if(v && !wasDone) recordLoadHistory(day,state.workouts[day][i],j);
+
+save();
+
+render();
+
 }
 
 function toggleExercise(i){
@@ -6403,18 +6189,14 @@ const alreadyDone=Array.from(
 (_,j)=>checks[j]===true
 ).every(Boolean);
 
-const session=getWorkoutStatus();
 for(let j=0;j<count;j++){
   const wasDone=checks[j]===true;
   checks[j]=!alreadyDone;
   if(!alreadyDone && !wasDone) recordLoadHistory(day,exercise,j);
-  else if(alreadyDone && wasDone) removeSessionLoadHistory(day,exercise,j,session.startedAt);
 }
 
 save();
-syncExerciseCompletionUI(i);
-syncProgressAfterSetChange();
-renderWorkoutButtons();
+render();
 
 }
 
@@ -6698,9 +6480,7 @@ function adjustEditLoadStep(index,direction,button){
 }
 
 function readLoadFields(){
-  const container=document.getElementById('loadsBySet');
-  if(!container) return [];
-  return Array.from(container.querySelectorAll('.edit-load-input'))
+  return Array.from(document.querySelectorAll('.edit-load-input'))
     .map(input=>{
       const value=input.value.trim();
       if(!isAerobicExercise({muscle:fMuscle.value}) || !value) return value;
@@ -7143,11 +6923,11 @@ clearChecks(editIndex);
 
 if(editIndex!==null) upsertExerciseCatalog(e,old||null);
 if(editIndex===null && fDay?.value==='-'){
-  if(!save()) return; renderAllCatalogLists(); refreshAllStyledSelects(); renderEquipmentOptions(); closeModal();
+  save(); renderAllCatalogLists(); refreshAllStyledSelects(); renderEquipmentOptions(); closeModal();
   document.getElementById('catalogFeedback')?.replaceChildren();
   render(); return;
 }
-if(!save()) return;
+save();
 
 // Mantém a lista de exclusão sincronizada imediatamente após adicionar,
 // editar ou renomear um exercício. A lista é derivada dos treinos salvos.
@@ -8253,11 +8033,6 @@ Object.keys(data)
 .forEach(k=>delete data[k]);
 
 const session=getWorkoutStatus();
-if(session.status==='active' && session.preStartSnapshot &&
-   Number.isInteger(session.preStartSnapshot.loadHistoryLength) &&
-   Array.isArray(state.loadHistory)){
-  state.loadHistory=state.loadHistory.slice(0,Math.max(0,session.preStartSnapshot.loadHistoryLength));
-}
 session.status='idle';
 session.startedAt=null;
 session.finishedAt=null;
@@ -8281,70 +8056,75 @@ render();
 // ========================================
 
 function exportData(){
-  // Aplica a retenção antes de exportar, para que o backup também respeite
-  // o limite de quatro semanas sem tocar na ficha de exercícios.
-  applyHistoryRetention(state);
-  if(!save()){
-    alert('O aplicativo não conseguiu salvar os dados antes da exportação. Verifique o espaço disponível no navegador e tente novamente.');
-    return;
-  }
-  try{
-    const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;
-    a.download='backup-meu-treino.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-  }catch(error){
-    alert('Não foi possível gerar o backup. Tente novamente.');
-  }
+
+const blob=new Blob(
+
+[JSON.stringify(state,null,2)],
+
+{type:'application/json'}
+
+);
+
+const url=URL.createObjectURL(blob);
+
+const a=document.createElement('a');
+
+a.href=url;
+
+a.download='backup-meu-treino.json';
+
+a.click();
+
+setTimeout(
+()=>URL.revokeObjectURL(url),
+1000
+);
+
 }
 
 // ========================================
 // IMPORTAR BACKUP
 // ========================================
+
 function importData(file){
-  if(!file) return;
-  if(file.size>5*1024*1024){
-    alert('Esse backup é maior que 5 MB e não pode ser importado.');
-    return;
-  }
-  const reader=new FileReader();
-  reader.onload=()=>{
-    const previousState=state;
-    const previousDay=day;
-    try{
-      const parsed=JSON.parse(String(reader.result||''));
-      const candidate=normalizeState(parsed);
-      if(!days.every(d=>Array.isArray(candidate.workouts[d]))){
-        throw new Error('A ficha está incompleta.');
-      }
-      state=candidate;
-      day=days.includes(state.selectedDay)?state.selectedDay:days[0];
-      persistSelectedDay(day);
-      if(!save()){
-        state=previousState;
-        day=previousDay;
-        persistSelectedDay(previousDay);
-        alert('Não foi possível salvar o backup importado. Os dados que estavam abertos no aplicativo foram mantidos.');
-        return;
-      }
-      render();
-      alert('Backup importado com sucesso! A ficha de exercícios foi preservada e o histórico foi limitado aos últimos 30 dias.');
-    }catch(error){
-      state=previousState;
-      day=previousDay;
-      persistSelectedDay(previousDay);
-      alert('Não foi possível importar esse backup. O arquivo pode estar inválido ou incompleto. Os dados atuais foram mantidos.');
-    }
-  };
-  reader.onerror=()=>{
-    alert('Não foi possível ler o arquivo de backup. Os dados atuais foram mantidos.');
-  };
-  reader.readAsText(file);
+
+const r=new FileReader();
+
+r.onload=()=>{
+
+try{
+
+const x=normalizeState(
+JSON.parse(r.result)
+);
+
+if(!days.every(d=>
+Array.isArray(x.workouts[d])
+))
+throw new Error('Treinos incompletos');
+
+state=x;
+
+save();
+
+day=days.find(d=>
+state.workouts[d]
+)||days[0];
+
+render();
+
+alert('Backup importado!');
+
+}catch(e){
+
+alert('Não foi possível ler esse backup.');
+
+}
+
+};
+
+r.readAsText(file);
+
 }
 
 // ========================================
@@ -8832,25 +8612,18 @@ function summaryChartMarkup(workouts){
   }).join('');
   const xLabels=points.map((point,index)=>`<text x="${x(index)}" y="${height-10}" text-anchor="middle">${esc(point.label)}</text>`).join('');
   const dots=points.map((point,index)=>`<circle cx="${x(index)}" cy="${y(point.value)}" r="5"><title>${esc(point.label)} · média ${summaryLoadValue(point.value)}</title></circle>`).join('');
-  return `<div class="summary-chart-wrap"><h3>Comparações</h3><p>Média das cargas das séries concluídas em cada treino finalizado nas últimas três semanas.</p><svg class="summary-load-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Comparação da média das cargas nos treinos concluídos nas últimas três semanas"><g class="summary-chart-grid">${yLabels}</g>${points.length>1?`<polyline points="${coords.join(' ')}" />`:''}${dots}<g class="summary-chart-labels">${xLabels}</g></svg></div>`;
+  return `<div class="summary-chart-wrap"><h3>Comparações</h3><p>Média das cargas das séries concluídas em cada um dos últimos três treinos finalizados.</p><svg class="summary-load-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Comparação da média das cargas nos últimos três treinos concluídos"><g class="summary-chart-grid">${yLabels}</g>${points.length>1?`<polyline points="${coords.join(' ')}" />`:''}${dots}<g class="summary-chart-labels">${xLabels}</g></svg></div>`;
 }
 
 function summaryLoadsMarkup(){
   const groups=getActiveSummaryExercises();
-  if(!groups.length) return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Acompanhe as cargas registradas nos treinos finalizados das últimas três semanas.</p></div></div><div class="summary-empty-state">Adicione exercícios aos treinos para consultar a evolução das cargas.</div>`;
+  if(!groups.length) return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Acompanhe as cargas das séries dos três últimos treinos finalizados.</p></div></div><div class="summary-empty-state">Adicione exercícios aos treinos para consultar a evolução das cargas.</div>`;
   const selectedIndex=Math.min(Math.max(Number(summaryLoadGroupIndex)||0,0),groups.length-1);
   summaryLoadGroupIndex=String(selectedIndex);
   const options=groups.map((group,index)=>`<option value="${index}" ${index===selectedIndex?'selected':''}>${esc(group.name)} · ${esc(group.muscle)} · ${esc(group.equipment)}</option>`).join('');
   const group=groups[selectedIndex];
   const ids=new Set(group.ids);
-  // A evolução de carga considera os últimos 21 dias corridos (3 semanas)
-  // e somente sessões explicitamente finalizadas pelo usuário.
-  const threeWeeksAgo=Date.now()-(21*24*60*60*1000);
   const recentWorkouts=(state.completedWorkouts||[])
-    .filter(workout=>{
-      const finishedMs=Date.parse(workout.finishedAt||'');
-      return Number.isFinite(finishedMs) && finishedMs>=threeWeeksAgo && finishedMs<=Date.now();
-    })
     .map(workout=>{
       const exercise=(workout.exercises||[]).find(item=>ids.has(item.exerciseId));
       if(!exercise) return null;
@@ -8859,13 +8632,14 @@ function summaryLoadsMarkup(){
       return {...workout,exercise,average:numericLoads.reduce((sum,value)=>sum+value,0)/numericLoads.length};
     })
     .filter(Boolean)
-    .sort((a,b)=>new Date(a.finishedAt).getTime()-new Date(b.finishedAt).getTime());
+    .sort((a,b)=>new Date(a.finishedAt).getTime()-new Date(b.finishedAt).getTime())
+    .slice(-3);
   const historyMarkup=recentWorkouts.length?`<section class="summary-history-table-wrap"><h3>Últimos ${recentWorkouts.length} ${recentWorkouts.length===1?'treino finalizado':'treinos finalizados'}</h3><div class="summary-history-list">${[...recentWorkouts].reverse().map((workout,index)=>{
     const date=new Date(workout.finishedAt).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
     const chips=(workout.exercise.loads||[]).map((load,setIndex)=>({load,setIndex})).filter(item=>Array.isArray(workout.exercise.completedSets)?workout.exercise.completedSets[item.setIndex]===true:true).map(({load,setIndex})=>`<span>${setIndex+1}: ${esc(summaryLoadValue(load))}</span>`).join('');
     return `<article class="summary-history-session"><div class="summary-history-session-heading"><strong>${esc(workout.day)} · ${esc(date)}</strong><b>Média: ${esc(summaryLoadValue(workout.average))}</b></div><div class="summary-load-chips">${chips}</div></article>`;
-  }).join('')}</div></section>`:`<div class="summary-empty-state">Ainda não há registros de carga deste exercício em treinos finalizados nas últimas três semanas. O treino entra no histórico quando você toca em Finalizar treino, mesmo que não tenha concluído todas as séries; somente as séries marcadas como feitas entram na comparação.</div>`;
-  return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Confira as cargas das séries nos treinos finalizados das últimas três semanas do exercício selecionado.</p></div></div>
+  }).join('')}</div></section>`:`<div class="summary-empty-state">Ainda não há treinos finalizados com todas as séries deste exercício confirmadas. Finalize um treino após marcar as séries como feitas para registrar as cargas aqui.</div>`;
+  return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Confira as cargas das séries nos três últimos treinos finalizados do exercício selecionado.</p></div></div>
     <div class="summary-load-filters"><label>Exercício<select id="summaryLoadExercise">${options}</select></label></div>
     ${recentWorkouts.length?summaryChartMarkup(recentWorkouts):''}${historyMarkup}`;
 }
@@ -8940,17 +8714,8 @@ document.addEventListener('click',event=>{
 document.addEventListener('keydown',event=>{
   if(event.key==='Escape') closeHeaderMenu();
 });
-function persistAppPosition(){
-  // O conteúdo do treino já é salvo imediatamente por cada ação.
-  // No ciclo de fechamento, persiste somente o dia selecionado para evitar
-  // uma gravação redundante do estado inteiro durante a suspensão/saída do PWA.
-  try{
-    persistSelectedDay(day);
-  }catch(_){}
-}
-window.addEventListener('pagehide',persistAppPosition);
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden') persistAppPosition();
+window.addEventListener('beforeunload',()=>{
+  try{state.selectedDay=day;save();}catch(_){}
 });
 
 // ========================================
@@ -9490,19 +9255,6 @@ if ('serviceWorker' in navigator) {
   }
 })();
 </script>
-
-
-
-<style id="workout-indicator-pulse-refinement">
-/* Pulsação um pouco mais intensa, sem alterar o espaçamento do botão. */
-.workout-btn.start.active .workout-indicator{
-  animation:workoutPulseRefined 1.6s ease-in-out infinite!important;
-}
-@keyframes workoutPulseRefined{
-  0%,100%{transform:scale(1);box-shadow:0 0 0 4px #d7ff0038,0 0 8px #d7ff0070;opacity:1}
-  50%{transform:scale(1.13);box-shadow:0 0 0 10px #d7ff0018,0 0 19px #d7ff00aa;opacity:.80}
-}
-</style>
 
 </body>
 </html>
