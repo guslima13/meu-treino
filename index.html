@@ -5249,7 +5249,13 @@ return x;
 
 }
 
+let lastKnownPrimaryRaw=null;
+
 function loadState(){
+
+// Guarda a versão principal lida nesta aba para impedir que uma aba antiga
+// sobrescreva silenciosamente alterações mais recentes feitas em outra.
+try{lastKnownPrimaryRaw=localStorage.getItem('smartWorkoutData');}catch(error){lastKnownPrimaryRaw=null;}
 
 // Recupera primeiro o armazenamento principal; se estiver ausente/corrompido,
 // tenta a cópia local de segurança criada a cada salvamento.
@@ -5286,9 +5292,16 @@ function save(){
   applyHistoryRetention(state);
   try{
     persistSelectedDay(day);
+    // Se outra aba gravou desde a última leitura desta aba, não sobrescreve
+    // os dados novos com um estado possivelmente desatualizado.
+    const currentPrimaryRaw=localStorage.getItem('smartWorkoutData');
+    if(currentPrimaryRaw!==lastKnownPrimaryRaw){
+      throw new Error('Os dados foram alterados em outra aba. Atualize o aplicativo antes de salvar novamente.');
+    }
     const serialized=JSON.stringify(state);
     // O dado principal é gravado de forma síncrona antes de a ação ser concluída.
     localStorage.setItem('smartWorkoutData',serialized);
+    lastKnownPrimaryRaw=serialized;
     // A segunda chave permite recuperação caso a chave principal seja danificada.
     try{localStorage.setItem('smartWorkoutData_backup',serialized);}catch(backupError){}
   }catch(error){
@@ -8927,13 +8940,13 @@ document.addEventListener('keydown',event=>{
   if(event.key==='Escape') closeHeaderMenu();
 });
 function persistAppPosition(){
+  // O conteúdo do treino já é salvo imediatamente por cada ação.
+  // No ciclo de fechamento, persiste somente o dia selecionado para evitar
+  // uma gravação redundante do estado inteiro durante a suspensão/saída do PWA.
   try{
-    state.selectedDay=day;
     persistSelectedDay(day);
-    save();
   }catch(_){}
 }
-window.addEventListener('beforeunload',persistAppPosition);
 window.addEventListener('pagehide',persistAppPosition);
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden') persistAppPosition();
