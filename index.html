@@ -592,6 +592,9 @@ cursor:not-allowed;
 }
 
 .set-row.completed .set-number{color:#aab5ad}
+/* Esmaece a carga/tempo somente da série concluída; reverte ao desmarcar. */
+.exercise .set-row .saved-load-value{transition:opacity .18s ease,color .18s ease}
+.exercise .set-row.completed .saved-load-value{opacity:.42;color:#aab5ad}
 
 .set-row.completed .set-input{opacity:.82}
 
@@ -9518,13 +9521,14 @@ if ('serviceWorker' in navigator) {
  const DAY=24*60*60*1000;
  const prompt=document.getElementById('historyReviewPrompt');
  const fmt=new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'});
+ const monthText=date=>fmt.format(date).replace(/^\p{L}/u,letter=>letter.toLocaleLowerCase('pt-BR'));
  function getNext(){try{return Number(localStorage.getItem(REVIEW_KEY))||0}catch(_){return 0}}
  function setNext(ms){try{localStorage.setItem(REVIEW_KEY,String(ms))}catch(e){console.warn('Não foi possível salvar a data de revisão:',e)}}
  if(!getNext())setNext(Date.now()+YEAR);
  function monthStart(offset){const now=new Date();return new Date(now.getFullYear(),now.getMonth()+offset,1)}
- function monthList(first,last){const names=[];for(let i=first;i<=last;i++)names.push(fmt.format(monthStart(i)));return names.join(', ')}
+ function monthList(first,last){const names=[];for(let i=first;i<=last;i++)names.push(monthText(monthStart(i)));return names.join(', ')}
  function updateDescription(){
-   document.getElementById('historyReviewKeepMonths').textContent=monthList(-6,-1)+' (e o mês atual, '+fmt.format(monthStart(0))+')';
+   document.getElementById('historyReviewKeepMonths').textContent=monthList(-6,-1)+' (e o mês atual, '+monthText(monthStart(0))+')';
    document.getElementById('historyReviewDeleteMonths').textContent=monthList(-12,-7);
  }
  function maybeShow(){if(!prompt.hidden)return;if(Date.now()>=getNext()){updateDescription();prompt.hidden=false}}
@@ -9533,7 +9537,7 @@ if ('serviceWorker' in navigator) {
  document.getElementById('historyReviewKeep').addEventListener('click',()=>close(365));
  document.getElementById('historyReviewDelete').addEventListener('click',()=>{
    updateDescription();
-   if(!confirm('Confirmar exclusão definitiva somente das marcações semanais e dos registros de treinos concluídos anteriores a '+fmt.format(monthStart(-6))+'? Os seis meses completos mais recentes, o mês atual, o treino ativo, os exercícios, as cargas e as configurações serão preservados.'))return;
+   if(!confirm('Confirmar exclusão definitiva somente das marcações semanais e dos registros de treinos concluídos anteriores a '+monthText(monthStart(-6))+'? Os seis meses completos mais recentes, o mês atual, o treino ativo, os exercícios, as cargas e as configurações serão preservados.'))return;
    try{
      if(typeof state==='undefined'||typeof save!=='function')throw new Error('Dados do treino indisponíveis');
      const cutoffMs=monthStart(-6).getTime();
