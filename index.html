@@ -8927,13 +8927,13 @@ document.addEventListener('keydown',event=>{
   if(event.key==='Escape') closeHeaderMenu();
 });
 function persistAppPosition(){
+  // O conteúdo do treino já é salvo imediatamente por cada ação.
+  // No ciclo de fechamento, persiste somente o dia selecionado para evitar
+  // uma gravação redundante do estado inteiro durante a suspensão/saída do PWA.
   try{
-    state.selectedDay=day;
     persistSelectedDay(day);
-    save();
   }catch(_){}
 }
-window.addEventListener('beforeunload',persistAppPosition);
 window.addEventListener('pagehide',persistAppPosition);
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden') persistAppPosition();
