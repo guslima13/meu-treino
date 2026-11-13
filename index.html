@@ -4935,6 +4935,30 @@ body.weekly-evolution-open{overflow:hidden}
   </section>
 </div>
 
+<div class="confirm-backdrop" id="exportBackupConfirm" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="exportBackupTitle">
+    <h2 id="exportBackupTitle">Baixar backup?</h2>
+    <p>Deseja salvar uma cópia dos seus exercícios, histórico de treinos e configurações?</p>
+    <p style="font-size:12px;opacity:.75;margin-top:10px">Arquivo: backup-meu-treino.json</p>
+    <div class="confirm-actions"><button type="button" class="btn" id="cancelExportBackupBtn">Cancelar</button><button type="button" class="btn primary" id="confirmExportBackupBtn">Baixar backup</button></div>
+  </section>
+</div>
+
+<div class="confirm-backdrop" id="importBackupConfirm" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="importBackupTitle">
+    <h2 id="importBackupTitle">Importar backup?</h2>
+    <p>Esta ação substituirá os exercícios, o histórico e as configurações atuais pelos dados do arquivo selecionado. Deseja continuar?</p>
+    <div class="confirm-actions"><button type="button" class="btn" id="cancelImportBackupBtn">Cancelar</button><button type="button" class="btn primary" id="confirmImportBackupBtn">Importar backup</button></div>
+  </section>
+</div>
+<div class="confirm-backdrop" id="storageReadErrorDialog" hidden>
+  <section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="storageReadErrorTitle">
+    <h2 id="storageReadErrorTitle">Não foi possível carregar seus dados</h2>
+    <p>Por segurança, o Meu Treino bloqueou o salvamento para não substituir os dados armazenados. Não limpe os dados deste navegador. Reabra o aplicativo e, se o problema continuar, recupere suas informações antes de fazer alterações.</p>
+    <div class="confirm-actions"><button type="button" class="btn primary" id="ackStorageReadErrorBtn">Entendi</button></div>
+  </section>
+</div>
+
 <div class="confirm-backdrop" id="catalogEditDialog" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogEditTitle">
     <h2 id="catalogEditTitle">Editar opção cadastrada</h2>
@@ -5438,37 +5462,42 @@ return x;
 
 }
 
-function loadState(){
-
-try{
-
-const x=JSON.parse(
-localStorage.getItem('smartWorkoutData')
-);
-
-if(x&&x.workouts)
-return normalizeState(x);
-
-}catch(e){}
-
-return normalizeState({
-
-workouts:structuredClone(initial),
-checks:{},
-notes:{},
-weeklyChecks:{},
-sessions:{},
-loadHistory:[],
-catalogs:{muscle:[],equipment:[],execution:[],grip:[]},
-equipmentPrepositions:{},
-exerciseCatalog:[],
-progressVersion:2
-
-});
-
+// Não converter erros de leitura em dados iniciais: isso poderia sobrescrever o backup local.
+let workoutStorageReadBlocked=false;
+function isValidWorkoutData(raw){
+  return !!raw && typeof raw==='object' && !Array.isArray(raw) &&
+    !!raw.workouts && typeof raw.workouts==='object' &&
+    days.every(d=>Array.isArray(raw.workouts[d]));
 }
+function freshWorkoutState(){
+  return normalizeState({
+    workouts:structuredClone(initial), checks:{}, notes:{}, weeklyChecks:{},
+    sessions:{}, loadHistory:[], catalogs:{muscle:[],equipment:[],execution:[],grip:[]},
+    equipmentPrepositions:{}, exerciseCatalog:[], progressVersion:2
+  });
+}
+function loadState(){
+  try{
+    const stored=localStorage.getItem('smartWorkoutData');
+    if(stored===null) return freshWorkoutState();
+    const parsed=JSON.parse(stored);
+    if(!isValidWorkoutData(parsed)) throw new Error('Estrutura de dados inválida');
+    return normalizeState(parsed);
+  }catch(error){
+    console.error('Leitura do Meu Treino bloqueada para proteger os dados:',error);
+    workoutStorageReadBlocked=true;
+    // Estado temporário somente para renderizar a tela, nunca para gravar.
+    return freshWorkoutState();
+  }
+}
+function showWorkoutStorageReadWarning(){
+  if(workoutStorageReadBlocked) document.getElementById('storageReadErrorDialog').hidden=false;
+}
+if(workoutStorageReadBlocked) setTimeout(showWorkoutStorageReadWarning,0);
 
 function save(){
+
+if(workoutStorageReadBlocked){ showWorkoutStorageReadWarning(); return; }
 
 state.selectedDay=day;
 state.progressVersion=2;
@@ -8464,42 +8493,49 @@ setTimeout(
 // IMPORTAR BACKUP
 // ========================================
 
-function importData(file){
-
-const r=new FileReader();
-
-r.onload=()=>{
-
-try{
-
-const x=normalizeState(
-JSON.parse(r.result)
-);
-
-if(!days.every(d=>
-Array.isArray(x.workouts[d])
-))
-throw new Error('Treinos incompletos');
-
-state=x;
-
-day=days.includes(x.selectedDay)?x.selectedDay:days[0];
-
-save();
-render();
-
-alert('Backup importado!');
-
-}catch(e){
-
-alert('Não foi possível ler esse backup.');
-
+let pendingImportedBackup=null;
+function closeImportBackupDialog(){
+  pendingImportedBackup=null;
+  document.getElementById('importBackupConfirm').hidden=true;
 }
-
-};
-
-r.readAsText(file);
-
+function importData(file){
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const parsed=JSON.parse(r.result);
+      if(!isValidWorkoutData(parsed)) throw new Error('Backup incompleto');
+      // Validar sem tocar nos dados atuais.
+      const imported=normalizeState(parsed);
+      if(!isValidWorkoutData(imported)) throw new Error('Backup inválido');
+      pendingImportedBackup=imported;
+      document.getElementById('importBackupConfirm').hidden=false;
+    }catch(error){
+      console.error('Backup inválido:',error);
+      alert('Não foi possível ler esse backup. Nenhum dado foi alterado.');
+    }
+  };
+  r.onerror=()=>alert('Não foi possível abrir esse arquivo. Nenhum dado foi alterado.');
+  r.readAsText(file);
+}
+function confirmImportBackup(){
+  if(!pendingImportedBackup)return;
+  const imported=pendingImportedBackup;
+  // Persistir e verificar primeiro; só depois trocar o estado em memória.
+  try{
+    const serialized=JSON.stringify(imported);
+    localStorage.setItem('smartWorkoutData',serialized);
+    if(localStorage.getItem('smartWorkoutData')!==serialized)throw new Error('Gravação não confirmada');
+    workoutStorageReadBlocked=false;
+    state=imported;
+    day=days.includes(imported.selectedDay)?imported.selectedDay:days[0];
+    closeImportBackupDialog();
+    render();
+    alert('Backup importado!');
+  }catch(error){
+    console.error('Falha ao importar backup:',error);
+    closeImportBackupDialog();
+    alert('Não foi possível salvar o backup. Verifique o armazenamento do navegador.');
+  }
 }
 
 // ========================================
@@ -8539,8 +8575,15 @@ document.getElementById('catalogDeleteConfirm').addEventListener('click',event=>
 
 document.getElementById('backupMenuBtn')?.addEventListener('click',openBackupMenu);
 document.getElementById('closeBackupMenuBtn').onclick=closeBackupMenu;
-document.getElementById('chooseExportBtn').onclick=()=>{closeBackupMenu();exportData();};
+document.getElementById('chooseExportBtn').onclick=()=>{closeBackupMenu();document.getElementById('exportBackupConfirm').hidden=false;};
+document.getElementById('cancelExportBackupBtn').onclick=()=>{document.getElementById('exportBackupConfirm').hidden=true;};
+document.getElementById('confirmExportBackupBtn').onclick=()=>{document.getElementById('exportBackupConfirm').hidden=true;exportData();};
+document.getElementById('exportBackupConfirm').addEventListener('click',e=>{if(e.target.id==='exportBackupConfirm')document.getElementById('exportBackupConfirm').hidden=true;});
 document.getElementById('chooseImportBtn').onclick=()=>{closeBackupMenu();importFile.click();};
+document.getElementById('cancelImportBackupBtn').onclick=closeImportBackupDialog;
+document.getElementById('confirmImportBackupBtn').onclick=confirmImportBackup;
+document.getElementById('importBackupConfirm').addEventListener('click',e=>{if(e.target.id==='importBackupConfirm')closeImportBackupDialog();});
+document.getElementById('ackStorageReadErrorBtn').onclick=()=>{document.getElementById('storageReadErrorDialog').hidden=true;};
 document.getElementById('infoCatalogBtn').onclick=openInfoCatalog;
 document.getElementById('summaryBtn')?.addEventListener('click',openSummaryPage);
 document.getElementById('summaryBackBtn').onclick=closeSummaryPage;
@@ -9972,6 +10015,7 @@ if ('serviceWorker' in navigator) {
      state.weeklyChecks=filtered;state.completedWorkouts=completed;
      try{
        const serialized=JSON.stringify(state);
+       if(workoutStorageReadBlocked){showWorkoutStorageReadWarning();throw new Error('Leitura bloqueada');}
        localStorage.setItem('smartWorkoutData',serialized);
        if(localStorage.getItem('smartWorkoutData')!==serialized)throw new Error('Gravação não confirmada');
      }catch(err){state.weeklyChecks=oldWeekly;state.completedWorkouts=oldCompleted;throw err}
