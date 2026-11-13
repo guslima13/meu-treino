@@ -6433,27 +6433,8 @@ save();
 
 }
 
-// ========================================
-// HISTÓRICO DE CARGAS POR SÉRIE CONCLUÍDA
-// ========================================
-function recordLoadHistory(dayName,exercise,setIndex){
-  if(!exercise) return;
-  state.loadHistory=Array.isArray(state.loadHistory)?state.loadHistory:[];
-  state.loadHistory.push({
-    id:'load_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),
-    exerciseId:(exercise.id||(exercise.id='exercise_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9))),
-    exerciseName:String(exercise.name||'Exercício'),
-    muscle:String(exercise.muscle||''),
-    equipment:String(exercise.equipment||''),
-    execution:String(exercise.execution||''),
-    grip:String(exercise.grip||''),
-    day:dayName,
-    set:setIndex+1,
-    load:String((exercise.loads||[])[setIndex]??''),
-    date:(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})(),
-    timestamp:new Date().toISOString()
-  });
-}
+// Histórico definitivo de cargas: criado exclusivamente por finishWorkout().
+// Registros legados loadHistory permanecem armazenados, sem serem consultados.
 
 // ========================================
 // MARCAÇÃO DE SÉRIES
@@ -6467,7 +6448,7 @@ if(getWorkoutStatus().status!=='active') return;
 const a=checksFor(day,i);
 const wasDone=a[j]===true;
 a[j]=v;
-if(v && !wasDone) recordLoadHistory(day,state.workouts[day][i],j);
+// A marcação é provisória; a carga só entra no histórico ao finalizar o treino.
 
 save();
 
@@ -6536,7 +6517,7 @@ const alreadyDone=Array.from(
 for(let j=0;j<count;j++){
   const wasDone=checks[j]===true;
   checks[j]=!alreadyDone;
-  if(!alreadyDone && !wasDone) recordLoadHistory(day,exercise,j);
+  // Nenhum registro de carga é criado antes da finalização do treino.
 }
 
 save();
@@ -8960,41 +8941,9 @@ function weeklyRecords(group,weekDate){
     if(!(t>=weekDate && t<end))return;
     (workout.exercises||[]).filter(matching).forEach(ex=>records.push({date:t,loads:ex.loads||[],done:ex.completedSets||[],source:'finished'}));
   });
-  // Semana em curso: inclui as séries feitas mesmo antes de finalizar o treino.
-  if(key===weekKey()){
-    days.forEach(dayName=>(state.workouts[dayName]||[]).forEach((ex,i)=>{
-      if(!signature(ex))return;
-      const done=(state.weeklyChecks?.[key]?.[dayName+'_'+i]||[]);
-      if(!done.some(v=>v===true))return;
-      const n=Number(ex.sets)||1;
-      const loads=Array.from({length:n},(_,j)=>done[j]===true?String((ex.loads||[])[j]??''):'');
-      // Evita contar novamente as mesmas séries se o treino já foi finalizado.
-      const alreadyFinished=records.some(r=>r.source==='finished' && r.loads.length===n && r.done.every((v,j)=>v=== (done[j]===true)));
-      if(!alreadyFinished)records.push({date:new Date(),loads,done:Array.from({length:n},(_,j)=>done[j]===true),source:'current'});
-    }));
-  }
-  // Registros históricos de marcação servem como alternativa quando não existe
-  // instantâneo do treino. Nunca são somados a um treino já registrado.
-  if(!records.length){
-    const historical=(state.loadHistory||[]).filter(item=>{
-      const t=new Date(item.timestamp||item.date||'');
-      return t>=weekDate && t<end && matching(item);
-    });
-    if(historical.length){
-      const byDay=new Map();
-      historical.forEach(item=>{
-        const date=String(item.date||item.timestamp||'').slice(0,10);
-        if(!byDay.has(date))byDay.set(date,[]);
-        byDay.get(date).push(item);
-      });
-      byDay.forEach((items,date)=>{
-        const max=Math.max(...items.map(item=>Number(item.set)||0));
-        const loads=Array(max).fill(''),done=Array(max).fill(false);
-        items.forEach(item=>{const i=Number(item.set)-1;if(i>=0){loads[i]=String(item.load??'');done[i]=true;}});
-        records.push({date:new Date(date+'T12:00:00'),loads,done,source:'events'});
-      });
-    }
-  }
+  // Somente os instantâneos dos treinos efetivamente finalizados são fonte
+  // da evolução semanal. Marcações provisórias e eventos antigos de OK
+  // (loadHistory) são preservados nos dados, mas nunca entram nas estatísticas.
   records.sort((a,b)=>a.date-b.date);
   const values=records.flatMap(r=>r.loads.filter((_,i)=>r.done[i]===true).map(weeklyNumber).filter(v=>v!==null));
   const average=values.length?values.reduce((a,b)=>a+b,0)/values.length:null;
