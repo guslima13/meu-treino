@@ -9279,7 +9279,24 @@ setupEquipmentPicker();
 allExercisesCollapsed=allExercisesCollapsedByDay[day]??true;
 exerciseCollapseOverrides.clear();
 render();
-restoreUiState();
+// Em cada abertura ou atualização, priorizar a página do dia atual.
+// Domingo não possui aba de treino: exibir Segunda sem alterar o ciclo semanal.
+// Não apagar o estado salvo de treinos, séries ou histórico.
+(function openTodayWorkoutOnStartup(){
+  const todayIndex=new Date().getDay();
+  const todayDay=days[todayIndex===0?0:todayIndex-1];
+  if(day!==todayDay){
+    day=todayDay;
+    state.selectedDay=day;
+    allExercisesCollapsed=allExercisesCollapsedByDay[day]??true;
+    exerciseCollapseOverrides.clear();
+    render();
+  }
+  // O estado anterior de navegação não deve reabrir Resumo/Evolução
+  // nem substituir a aba correspondente ao dia de hoje.
+  window.scrollTo(0,0);
+  persistUiState();
+})();
 bindExerciseDrag();
 window.addEventListener('pageshow',()=>{
   if(typeof renderWorkoutButtons==='function') renderWorkoutButtons();
