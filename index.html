@@ -5791,6 +5791,7 @@ function confirmCancelWorkout(){
   }
   session.status='idle';session.startedAt=null;session.finishedAt=null;
   session.resetExpiresAt=null;session.cancelAvailableUntil=null;session.preStartSnapshot=null;
+  session.replacesCompletedWorkoutId=null;
   session.cancelOpportunityConsumed=true;
   save();render();
 }
@@ -5828,14 +5829,23 @@ function finishWorkout(options={}){
       average:numericLoads.length?numericLoads.reduce((sum,value)=>sum+value,0)/numericLoads.length:null
     }];
   });
-  state.completedWorkouts.push({
-    id:'workout_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),
+  // Uma sessão reiniciada substitui o seu próprio registro anterior SOMENTE
+  // quando a nova finalização é confirmada. Outros treinos não são afetados.
+  const replacementId=session.replacesCompletedWorkoutId||null;
+  const replacementIndex=replacementId
+    ?state.completedWorkouts.findIndex(item=>item.id===replacementId && item.day===targetDay && item.week===(session.week||weekKey()))
+    :-1;
+  const finishedRecord={
+    id:replacementIndex>=0?state.completedWorkouts[replacementIndex].id:'workout_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),
     day:targetDay,
     week:session.week||weekKey(),
     startedAt:session.startedAt,
     finishedAt:session.finishedAt,
     exercises:completedExercises
-  });
+  };
+  if(replacementIndex>=0) state.completedWorkouts.splice(replacementIndex,1,finishedRecord);
+  else state.completedWorkouts.push(finishedRecord);
+  session.replacesCompletedWorkoutId=null;
   // O primeiro encerramento válido do ciclo libera Reiniciar por até 30 minutos.
   // Depois de usar Reiniciar uma vez, o segundo encerramento não libera outro reinício.
   session.resetExpiresAt=options.automatic?null:((Number(session.restartCount)||0)===0?Date.now()+30*60*1000:null);
@@ -8521,6 +8531,12 @@ function confirmResetDay(){
   }
   closeResetDialog();
   recordUndo('Progresso do treino reiniciado');
+  // Vincula a próxima finalização ao registro anterior desta sessão.
+  // Não remove o registro agora: ele só será substituído ao finalizar novamente.
+  const previousRecord=(state.completedWorkouts||[]).find(item=>
+    item.day===target && item.week===session.week && item.finishedAt===session.finishedAt
+  );
+  session.replacesCompletedWorkoutId=previousRecord?.id||null;
   const data=currentWeekData();
   Object.keys(data).filter(k=>k.startsWith(target+'_')).forEach(k=>delete data[k]);
   session.status='idle';session.startedAt=null;session.finishedAt=null;
