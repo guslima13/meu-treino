@@ -4717,6 +4717,38 @@ body.weekly-evolution-open{overflow:hidden}
   .bottom-dashboard .finish-control #resetBtn{right:17px!important}
 }
 </style>
+<style id="workout-quick-actions-styles">
+/* Painel adicional: preserva os botões principais originais. */
+/* Espaçamento vertical uniforme, com ou sem painel de ações. */
+.bottom-dashboard{gap:12px!important;row-gap:12px!important;margin-top:12px!important;}
+.bottom-dashboard > .finish-control,
+.bottom-dashboard > .workout-quick-actions,
+.bottom-dashboard > .toolbar{margin-top:0!important;margin-bottom:0!important;}
+.workout-quick-actions[hidden],.workout-quick-action[hidden]{display:none!important}
+.workout-quick-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0;padding:7px;background:#171d19;border:1px solid #39453b;border-radius:13px}
+.workout-quick-action{position:static!important;inset:auto!important;transform:none!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:47px;width:100%!important;padding:6px 4px!important;border:1px solid #354337!important;border-radius:10px!important;background:#202922!important;color:#d7ff00!important;box-shadow:none!important;font:inherit;cursor:pointer;transition:background-color .12s,border-color .12s,opacity .12s;overflow-anchor:none}
+.workout-quick-action svg{width:17px!important;height:17px!important;stroke:currentColor!important;fill:none!important;stroke-width:2.2!important;stroke-linecap:round;stroke-linejoin:round}
+.workout-quick-action span{font-size:11px;font-weight:650;color:#f0f4ed}
+.workout-quick-action:disabled{opacity:.35;cursor:not-allowed}
+.workout-quick-action:active:not(:disabled){transform:none!important;background:#283329!important}
+.bottom-dashboard,.bottom-dashboard .toolbar,.workout-quick-actions{overflow-anchor:none}
+/* Somente no estado pausado, o indicador superior exibe o mesmo símbolo da ação Pausar. */
+.workout-btn.start.active.paused .workout-indicator{
+  width:17px!important;height:17px!important;flex:0 0 17px!important;
+  border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;animation:none!important;
+}
+.workout-btn.start.active.paused .workout-indicator svg{
+  display:block!important;width:17px!important;height:17px!important;
+  fill:none!important;filter:none!important;overflow:visible!important;
+}
+.workout-btn.start.active.paused .workout-indicator svg path{
+  fill:none!important;stroke:var(--accent)!important;stroke-width:2.2!important;
+  stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+/* Efeito visual de bloqueio no nome da tela Editar. */
+#modal.edit-mode #fName:disabled{opacity:.48!important;filter:grayscale(.55)!important;cursor:not-allowed!important;background:#222924!important;border-color:#3d483e!important;color:#9ba69b!important;-webkit-text-fill-color:#9ba69b!important}
+</style>
 </head>
 
 <body>
@@ -5012,19 +5044,16 @@ body.weekly-evolution-open{overflow:hidden}
       <span class="workout-indicator workout-check-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5 9.2 18 20 6"/></svg></span>
       <span class="workout-label">FINALIZAR TREINO</span>
     </button>
-    <button type="button" class="reset-workout-icon cancel-workout-icon" id="cancelWorkoutBtn"
-      title="Cancelar treino" aria-label="Cancelar treino"
-      onclick="openCancelWorkoutDialog()" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M18 6 6 18M6 6l12 12"/>
-      </svg>
+  </div>
+  <div id="workoutQuickActions" class="workout-quick-actions" hidden aria-label="Ações do treino">
+    <button type="button" class="workout-quick-action" id="resetBtn" onclick="resetDay()" hidden title="Reiniciar treino">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4.8 9a7.5 7.5 0 0 1 12.7-2L20 12M4 17v-5h5m10.2 3a7.5 7.5 0 0 1-12.7 2L4 12"/></svg><span>Reiniciar</span>
     </button>
-    <button type="button" class="reset-workout-icon" id="resetBtn"
-      title="Reiniciar este treino" aria-label="Reiniciar este treino"
-      onclick="resetDay()" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M20 7v5h-5M4.8 9a7.5 7.5 0 0 1 12.7-2L20 12M4 17v-5h5m10.2 3a7.5 7.5 0 0 1-12.7 2L4 12"/>
-      </svg>
+    <button type="button" class="workout-quick-action" id="cancelWorkoutBtn" onclick="openCancelWorkoutDialog()" hidden title="Cancelar treino">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg><span>Cancelar</span>
+    </button>
+    <button type="button" class="workout-quick-action" id="pauseWorkoutBtn" onclick="toggleWorkoutPause()" hidden title="Pausar treino">
+      <svg viewBox="0 0 24 24" aria-hidden="true" id="pauseWorkoutIcon"><path d="M8 5v14M16 5v14"/></svg><span id="pauseWorkoutLabel">Pausar</span>
     </button>
   </div>
 
@@ -5333,7 +5362,7 @@ function loadUndoHistory(){
   try{
     const entries=JSON.parse(localStorage.getItem(UNDO_STORAGE_KEY)||'[]');
     if(!Array.isArray(entries)) return [];
-    return entries.filter(entry=>entry && entry.state && entry.state.workouts && typeof entry.message==='string').slice(-5);
+    return entries.filter(entry=>entry && entry.state && entry.state.workouts && typeof entry.message==='string').slice(-3);
   }catch(error){
     console.warn('Não foi possível recuperar o histórico de desfazer:',error);
     return [];
@@ -5353,7 +5382,7 @@ function persistUndoHistory(){
 }
 let undoTimer=null;
 let applyingUndo=false;
-const UNDO_LIMIT=5;
+const UNDO_LIMIT=3;
 
 function hideUndo(){
   const toast=document.getElementById('undoToast');
@@ -5368,10 +5397,10 @@ function recordUndo(message){
   if(undoHistory.length>UNDO_LIMIT) undoHistory.shift();
   persistUndoHistory();
   const latest=undoHistory[undoHistory.length-1];
-  document.getElementById('undoMessage').textContent=latest.message+' · '+undoHistory.length+'/5';
+  document.getElementById('undoMessage').textContent=latest.message+' · '+undoHistory.length+'/3';
   document.getElementById('undoToast').classList.add('show');
   if(undoTimer) clearTimeout(undoTimer);
-  undoTimer=setTimeout(hideUndo,15000);
+  undoTimer=setTimeout(hideUndo,5000);
 }
 
 function undoLastAction(){
@@ -5387,7 +5416,7 @@ function undoLastAction(){
     document.getElementById('undoMessage').textContent='Desfeito. '+undoHistory.length+' ação(ões) disponível(is)';
     document.getElementById('undoToast').classList.add('show');
     if(undoTimer) clearTimeout(undoTimer);
-    undoTimer=setTimeout(hideUndo,15000);
+    undoTimer=setTimeout(hideUndo,5000);
   }else hideUndo();
 }
 
@@ -5616,7 +5645,7 @@ let session=state.sessions[day];
 // Cada sessão pertence a um ciclo semanal.
 // Quando a semana muda (segunda-feira), o status volta automaticamente
 // para "idle", mesmo que o treino tenha sido finalizado ou ficado pendente.
-if(!session || (session.week!==currentWeek && session.status!=='active')){
+if(!session || (session.week!==currentWeek && !isWorkoutOpenStatus(session.status))){
 
 session={
 
@@ -5670,11 +5699,11 @@ function localDateKey(date=new Date()){
 
 function startWorkout(){
   const session=getWorkoutStatus();
-  if(session.status==='active') return;
+  if(isWorkoutOpenStatus(session.status)) return;
 
   // Apenas um treino pode permanecer em andamento por vez, independentemente do dia.
   const otherActiveDay=days.find(workoutDay=>
-    workoutDay!==day && getWorkoutStatusForDay(workoutDay)==='active'
+    workoutDay!==day && isWorkoutOpenStatus(getWorkoutStatusForDay(workoutDay))
   );
   if(otherActiveDay){
     const toast=document.getElementById('undoToast');
@@ -5729,13 +5758,13 @@ function expireCancelWorkoutDialog(){
   const target=cancelDialogDay;
   closeCancelWorkoutDialog();
   const session=target?state.sessions?.[target]:null;
-  if(session?.status==='active'){session.cancelAvailableUntil=null;save();}
+  if(isWorkoutOpenStatus(session?.status)){session.cancelAvailableUntil=null;save();}
   renderWorkoutButtons();
 }
 function openCancelWorkoutDialog(){
   const session=getWorkoutStatus();
   const remaining=Number(session.cancelAvailableUntil)-Date.now();
-  if(session.status!=='active'||!Number.isFinite(remaining)||remaining<=0)return;
+  if(!isWorkoutOpenStatus(session.status)||!Number.isFinite(remaining)||remaining<=0)return;
   closeCancelWorkoutDialog();
   cancelDialogDay=day;
   document.getElementById('cancelWorkoutConfirm').hidden=false;
@@ -5746,7 +5775,7 @@ function confirmCancelWorkout(){
   const target=cancelDialogDay;
   const session=target?state.sessions?.[target]:null;
   if(!target||target!==day||document.getElementById('cancelWorkoutConfirm').hidden||
-     !cancelDialogDeadline||Date.now()>=cancelDialogDeadline||session?.status!=='active'){
+     !cancelDialogDeadline||Date.now()>=cancelDialogDeadline||!isWorkoutOpenStatus(session?.status)){
     expireCancelWorkoutDialog();return;
   }
   closeCancelWorkoutDialog();
@@ -5771,7 +5800,7 @@ function finishWorkout(options={}){
   const forcedFinishedAt=options.finishedAt||null;
   const session=options.targetDay ? state.sessions?.[targetDay] : getWorkoutStatus();
   if(!session) return;
-  if(session.status!=='active') return;
+  if(!isWorkoutOpenStatus(session.status)) return;
   session.status='finished';
   session.cancelAvailableUntil=null;
   session.preStartSnapshot=null;
@@ -5835,7 +5864,7 @@ function getWorkoutStatusForDay(targetDay){
 state.sessions=state.sessions||{};
 const currentWeek=weekKey();
 let session=state.sessions[targetDay];
-if(!session || (session.week!==currentWeek && session.status!=='active')){
+if(!session || (session.week!==currentWeek && !isWorkoutOpenStatus(session.status))){
 session={status:'idle',startedAt:null,finishedAt:null,resetExpiresAt:null,restartCount:0,week:currentWeek,cancelOpportunityConsumed:false,cancelAvailableUntil:null,preStartSnapshot:null};
 state.sessions[targetDay]=session;
 }
@@ -5843,6 +5872,12 @@ return session.status;
 }
 
 let resetButtonExpiryTimer=null;
+function toggleWorkoutPause(){
+  const session=getWorkoutStatus();
+  if(session.status!=='active' && session.status!=='paused')return;
+  session.status=session.status==='paused'?'active':'paused';
+  save();renderWorkoutButtons();
+}
 function renderWorkoutButtons(){
   syncMoveDayLock();
 
@@ -5859,16 +5894,16 @@ const resetIcon=document.getElementById('resetBtn');
 const cancelIcon=document.getElementById('cancelWorkoutBtn');
 if(cancelButtonExpiryTimer){clearTimeout(cancelButtonExpiryTimer);cancelButtonExpiryTimer=null;}
 const cancelRemaining=Number(session.cancelAvailableUntil)-Date.now();
-const canCancel=session.status==='active' &&
+const canCancel=isWorkoutOpenStatus(session.status) &&
   Number.isFinite(Number(session.cancelAvailableUntil)) && cancelRemaining>0;
 if(cancelIcon) cancelIcon.hidden=!canCancel;
 if(canCancel){
   const startedAt=session.startedAt;
   cancelButtonExpiryTimer=setTimeout(()=>{
     const current=getWorkoutStatus();
-    if(current.status==='active' && current.startedAt===startedAt){
+    if(isWorkoutOpenStatus(current.status) && current.startedAt===startedAt){
       const button=document.getElementById('cancelWorkoutBtn');
-      if(button) button.hidden=true;
+      if(button) button.disabled=true;
     }
   },Math.min(cancelRemaining+50,2147483647));
 }
@@ -5877,20 +5912,40 @@ const resetRemaining=Number(session.resetExpiresAt)-Date.now();
 const canReset=session.status==='finished' && (Number(session.restartCount)||0)===0 &&
   Number.isFinite(Number(session.resetExpiresAt)) && resetRemaining>0;
 if(resetIcon) resetIcon.hidden=!canReset;
+const actions=document.getElementById('workoutQuickActions');
+const pauseButton=document.getElementById('pauseWorkoutBtn');
+const open=isWorkoutOpenStatus(session.status);
+if(actions) actions.hidden=!(open||canReset);
+// Reiniciar continua permitido apenas após finalizar; fica visível desabilitado durante treino aberto.
+// Mantém as três posições fixas enquanto o painel estiver visível.
+// Após finalizar, somente Reiniciar permanece habilitado até expirar o prazo.
+if(resetIcon){resetIcon.hidden=!(open||canReset);resetIcon.disabled=!canReset;}
+if(cancelIcon){cancelIcon.hidden=!(open||canReset);cancelIcon.disabled=!canCancel;}
+if(pauseButton){
+  pauseButton.hidden=!(open||canReset);
+  pauseButton.disabled=!open;
+  document.getElementById('pauseWorkoutLabel').textContent=session.status==='paused'?'Retomar':'Pausar';
+  document.getElementById('pauseWorkoutIcon').innerHTML=session.status==='paused'?'<path d="m8 5 11 7-11 7z"/>':'<path d="M8 5v14M16 5v14"/>';
+  pauseButton.title=session.status==='paused'?'Retomar treino':'Pausar treino';
+}
+
 if(canReset){
   const finishedAt=session.finishedAt;
   resetButtonExpiryTimer=setTimeout(()=>{
     const current=getWorkoutStatus();
     if(current.status==='finished' && current.finishedAt===finishedAt){
       const button=document.getElementById('resetBtn');
-      if(button) button.hidden=true;
+      if(button) button.disabled=true;
+      const actions=document.getElementById('workoutQuickActions');
+      if(actions) actions.hidden=true;
     }
   },Math.min(resetRemaining+50,2147483647));
 }
 
 if(session.status==='idle'){
+startBtn.classList.remove('paused');
 
-const activeWorkoutDay=days.find(workoutDay=>workoutDay!==day && getWorkoutStatusForDay(workoutDay)==='active');
+const activeWorkoutDay=days.find(workoutDay=>workoutDay!==day && isWorkoutOpenStatus(getWorkoutStatusForDay(workoutDay)));
 const startBlocked=Boolean(activeWorkoutDay);
 
 const wasRestarted=(Number(session.restartCount)||0)>0;
@@ -5914,13 +5969,14 @@ finishBtn.disabled=true;
 
 }
 
-else if(session.status==='active'){
+else if(isWorkoutOpenStatus(session.status)){
 
-startBtn.innerHTML='<span class="workout-indicator" aria-hidden="true"><svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg></span><span class="workout-label">TREINO EM ANDAMENTO</span>';
+startBtn.innerHTML='<span class="workout-indicator" aria-hidden="true">'+(session.status==='paused'?'<svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14M16 5v14"/></svg>':'<svg viewBox="0 0 32 24" focusable="false"><path d="M2 8h3V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h10V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4h3v8h-3v4a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4H11v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4H2z"/></svg>')+'</span><span class="workout-label">'+(session.status==='paused'?'TREINO PAUSADO':'TREINO EM ANDAMENTO')+'</span>';
 
 startBtn.disabled=true;
 
 startBtn.classList.add('active');
+startBtn.classList.toggle('paused',session.status==='paused');
 
 finishBtn.innerHTML='<span class="workout-indicator workout-check-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5 9.2 18 20 6"/></svg></span><span class="workout-label">FINALIZAR TREINO</span>';
 
@@ -5929,6 +5985,7 @@ finishBtn.disabled=false;
 }
 
 else if(session.status==='finished'){
+startBtn.classList.remove('paused');
 
 startBtn.innerHTML='<span class="workout-indicator workout-check-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12.5 9.2 18 20 6"/></svg></span><span class="workout-label">TREINO FINALIZADO</span>';
 
@@ -5943,7 +6000,7 @@ finishBtn.disabled=true;
 }
 
 // Só permite marcar séries e exercícios enquanto o treino estiver ativo.
-const canMarkProgress=session.status==='active';
+const canMarkProgress=isWorkoutOpenStatus(session.status);
 document.querySelectorAll('.set-done-btn,.exercise-done-btn').forEach(button=>{
 button.disabled=!canMarkProgress;
 });
@@ -6308,7 +6365,7 @@ const exerciseCollapsed=exerciseCollapseOverrides.has(collapseKey)
 
 return `
 
-<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${String(e.name||'').trim().toLocaleLowerCase('pt-BR')==='corrida'?'exercise-running':''} ${exerciseCollapsed?'is-collapsed':''} ${getWorkoutStatus().status==='active' && Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Boolean)?'exercise-finished-active':''}" data-exercise-index="${i}">
+<article class="exercise ${(+e.sets||1)<=3?'compact-actions':'single-row-actions'} ${String(e.name||'').trim().toLocaleLowerCase('pt-BR')==='corrida'?'exercise-running':''} ${exerciseCollapsed?'is-collapsed':''} ${isWorkoutOpenStatus(getWorkoutStatus().status) && Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Boolean)?'exercise-finished-active':''}" data-exercise-index="${i}">
 
 <div class="exercise-main">
 
@@ -6442,7 +6499,7 @@ save();
 
 function toggleSet(i,j,v){
 
-if(getWorkoutStatus().status!=='active') return;
+if(!isWorkoutOpenStatus(getWorkoutStatus().status)) return;
 
 
 const a=checksFor(day,i);
@@ -6476,7 +6533,7 @@ for(let k=0;k<exercises.length;k++){
   if(k===i && card){
     const exerciseButton=card.querySelector('.exercise-done-btn');
     if(exerciseButton){
-      card.classList.toggle('exercise-finished-active',complete && getWorkoutStatus().status==='active');
+      card.classList.toggle('exercise-finished-active',complete && isWorkoutOpenStatus(getWorkoutStatus().status));
       exerciseButton.classList.toggle('done',complete);
       exerciseButton.title=complete?'Desmarcar exercício':'Concluir todas as séries';
       exerciseButton.setAttribute('aria-label',complete?'Desmarcar exercício':'Concluir todas as séries do exercício');
@@ -6501,7 +6558,7 @@ renderWorkoutButtons();
 
 function toggleExercise(i){
 
-if(getWorkoutStatus().status!=='active') return;
+if(!isWorkoutOpenStatus(getWorkoutStatus().status)) return;
 
 const exercise=state.workouts[day][i];
 if(!exercise) return;
@@ -6959,6 +7016,22 @@ function findExerciseWorkoutDay(exercise){
   return '-';
 }
 
+// Durante um treino ativo, os atributos de identidade ficam somente para leitura.
+// Em Adicionar, o seletor de exercício continua acessível para consultar/ajustar séries e cargas.
+function syncExerciseIdentityLock(){
+  const locked=hasWorkoutInProgress();
+  const identityFields=[fName,fMuscle,fEquipment,fEquipmentEdit,fExecution,fGrip,fDay];
+  identityFields.forEach(field=>{
+    if(!field) return;
+    field.disabled=locked;
+    field.setAttribute('aria-disabled',String(locked));
+    if(typeof refreshStyledSelect==='function' && field.tagName==='SELECT') refreshStyledSelect(field);
+  });
+  // Selecionar um exercício existente não modifica seu nome.
+  fNameSelect.disabled=false;
+  refreshStyledSelect(fNameSelect);
+}
+
 function editExercise(i){
 
 if(i!==null && !state.workouts[day]?.[i]) return;
@@ -7055,6 +7128,7 @@ fNote.value=e.note||'';
 if(fDay){ const weekdayOrder=['-','Segunda','Terça','Quarta','Quinta','Sexta','Sábado']; Array.from(fDay.options).sort((a,b)=>weekdayOrder.indexOf(a.value)-weekdayOrder.indexOf(b.value)).forEach(option=>fDay.appendChild(option)); fDay.value=i===null?'-':day; fDay.closest('.field').hidden=i!==null; fDay.disabled=hasWorkoutInProgress(); if(fDay.disabled && i===null) fDay.value='-'; refreshStyledSelect(fDay); }
 
 renderLoadFields(e.loads||[],e.sets||4,isAerobicExercise(e));
+syncExerciseIdentityLock();
 
 modal.classList.remove('edit-mode','add-page-mode');
 modal.classList.add('edit-mode');
@@ -7132,6 +7206,7 @@ fNameSelect.addEventListener('change',()=>{
     fDay.disabled=hasWorkoutInProgress();
     refreshStyledSelect(fDay);
   }
+  syncExerciseIdentityLock();
   refreshStyledSelect(fNameSelect);
 });
 
@@ -7159,10 +7234,8 @@ let selectedVariantForAdd=null;
 if(editIndex===null){
   const selectedIndex=Number(fNameSelect.value);
   selectedVariantForAdd=Number.isInteger(selectedIndex)?exercisePickerVariants[selectedIndex]:null;
-  const alreadyActive=selectedVariantForAdd && (state.workouts[day]||[])
-    .some(ex=>exerciseVariationSignature(ex)===exerciseVariationSignature(selectedVariantForAdd));
-  if(!selectedVariantForAdd || alreadyActive){
-    alert('Essa variação já está ativa neste treino ou não foi selecionada.');
+  if(!selectedVariantForAdd){
+    alert('Selecione um exercício válido.');
     return;
   }
 }
@@ -7192,6 +7265,14 @@ loads:readLoadFields()
 
 };
 
+if(hasWorkoutInProgress()){
+  const canonical=editIndex===null?selectedVariantForAdd:old;
+  if(canonical){
+    ['name','muscle','equipment','execution','grip'].forEach(key=>{
+      e[key]=canonical[key]|| (key==='name'||key==='muscle'?'':'-');
+    });
+  }
+}
 if(editIndex!==null && !old) return;
 if(editIndex!==null && old){
   const proposedSignature=exerciseVariationSignature(e);
@@ -7226,6 +7307,15 @@ if(old) preserveExerciseDropdownValues(old);
 
 if(editIndex===null){
   const targetDay=String(fDay?.value||'-');
+  // Se o exercício já estiver no dia, atualiza no lugar: não duplica nem perde marcações.
+  const originalSignature=exerciseVariationSignature(selectedVariantForAdd);
+  const existingInDay=(state.workouts[day]||[]).find(item=>exerciseVariationSignature(item)===originalSignature);
+  if(existingInDay && (targetDay==='-' || targetDay===day)){
+    Object.assign(existingInDay,JSON.parse(JSON.stringify(e)));
+    preserveExerciseDropdownValues(selectedVariantForAdd);
+    if(!updateCanonicalExerciseFromAdd(selectedVariantForAdd,e)) return;
+    save();renderAllCatalogLists();refreshAllStyledSelects();renderEquipmentOptions();closeModal();render();return;
+  }
   // A seleção em Adicionar altera os dados do cadastro mestre existente.
   // Nunca cria um novo item no catálogo por causa de edição de metadados.
   preserveExerciseDropdownValues(selectedVariantForAdd);
@@ -7238,7 +7328,9 @@ if(editIndex===null){
     days.forEach(dayName=>{
       (state.workouts[dayName]||[]).forEach(item=>{
         if(exerciseVariationSignature(item)===originalSignature){
-          Object.assign(item,JSON.parse(JSON.stringify(e)));
+          item.sets=e.sets;
+          item.loads=JSON.parse(JSON.stringify(e.loads));
+          item.note=e.note;
         }
       });
     });
@@ -7766,8 +7858,9 @@ function bindExerciseDrag(){
 let pendingMoveIndex=null;
 
 // Impede transferências entre dias durante qualquer treino em andamento.
+function isWorkoutOpenStatus(status){return status==='active'||status==='paused';}
 function hasWorkoutInProgress(){
-  return Object.values(state.sessions||{}).some(session=>session?.status==='active');
+  return Object.values(state.sessions||{}).some(session=>isWorkoutOpenStatus(session?.status));
 }
 function syncMoveDayLock(){
   const locked=hasWorkoutInProgress();
@@ -7777,6 +7870,7 @@ function syncMoveDayLock(){
     if(locked && editIndex===null) daySelect.value='-';
     if(typeof refreshStyledSelect==='function') refreshStyledSelect(daySelect);
   }
+  if(document.getElementById('modal')?.classList.contains('open')) syncExerciseIdentityLock();
   if(locked && !document.getElementById('moveDayConfirm').hidden) closeMoveDayDialog();
 }
 
@@ -7928,11 +8022,9 @@ function refreshExerciseNamePickerOptions(){
   const previousSignature=previous?exerciseVariationSignature(previous):'';
   exercisePickerVariants=getAllExerciseVariants();
   const labels=getExerciseDisplayNames(exercisePickerVariants);
-  const activeVariants=new Set((state.workouts[day]||[]).map(exerciseVariationSignature));
   select.innerHTML='<option value="" disabled selected>Selecione um exercício</option>'+
     exercisePickerVariants.map((ex,index)=>{
-      const blocked=activeVariants.has(exerciseVariationSignature(ex));
-      return `<option value="${index}"${blocked?' disabled':''}>${esc(labels[index])}</option>`;
+      return `<option value="${index}">${esc(labels[index])}</option>`;
     }).join('');
   const nextIndex=previousSignature?exercisePickerVariants.findIndex(ex=>exerciseVariationSignature(ex)===previousSignature):-1;
   select.value=nextIndex>=0?String(nextIndex):'';
@@ -9325,7 +9417,7 @@ document.addEventListener('visibilitychange',()=>{
   }
   function pendingSessions(){
     return days.map(name=>({name,session:state.sessions?.[name]}))
-      .filter(item=>item.session?.status==='active' && startDate(item.session))
+      .filter(item=>isWorkoutOpenStatus(item.session?.status) && startDate(item.session))
       .sort((a,b)=>startDate(a.session)-startDate(b.session));
   }
   function checkForgottenWorkouts(){
@@ -9354,7 +9446,7 @@ document.addEventListener('visibilitychange',()=>{
   }
   keep.addEventListener('click',()=>{
     const session=state.sessions?.[pendingDay];
-    if(session?.status==='active'){
+    if(isWorkoutOpenStatus(session?.status)){
       session.forgottenNoticeDismissedFor=session.startedAt;
       save();
     }
@@ -9366,7 +9458,7 @@ document.addEventListener('visibilitychange',()=>{
     const target=pendingDay;
     pendingDay=null;
     modal.hidden=true;
-    if(target && state.sessions?.[target]?.status==='active')finishWorkout({targetDay:target});
+    if(target && isWorkoutOpenStatus(state.sessions?.[target]?.status))finishWorkout({targetDay:target});
     checkForgottenWorkouts();
   });
   setInterval(checkForgottenWorkouts,10000);
@@ -9804,6 +9896,15 @@ if ('serviceWorker' in navigator) {
 
 <!-- Alinhamento geométrico real entre o quadro de cargas e a coluna de ícones.
      A rotina mede as bordas renderizadas e corrige somente o eixo vertical da coluna. -->
+<!-- Evita que os ícones sejam exibidos antes do alinhamento após Iniciar/Finalizar. -->
+<style id="stable-load-icons-prepaint">
+.exercise:not(.is-collapsed):not([data-load-icons-top-aligned="true"]) .actions {
+  visibility: hidden !important;
+}
+.exercise .actions {
+  transition: none !important;
+}
+</style>
 <script id="runtime-load-icons-top-alignment">
 (function () {
   'use strict';
@@ -9847,7 +9948,7 @@ if ('serviceWorker' in navigator) {
     const finalTableTop = table.getBoundingClientRect().top;
     const finalIconTop = firstIcon.getBoundingClientRect().top;
     const difference = Math.abs(finalTableTop - finalIconTop);
-    exercise.dataset.loadIconsTopAligned = difference < 0.5 ? 'true' : 'false';
+    exercise.dataset.loadIconsTopAligned = difference < 1 ? 'true' : 'false';
   }
 
   function alignAll() {
@@ -9858,9 +9959,7 @@ if ('serviceWorker' in navigator) {
   function scheduleAlignment() {
     if (framePending) return;
     framePending = true;
-    requestAnimationFrame(function () {
-      requestAnimationFrame(alignAll);
-    });
+    requestAnimationFrame(alignAll);
   }
 
   function observeCurrentExercises() {
