@@ -6010,7 +6010,7 @@ finishBtn.disabled=true;
 }
 
 // Só permite marcar séries e exercícios enquanto o treino estiver ativo.
-const canMarkProgress=isWorkoutOpenStatus(session.status);
+const canMarkProgress=session.status==='active';
 document.querySelectorAll('.set-done-btn,.exercise-done-btn').forEach(button=>{
 button.disabled=!canMarkProgress;
 });
@@ -6467,7 +6467,7 @@ ${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><pat
 <div class="actions" ${String(e.name||'').trim().toLocaleLowerCase('pt-BR')==='corrida'?'style="translate: -20px 0;"':''}>
 
 <button type="button" class="iconbtn" onclick="editExercise(${i})" title="Editar" aria-label="Editar">✎</button>
-<button type="button" class="iconbtn" onclick="replaceExercise(${i})" title="Substituir exercício" aria-label="Substituir exercício"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9a4 4 0 0 0-4 4v2"/><path d="m4 10 3 3 3-3"/><path d="M4 17h9a4 4 0 0 0 4-4v-2"/><path d="m20 14-3-3-3 3"/></svg></button>
+<button type="button" class="iconbtn replace-exercise-icon" onclick="replaceExercise(${i})" ${hasWorkoutInProgress()?'disabled aria-disabled="true"':''} title="Substituir exercício" aria-label="Substituir exercício"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9a4 4 0 0 0-4 4v2"/><path d="m4 10 3 3 3-3"/><path d="M4 17h9a4 4 0 0 0 4-4v-2"/><path d="m20 14-3-3-3 3"/></svg></button>
 <button type="button" class="iconbtn move-day-icon" onclick="openMoveDayDialog(${i})" ${hasWorkoutInProgress()?'disabled aria-disabled="true"':''} title="Mover para outro dia da semana" aria-label="Mover para outro dia da semana"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="13" height="16" rx="2"/><path d="M7 3v4M12 3v4M3 10h13M13 14h8m-3-3 3 3-3 3"/></svg></button>
 <button type="button" class="iconbtn" onclick="deleteExercise(${i})" title="Excluir exercício" aria-label="Excluir exercício">×</button>
 
@@ -6509,7 +6509,7 @@ save();
 
 function toggleSet(i,j,v){
 
-if(!isWorkoutOpenStatus(getWorkoutStatus().status)) return;
+if(getWorkoutStatus().status!=='active') return;
 
 
 const a=checksFor(day,i);
@@ -6568,7 +6568,7 @@ renderWorkoutButtons();
 
 function toggleExercise(i){
 
-if(!isWorkoutOpenStatus(getWorkoutStatus().status)) return;
+if(getWorkoutStatus().status!=='active') return;
 
 const exercise=state.workouts[day][i];
 if(!exercise) return;
@@ -7438,6 +7438,8 @@ function duplicateExercise(i){
 }
 
 function replaceExercise(i){
+  // Substituições ficam bloqueadas enquanto qualquer treino estiver aberto, inclusive pausado.
+  if(hasWorkoutInProgress()) return;
   const current=state.workouts[day][i];
   if(!current) return;
 
@@ -10035,6 +10037,21 @@ if ('serviceWorker' in navigator) {
 #historyReviewPrompt .confirm-actions{flex-wrap:wrap;gap:8px}
 #historyReviewPrompt .history-periods{background:#202b23;border:1px solid #394b3e;border-radius:10px;padding:12px;margin:12px 0;font-size:13px;line-height:1.5}
 #historyReviewPrompt .history-periods p{margin:5px 0}
+
+/* Durante a pausa, as marcações ficam inacessíveis sem perder o visual de concluídas. */
+.set-done-btn.done:disabled,
+.exercise-done-btn.done:disabled {
+  opacity:1;
+  filter:none;
+  cursor:not-allowed;
+}
+/* Substituição bloqueada durante qualquer treino aberto. */
+.replace-exercise-icon:disabled {
+  opacity:.35;
+  filter:grayscale(1);
+  cursor:not-allowed;
+  pointer-events:none;
+}
 </style>
 <div class="confirm-backdrop" id="historyReviewPrompt" hidden>
  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="historyReviewTitle">
