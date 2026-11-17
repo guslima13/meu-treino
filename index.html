@@ -4290,6 +4290,10 @@ main { overflow: visible !important; }
   opacity: .38;
   cursor: not-allowed !important;
 }
+
+/* Ajuste aprovado: reduzir somente o espaço abaixo dos botões finais. */
+main{padding-bottom:12px!important}
+@media(max-width:600px){main{padding-bottom:8px!important}}
 </style>
 <style>
 
@@ -5846,9 +5850,9 @@ function finishWorkout(options={}){
   if(replacementIndex>=0) state.completedWorkouts.splice(replacementIndex,1,finishedRecord);
   else state.completedWorkouts.push(finishedRecord);
   session.replacesCompletedWorkoutId=null;
-  // O primeiro encerramento válido do ciclo libera Reiniciar por até 30 minutos.
+  // O primeiro encerramento válido do ciclo libera Reiniciar por até 10 minutos.
   // Depois de usar Reiniciar uma vez, o segundo encerramento não libera outro reinício.
-  session.resetExpiresAt=options.automatic?null:((Number(session.restartCount)||0)===0?Date.now()+30*60*1000:null);
+  session.resetExpiresAt=options.automatic?null:((Number(session.restartCount)||0)===0?Date.now()+10*60*1000:null);
   const todayName={1:'Segunda',2:'Terça',3:'Quarta',4:'Quinta',5:'Sexta',6:'Sábado'}[new Date().getDay()];
   if(!options.automatic && targetDay===todayName) state.todayNoticeDismissedDate=localDateKey();
   save();
@@ -10127,5 +10131,11 @@ if ('serviceWorker' in navigator) {
  setTimeout(maybeShow,400);
 })();
 </script>
+<!-- Ajuste final de rodapé: declarado por último para prevalecer sobre estilos anteriores. -->
+<style>
+/* Somente a área de respiro abaixo de Adicionar/Cadastro. */
+main { padding-bottom: 4px !important; }
+@media (max-width: 600px) { main { padding-bottom: 2px !important; } }
+</style>
 </body>
 </html>
