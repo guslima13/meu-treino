@@ -2322,6 +2322,10 @@ select:focus {
 .summary-overview-card strong{font-size:22px;line-height:1.1}
 .summary-overview-card span{font-size:10px;color:var(--muted)}
 .summary-tabs{display:flex;gap:7px;overflow-x:auto;padding:3px 1px 10px;margin:0 0 8px;scrollbar-width:thin}
+#summaryTabs{scrollbar-width:none;-ms-overflow-style:none}
+#summaryTabs::-webkit-scrollbar{display:none;width:0;height:0}
+.summary-scroll-indicator{height:4px;margin:-3px 1px 12px;border-radius:99px;background:#333b37;position:relative;overflow:hidden}
+.summary-scroll-indicator span{display:block;height:100%;width:25%;border-radius:99px;background:var(--accent);transform:translateX(0);will-change:transform}
 .summary-tab{flex:0 0 auto;padding:9px 12px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--muted);font-family:inherit;font-size:12px;font-weight:700;line-height:1.2;white-space:nowrap;cursor:pointer}
 .summary-tab.active{background:var(--accent);border-color:var(--accent);color:#101010}
 .summary-content{min-width:0}
@@ -4674,7 +4678,7 @@ main{padding-bottom:24px!important}
 .weekly-evolution-page{position:fixed;inset:0;z-index:110;overflow:auto;background:var(--bg,#101414);padding-bottom:28px}
 .weekly-evolution-page .eyebrow{color:var(--accent,#d7ff00)!important;font-size:10px;letter-spacing:.09em}
 .weekly-intro{color:var(--muted,#9fa9a2);font-size:12px;line-height:1.6;margin:0 0 18px}
-.weekly-exercise-label{display:block;font-size:12px;font-weight:700;margin:0 0 7px}
+.weekly-select-day-heading{padding:11px 12px 5px;color:var(--accent,#d7ff00);font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
 #weeklyEvolutionExercise{width:100%;margin-bottom:0;min-height:42px;background:#202626;color:#f0f5f0;border:1px solid #3b4941;border-radius:10px;padding:10px}
 .weekly-evolution-page .weekly-evolution-tabs{margin:16px 0 16px!important;padding:0 1px!important;display:flex;gap:8px;flex-wrap:wrap}
 .weekly-week-card{padding:14px;margin:0 0 10px;background:linear-gradient(145deg,#1b1f1f,#141717);border:1px solid var(--line,#343b38);border-radius:13px}
@@ -5085,14 +5089,14 @@ body.weekly-evolution-open{overflow:hidden}
     <div class="summary-overview-cards" id="summaryOverviewCards"></div>
     <nav class="summary-tabs" id="summaryTabs" aria-label="Filtros do resumo">
       <button type="button" class="summary-tab active" data-summary-filter="days" aria-pressed="true">Dias da semana</button>
-      <button type="button" class="summary-tab" data-summary-filter="muscle" aria-pressed="false">Grupo muscular</button>
-      <button type="button" class="summary-tab" data-summary-filter="muscleSets" aria-pressed="false">Séries por grupo muscular</button>
-      <button type="button" class="summary-tab" data-summary-filter="equipment" aria-pressed="false">Equipamento</button>
-      <button type="button" class="summary-tab" data-summary-filter="execution" aria-pressed="false">Execução</button>
-      <button type="button" class="summary-tab" data-summary-filter="grip" aria-pressed="false">Pegada</button>
+      <button type="button" class="summary-tab" data-summary-filter="muscle" aria-pressed="false">Exercícios por músculo</button>
+      <button type="button" class="summary-tab" data-summary-filter="muscleSets" aria-pressed="false">Séries por músculo</button>
+      <button type="button" class="summary-tab" data-summary-filter="equipment" aria-pressed="false">Equipamentos</button>
+      <button type="button" class="summary-tab" data-summary-filter="execution" aria-pressed="false">Execuções</button>
+      <button type="button" class="summary-tab" data-summary-filter="grip" aria-pressed="false">Pegadas</button>
     </nav>
+    <div class="summary-scroll-indicator" id="summaryScrollIndicator" aria-hidden="true"><span id="summaryScrollThumb"></span></div>
     <div id="summaryContent" class="summary-content" aria-live="polite"></div>
-    <p class="summary-page-footnote">Este resumo considera somente os exercícios atualmente ativos nos treinos. Alterações feitas em Adicionar, Editar e Cadastro são refletidas automaticamente.</p>
   </div>
 </section>
 
@@ -5103,7 +5107,6 @@ body.weekly-evolution-open{overflow:hidden}
       <button type="button" class="btn summary-back-btn" onclick="closeWeeklyEvolution()">Voltar</button>
     </div>
     <h1>Evolução semanal</h1>
-    <label class="weekly-exercise-label" for="weeklyEvolutionExercise">Exercício</label>
     <select id="weeklyEvolutionExercise" aria-label="Selecione o exercício" onchange="weeklySelectedExercise=this.value;renderWeeklyEvolution()"></select>
     <nav class="summary-tabs weekly-evolution-tabs" aria-label="Visualização da evolução semanal">
       <button type="button" class="summary-tab active" id="weeklyNumbersTab" onclick="weeklyView='numbers';renderWeeklyEvolution()">Cargas por semana</button>
@@ -8839,6 +8842,7 @@ function refreshStyledSelect(select){
   }
   const selected=Array.from(select.options).find(option=>option.value===select.value && select.selectedIndex>=0);
   const isExercisePicker=select.id==='fNameSelect';
+  const isWeeklyPicker=select.id==='weeklyEvolutionExercise';
   trigger.querySelector('.styled-select-label').textContent=selected ? selected.textContent : (isExercisePicker ? 'Selecione um exercício' : 'Selecione');
   const previousSearch=isExercisePicker ? (menu.querySelector('.styled-select-search input')?.value||'') : '';
   menu.innerHTML='';
@@ -8853,7 +8857,7 @@ function refreshStyledSelect(select){
   }
   const options=Array.from(select.options);
   // O placeholder permanece no campo, mas não aparece como item dentro do menu.
-  const menuOptions=options.filter(option=>!isExercisePicker || option.value!=='');
+  const menuOptions=options.filter(option=>(!isExercisePicker && !isWeeklyPicker) || option.value!=='');
   const filteredOptions=menuOptions.filter(option=>!isExercisePicker || !previousSearch || option.textContent.toLocaleLowerCase('pt-BR').includes(previousSearch.toLocaleLowerCase('pt-BR')));
   if(!filteredOptions.length){
     const empty=document.createElement('div');
@@ -8861,7 +8865,18 @@ function refreshStyledSelect(select){
     empty.textContent='Nenhuma opção disponível';
     menu.appendChild(empty);
   } else {
+    let lastWeeklyDay='';
     filteredOptions.forEach(option=>{
+      if(isWeeklyPicker){
+        const day=option.parentElement?.tagName==='OPTGROUP'?option.parentElement.label:'';
+        if(day && day!==lastWeeklyDay){
+          const heading=document.createElement('div');
+          heading.className='weekly-select-day-heading';
+          heading.textContent=day;
+          menu.appendChild(heading);
+        }
+        lastWeeklyDay=day;
+      }
       const index=options.indexOf(option);
       const item=document.createElement('button');
       item.type='button';
@@ -9042,7 +9057,14 @@ let weeklyView='numbers';
 function weeklyStart(date){const d=new Date(date);d.setHours(0,0,0,0);d.setDate(d.getDate()-d.getDay());return d;}
 function weeklyDateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function weeklyNumber(v){const str=String(v??'').trim();return /^\d+(?:[,.]\d+)?$/.test(str)?Number(str.replace(',','.')):null;}
-function weeklyGroups(){return getActiveSummaryExercises().sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));}
+function weeklyGroups(){
+  // Mantém a sequência real dos exercícios de cada dia, sem ordenar alfabeticamente.
+  const bySignature=new Map(getActiveSummaryExercises().map(group=>[group.signature,group]));
+  return days.flatMap((day,dayIndex)=>(state.workouts[day]||[]).map((exercise,index)=>({
+    key:day+'|'+String(exercise.id??index),day,
+    group:bySignature.get(summaryExerciseSignature(exercise))
+  })).filter(entry=>entry.group));
+}
 function weeklyRecords(group,weekDate){
   const key=weeklyDateKey(weekDate), end=new Date(weekDate.getTime()+7*86400000);
   const ids=new Set(group.ids.map(String));
@@ -9070,10 +9092,22 @@ function renderWeeklyEvolution(){
   weeklyLastRenderedWeek=weeklyDateKey(weeklyStart(new Date()));
   const page=document.getElementById('weeklyEvolutionPage');if(!page||page.hidden)return;
   const groups=weeklyGroups(), select=document.getElementById('weeklyEvolutionExercise');
-  if(!groups.length){select.innerHTML='<option>Nenhum exercício ativo</option>';document.getElementById('weeklyEvolutionContent').innerHTML='<div class="summary-empty-state">Cadastre exercícios ativos para acompanhar sua evolução.</div>';return;}
-  if(!groups.some(g=>g.signature===weeklySelectedExercise))weeklySelectedExercise=groups[0].signature;
-  select.innerHTML=groups.map(g=>`<option value="${esc(g.signature)}" ${g.signature===weeklySelectedExercise?'selected':''}>${esc(g.name)} · ${esc(g.muscle)} · ${esc(g.equipment)}</option>`).join('');
-  const group=groups.find(g=>g.signature===weeklySelectedExercise);
+  if(!groups.length){select.innerHTML='<option value="" disabled selected>Selecione um exercício</option>';document.getElementById('weeklyEvolutionContent').innerHTML='<div class="summary-empty-state">Cadastre exercícios ativos para acompanhar sua evolução.</div>';return;}
+  if(!groups.some(entry=>entry.key===weeklySelectedExercise))weeklySelectedExercise='';
+  select.innerHTML='<option value="" disabled '+(!weeklySelectedExercise?'selected':'')+'>Selecione um exercício</option>'+
+    days.map(day=>{
+      const entries=groups.filter(entry=>entry.day===day);
+      return entries.length?`<optgroup label="${esc(day)}">${entries.map(entry=>`<option value="${esc(entry.key)}" ${entry.key===weeklySelectedExercise?'selected':''}>${esc(entry.group.name)} · ${esc(entry.group.muscle)} · ${esc(entry.group.equipment)}</option>`).join('')}</optgroup>`:'';
+    }).join('');
+  const selectedEntry=groups.find(entry=>entry.key===weeklySelectedExercise);
+  const group=selectedEntry?.group;
+  document.getElementById('weeklyNumbersTab').classList.toggle('active',weeklyView==='numbers');
+  document.getElementById('weeklyChartTab').classList.toggle('active',weeklyView==='chart');
+  if(!group){
+    document.getElementById('weeklyEvolutionContent').innerHTML='<div class="summary-empty-state">Selecione um exercício para visualizar sua evolução semanal.</div>';
+    if(typeof setupStyledSelects==='function')setupStyledSelects();
+    return;
+  }
   const weeks=weeklyPeriods().map(d=>({...weeklyRecords(group,d),date:d,label:d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' a '+new Date(d.getTime()+6*86400000).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}));
   document.getElementById('weeklyNumbersTab').classList.toggle('active',weeklyView==='numbers');
   document.getElementById('weeklyChartTab').classList.toggle('active',weeklyView==='chart');
@@ -9201,7 +9235,7 @@ function summaryMetricCards(activeEntries){
 }
 
 function summaryDayMarkup(){
-  return `<div class="summary-section-heading"><div><h2>Distribuição por dia</h2><p>Exercícios que estão ativos em cada treino.</p></div></div>
+  return `<div class="summary-section-heading"><div><h2>Distribuição por dia</h2></div></div>
   <div class="summary-day-list">${days.map(dayName=>{
     const list=state.workouts[dayName]||[];
     return `<article class="summary-day-card"><div class="summary-day-heading"><h3>${esc(dayName)}</h3><span>${list.length} ${list.length===1?'exercício':'exercícios'}</span></div>
@@ -9217,9 +9251,9 @@ function summaryDistributionMarkup(field,title,description){
     counts.set(label,(counts.get(label)||0)+1);
   }));
   const rows=[...counts.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'pt-BR'));
-  if(!rows.length) return `<div class="summary-section-heading"><div><h2>${title}</h2><p>${description}</p></div></div><div class="summary-empty-state">Ainda não há exercícios ativos para analisar.</div>`;
+  if(!rows.length) return `<div class="summary-section-heading"><div><h2>${title}</h2></div></div><div class="summary-empty-state">Ainda não há exercícios ativos para analisar.</div>`;
   const max=Math.max(...rows.map(item=>item[1]),1);
-  return `<div class="summary-section-heading"><div><h2>${title}</h2><p>${description}</p></div><span class="summary-result-total">${rows.reduce((sum,item)=>sum+item[1],0)} no total</span></div>
+  return `<div class="summary-section-heading"><div><h2>${title}</h2></div><span class="summary-result-total">${rows.reduce((sum,item)=>sum+item[1],0)} no total</span></div>
     <div class="summary-distribution-list">${rows.map(([label,count])=>`<div class="summary-distribution-row"><div class="summary-distribution-label"><strong>${esc(label)}</strong><b>${count}</b></div><div class="summary-bar-track"><i style="width:${(count/max*100).toFixed(1)}%"></i></div></div>`).join('')}</div>`;
 }
 
@@ -9234,10 +9268,10 @@ function summaryMuscleSetsMarkup(){
     totals.set(label,current);
   }));
   const rows=[...totals.entries()].sort((a,b)=>b[1].sets-a[1].sets||a[0].localeCompare(b[0],'pt-BR'));
-  if(!rows.length) return `<div class="summary-section-heading"><div><h2>Séries por grupo muscular</h2><p>Quantidade de séries planejadas nos exercícios ativos de cada grupo.</p></div></div><div class="summary-empty-state">Ainda não há exercícios ativos para analisar.</div>`;
+  if(!rows.length) return `<div class="summary-section-heading"><div><h2>Séries por grupo muscular</h2></div></div><div class="summary-empty-state">Ainda não há exercícios ativos para analisar.</div>`;
   const max=Math.max(...rows.map(([,value])=>value.sets),1);
   const total=rows.reduce((sum,[,value])=>sum+value.sets,0);
-  return `<div class="summary-section-heading"><div><h2>Séries por grupo muscular</h2><p>Compare o volume de séries planejadas em cada grupo muscular.</p></div><span class="summary-result-total">${total} séries no total</span></div>
+  return `<div class="summary-section-heading"><div><h2>Séries por grupo muscular</h2></div><span class="summary-result-total">${total} séries no total</span></div>
     <div class="summary-distribution-list">${rows.map(([label,value])=>`<div class="summary-distribution-row"><div class="summary-distribution-label"><strong>${esc(label)} <small style="color:var(--muted);font-size:10px;font-weight:500">· ${value.exercises} ${value.exercises===1?'exercício':'exercícios'}</small></strong><b>${value.sets} ${value.sets===1?'série':'séries'}</b></div><div class="summary-bar-track"><i style="width:${(value.sets/max*100).toFixed(1)}%"></i></div></div>`).join('')}</div>`;
 }
 
@@ -9265,12 +9299,12 @@ function summaryChartMarkup(workouts){
   }).join('');
   const xLabels=points.map((point,index)=>`<text x="${x(index)}" y="${height-10}" text-anchor="middle">${esc(point.label)}</text>`).join('');
   const dots=points.map((point,index)=>`<circle cx="${x(index)}" cy="${y(point.value)}" r="5"><title>${esc(point.label)} · média ${summaryLoadValue(point.value)}</title></circle>`).join('');
-  return `<div class="summary-chart-wrap"><h3>Comparações</h3><p>Média das cargas das séries concluídas em cada um dos últimos três treinos finalizados.</p><svg class="summary-load-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Comparação da média das cargas nos últimos três treinos concluídos"><g class="summary-chart-grid">${yLabels}</g>${points.length>1?`<polyline points="${coords.join(' ')}" />`:''}${dots}<g class="summary-chart-labels">${xLabels}</g></svg></div>`;
+  return `<div class="summary-chart-wrap"><h3>Comparações</h3><svg class="summary-load-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Comparação da média das cargas nos últimos três treinos concluídos"><g class="summary-chart-grid">${yLabels}</g>${points.length>1?`<polyline points="${coords.join(' ')}" />`:''}${dots}<g class="summary-chart-labels">${xLabels}</g></svg></div>`;
 }
 
 function summaryLoadsMarkup(){
   const groups=getActiveSummaryExercises();
-  if(!groups.length) return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Acompanhe as cargas das séries dos três últimos treinos finalizados.</p></div></div><div class="summary-empty-state">Adicione exercícios aos treinos para consultar a evolução das cargas.</div>`;
+  if(!groups.length) return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2></div></div><div class="summary-empty-state">Adicione exercícios aos treinos para consultar a evolução das cargas.</div>`;
   const selectedIndex=Math.min(Math.max(Number(summaryLoadGroupIndex)||0,0),groups.length-1);
   summaryLoadGroupIndex=String(selectedIndex);
   const options=groups.map((group,index)=>`<option value="${index}" ${index===selectedIndex?'selected':''}>${esc(group.name)} · ${esc(group.muscle)} · ${esc(group.equipment)}</option>`).join('');
@@ -9292,10 +9326,29 @@ function summaryLoadsMarkup(){
     const chips=(workout.exercise.loads||[]).map((load,setIndex)=>({load,setIndex})).filter(item=>Array.isArray(workout.exercise.completedSets)?workout.exercise.completedSets[item.setIndex]===true:true).map(({load,setIndex})=>`<span>${setIndex+1}: ${esc(summaryLoadValue(load))}</span>`).join('');
     return `<article class="summary-history-session"><div class="summary-history-session-heading"><strong>${esc(workout.day)} · ${esc(date)}</strong><b>Média: ${esc(summaryLoadValue(workout.average))}</b></div><div class="summary-load-chips">${chips}</div></article>`;
   }).join('')}</div></section>`:`<div class="summary-empty-state">Ainda não há treinos finalizados com todas as séries deste exercício confirmadas. Finalize um treino após marcar as séries como feitas para registrar as cargas aqui.</div>`;
-  return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2><p>Confira as cargas das séries nos três últimos treinos finalizados do exercício selecionado.</p></div></div>
+  return `<div class="summary-section-heading"><div><h2>Evolução de carga</h2></div></div>
     <div class="summary-load-filters"><label>Exercício<select id="summaryLoadExercise">${options}</select></label></div>
     ${recentWorkouts.length?summaryChartMarkup(recentWorkouts):''}${historyMarkup}`;
 }
+
+function updateSummaryScrollIndicator(){
+  const nav=document.getElementById('summaryTabs');
+  const track=document.getElementById('summaryScrollIndicator');
+  const thumb=document.getElementById('summaryScrollThumb');
+  if(!nav || !track || !thumb) return;
+  const total=nav.scrollWidth;
+  const visible=nav.clientWidth;
+  const ratio=total>0?Math.min(1,visible/total):1;
+  const width=track.clientWidth;
+  const thumbWidth=Math.max(24,width*ratio);
+  const maxScroll=Math.max(0,total-visible);
+  const position=maxScroll>0?Math.min(1,nav.scrollLeft/maxScroll):0;
+  thumb.style.width=thumbWidth+'px';
+  thumb.style.transform='translateX('+((width-thumbWidth)*position)+'px)';
+  track.style.opacity=maxScroll>1?'1':'0.35';
+}
+document.getElementById('summaryTabs')?.addEventListener('scroll',updateSummaryScrollIndicator,{passive:true});
+window.addEventListener('resize',updateSummaryScrollIndicator);
 
 function renderSummaryPage(){
   const page=document.getElementById('summaryPage');
@@ -9316,6 +9369,7 @@ function renderSummaryPage(){
   else if(activeSummaryFilter==='grip') content.innerHTML=summaryDistributionMarkup('grip','Distribuição de pegadas','Quantidade de exercícios ativos por estilo de pegada.');
   else content.innerHTML=summaryLoadsMarkup();
   setupStyledSelects();
+  requestAnimationFrame(updateSummaryScrollIndicator);
 }
 
 function openSummaryPage(restoring=false){
