@@ -4298,6 +4298,26 @@ main { overflow: visible !important; }
 /* Ajuste aprovado: reduzir somente o espaço abaixo dos botões finais. */
 main{padding-bottom:12px!important}
 @media(max-width:600px){main{padding-bottom:8px!important}}
+.weekly-exercise-group + .weekly-exercise-group{margin-top:28px;padding-top:22px;border-top:1px solid var(--line, #3b4540)}
+.weekly-group-title{font-size:1rem;line-height:1.45;margin:0 0 14px;font-weight:700}
+
+/* Evolução semanal: o próprio dia seleciona todos; exercícios do dia são recolhíveis. */
+.weekly-select-day-button{display:flex;align-items:center;gap:8px;width:100%;border:0;text-align:left;cursor:pointer;font:inherit;background:#151b18;appearance:none;-webkit-appearance:none}
+/* Quadrado desenhado em CSS: evita desalinhamento causado pela fonte dos símbolos Unicode. */
+.weekly-select-day-button .weekly-day-icon{display:block;box-sizing:border-box;width:12px;height:12px;border:1.5px solid currentColor;border-radius:1px;position:relative;flex:0 0 12px;align-self:center;font-size:0;line-height:0}
+.weekly-select-day-button[aria-pressed="true"] .weekly-day-icon::after{content:"";position:absolute;inset:2px;background:currentColor}
+.weekly-select-day-button > span:not(.weekly-day-icon){display:block;line-height:16px;transform:translateY(1px)}
+.weekly-select-day-button .weekly-day-hint{margin-left:auto;font-size:10px;letter-spacing:0;text-transform:none;font-weight:600;white-space:nowrap}
+.weekly-select-day-button:hover,.weekly-select-day-button:focus-visible{background:#273429;outline:1px solid #c6ff00;outline-offset:-1px}
+.weekly-select-day-button[aria-pressed="true"]{background:#29351e}
+.weekly-exercise-accordion{border:1px solid #303a35;border-radius:12px;overflow:hidden;background:#151b18}
+.weekly-exercise-accordion + .weekly-exercise-accordion{margin-top:10px;padding-top:0;border-top:1px solid #303a35}
+.weekly-exercise-accordion-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px;cursor:pointer;font-weight:700;line-height:1.45;list-style:none}
+.weekly-exercise-accordion-heading::-webkit-details-marker{display:none}
+.weekly-exercise-accordion-heading:focus-visible{outline:2px solid #c6ff00;outline-offset:-2px}
+.weekly-accordion-chevron{flex-shrink:0;color:#c6ff00;font-size:1.4rem;transition:transform .2s}
+.weekly-exercise-accordion[open] .weekly-accordion-chevron{transform:rotate(180deg)}
+.weekly-accordion-body{padding:0 12px 14px}
 </style>
 <style>
 
@@ -4876,7 +4896,7 @@ body.weekly-evolution-open{overflow:hidden}
 <div class="confirm-backdrop" id="resetConfirm" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="resetConfirmTitle">
     <h2 id="resetConfirmTitle">Reiniciar treino</h2>
-    <p>As séries concluídas no treino anterior serão removidas do histórico de evolução de carga e substituídas pelos novos registros.</p>
+    <p>Todas as séries concluídas no treino anterior se manterão salvas no histórico.</p>
     <div class="confirm-actions">
       <button type="button" class="btn" id="cancelResetBtn">Voltar</button>
       <button type="button" class="btn primary" id="confirmResetBtn">Confirmar</button>
@@ -4887,7 +4907,7 @@ body.weekly-evolution-open{overflow:hidden}
 <div class="confirm-backdrop" id="cancelWorkoutConfirm" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="cancelWorkoutConfirmTitle">
     <h2 id="cancelWorkoutConfirmTitle">Cancelar treino</h2>
-    <p>Todas as séries concluídas neste treino serão descartadas e não serão registradas no histórico de evolução de carga.</p>
+    <p>Todas as séries concluídas neste treino não serão salvas.</p>
     <div class="confirm-actions">
       <button type="button" class="btn" id="backCancelWorkoutBtn">Voltar</button>
       <button type="button" class="btn primary" id="confirmCancelWorkoutBtn">Confirmar</button>
@@ -8843,7 +8863,7 @@ function refreshStyledSelect(select){
   const selected=Array.from(select.options).find(option=>option.value===select.value && select.selectedIndex>=0);
   const isExercisePicker=select.id==='fNameSelect';
   const isWeeklyPicker=select.id==='weeklyEvolutionExercise';
-  trigger.querySelector('.styled-select-label').textContent=selected ? selected.textContent : (isExercisePicker ? 'Selecione um exercício' : 'Selecione');
+  trigger.querySelector('.styled-select-label').textContent=isWeeklyPicker ? (weeklySelectedExercise.startsWith('day:') ? weeklySelectedExercise.slice(4)+' · Todos os exercícios' : (weeklySelectedExercise && selected ? selected.textContent : 'Selecione um exercício ou um dia da semana')) : (selected ? selected.textContent : (isExercisePicker ? 'Selecione um exercício' : 'Selecione'));
   const previousSearch=isExercisePicker ? (menu.querySelector('.styled-select-search input')?.value||'') : '';
   menu.innerHTML='';
   let searchInput=null;
@@ -8870,9 +8890,25 @@ function refreshStyledSelect(select){
       if(isWeeklyPicker){
         const day=option.parentElement?.tagName==='OPTGROUP'?option.parentElement.label:'';
         if(day && day!==lastWeeklyDay){
-          const heading=document.createElement('div');
-          heading.className='weekly-select-day-heading';
-          heading.textContent=day;
+          const heading=document.createElement('button');
+          heading.type='button';
+          heading.className='weekly-select-day-heading weekly-select-day-button';
+          const dayIcon=document.createElement('span');
+          dayIcon.className='weekly-day-icon';
+          dayIcon.setAttribute('aria-hidden','true');
+          // O indicador é desenhado em CSS para centralização consistente nos dois estados.
+          const dayName=document.createElement('span');
+          dayName.textContent=day;
+          heading.append(dayIcon,dayName);
+          heading.setAttribute('aria-label','Selecionar todos os exercícios de '+day);
+          heading.setAttribute('aria-pressed',String(weeklySelectedExercise==='day:'+day));
+          heading.addEventListener('click',()=>{
+            weeklySelectedExercise=weeklySelectedExercise==='day:'+day?'':'day:'+day;
+            renderWeeklyEvolution();
+            closeStyledSelectMenu(menu);
+            trigger.setAttribute('aria-expanded','false');
+            trigger.focus();
+          });
           menu.appendChild(heading);
         }
         lastWeeklyDay=day;
@@ -9093,27 +9129,29 @@ function renderWeeklyEvolution(){
   const page=document.getElementById('weeklyEvolutionPage');if(!page||page.hidden)return;
   const groups=weeklyGroups(), select=document.getElementById('weeklyEvolutionExercise');
   if(!groups.length){select.innerHTML='<option value="" disabled selected>Selecione um exercício</option>';document.getElementById('weeklyEvolutionContent').innerHTML='<div class="summary-empty-state">Cadastre exercícios ativos para acompanhar sua evolução.</div>';return;}
-  if(!groups.some(entry=>entry.key===weeklySelectedExercise))weeklySelectedExercise='';
-  select.innerHTML='<option value="" disabled '+(!weeklySelectedExercise?'selected':'')+'>Selecione um exercício</option>'+
+  if(!groups.some(entry=>entry.key===weeklySelectedExercise) && !days.some(d=>weeklySelectedExercise==='day:'+d && groups.some(e=>e.day===d)))weeklySelectedExercise='';
+  select.innerHTML='<option value="" disabled '+(!weeklySelectedExercise?'selected':'')+'>Selecione um exercício ou um dia da semana</option>'+
     days.map(day=>{
       const entries=groups.filter(entry=>entry.day===day);
       return entries.length?`<optgroup label="${esc(day)}">${entries.map(entry=>`<option value="${esc(entry.key)}" ${entry.key===weeklySelectedExercise?'selected':''}>${esc(entry.group.name)} · ${esc(entry.group.muscle)} · ${esc(entry.group.equipment)}</option>`).join('')}</optgroup>`:'';
     }).join('');
   const selectedEntry=groups.find(entry=>entry.key===weeklySelectedExercise);
+  const selectedDay=weeklySelectedExercise.startsWith('day:')?weeklySelectedExercise.slice(4):'';
+  const selectedEntries=selectedDay?groups.filter(entry=>entry.day===selectedDay):selectedEntry?[selectedEntry]:[];
   const group=selectedEntry?.group;
   document.getElementById('weeklyNumbersTab').classList.toggle('active',weeklyView==='numbers');
   document.getElementById('weeklyChartTab').classList.toggle('active',weeklyView==='chart');
-  if(!group){
+  if(!selectedEntries.length){
     document.getElementById('weeklyEvolutionContent').innerHTML='<div class="summary-empty-state">Selecione um exercício para visualizar sua evolução semanal.</div>';
     if(typeof setupStyledSelects==='function')setupStyledSelects();
     return;
   }
+  function renderWeeklyGroup(group){
   const weeks=weeklyPeriods().map(d=>({...weeklyRecords(group,d),date:d,label:d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' a '+new Date(d.getTime()+6*86400000).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}));
   document.getElementById('weeklyNumbersTab').classList.toggle('active',weeklyView==='numbers');
   document.getElementById('weeklyChartTab').classList.toggle('active',weeklyView==='chart');
-  const target=document.getElementById('weeklyEvolutionContent');
   if(weeklyView==='numbers'){
-    target.innerHTML=weeks.map((w,i)=>{
+    return weeks.map((w,i)=>{
       const items=w.records.flatMap((r,sessionIndex)=>r.loads.map((load,j)=>`<span class="${r.done[j]?'':'missing'}">${w.records.length>1?'T'+(sessionIndex+1)+' · ':''}S${j+1}: ${r.done[j]?weeklyFormatLoad(load):'—'}</span>`));
       const hasPending=w.records.some(r=>r.done.some(v=>v!==true));
       const status=!w.records.length?'Exercício não realizado nesta semana.':hasPending?'— Há séries não concluídas.':'Todas as séries registradas foram concluídas.';
@@ -9122,7 +9160,7 @@ function renderWeeklyEvolution(){
   }else{
     const chartWeeks=[...weeks].reverse(); // Da semana mais antiga à mais recente, para leitura temporal do gráfico.
     const available=chartWeeks.map((w,i)=>({...w,i})).filter(w=>w.average!==null);
-    if(!available.length){target.innerHTML='<div class="summary-empty-state">Ainda não há cargas numéricas concluídas nas últimas quatro semanas para gerar o gráfico.</div>';return;}
+    if(!available.length){return '<div class="summary-empty-state">Ainda não há cargas numéricas concluídas nas últimas quatro semanas para gerar o gráfico.</div>';}
     const width=680,height=270,left=65,right=30,top=28,bottom=58;
     const vals=available.map(w=>w.average), min=Math.min(...vals),max=Math.max(...vals),pad=Math.max((max-min)*.15,1),low=Math.max(0,min-pad),high=max+pad;
     const x=i=>left+i*(width-left-right)/3,y=v=>top+(high-v)/(high-low)*(height-top-bottom);
@@ -9133,8 +9171,16 @@ function renderWeeklyEvolution(){
     if(segment.length>1)paths+=`<polyline class="trend" points="${segment.join(' ')}"/>`;
     const dots=available.map(w=>`<circle class="dot" cx="${x(w.i)}" cy="${y(w.average)}" r="5"><title>Semana ${4-w.i}: ${esc(weeklyFmtAvg(w.average))}</title></circle><text x="${x(w.i)}" y="${y(w.average)-13}" text-anchor="middle">${esc(weeklyFmtAvg(w.average))}</text>`).join('');
     const labels=chartWeeks.map((w,i)=>`<text x="${x(i)}" y="${height-19}" text-anchor="middle">Sem. ${4-i}</text>`).join('');
-    target.innerHTML=`<div class="weekly-chart-wrap"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Média de cargas concluídas por semana, da mais antiga à mais recente, com lacunas nas semanas sem dados">${grid}${paths}${dots}${labels}</svg><p class="weekly-chart-legend">${weeks.map((w,i)=>`Sem. ${i+1}: ${esc(w.label)} — ${esc(weeklyFmtAvg(w.average))}`).join('<br>')}</p><p class="weekly-week-status">Semanas sem cargas concluídas não recebem ponto no gráfico. A linha não atravessa períodos sem registros.</p></div>`;
+    return `<div class="weekly-chart-wrap"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Média de cargas concluídas por semana, da mais antiga à mais recente, com lacunas nas semanas sem dados">${grid}${paths}${dots}${labels}</svg><p class="weekly-chart-legend">${weeks.map((w,i)=>`Sem. ${i+1}: ${esc(w.label)} — ${esc(weeklyFmtAvg(w.average))}`).join('<br>')}</p><p class="weekly-week-status">Semanas sem cargas concluídas não recebem ponto no gráfico. A linha não atravessa períodos sem registros.</p></div>`;
   }
+  }
+  const target=document.getElementById('weeklyEvolutionContent');
+  target.innerHTML=selectedEntries.map(entry=>{
+    const heading=selectedDay?`<h2 class="weekly-group-title">${esc(entry.group.name)} · ${esc(entry.group.muscle)} · ${esc(entry.group.equipment)}</h2>`:'';
+    return selectedDay
+      ? `<details class="weekly-exercise-group weekly-exercise-accordion"><summary class="weekly-exercise-accordion-heading">${esc(entry.group.name)} · ${esc(entry.group.muscle)} · ${esc(entry.group.equipment)}<span class="weekly-accordion-chevron" aria-hidden="true">⌄</span></summary><div class="weekly-accordion-body">${renderWeeklyGroup(entry.group)}</div></details>`
+      : `<section class="weekly-exercise-group">${heading}${renderWeeklyGroup(entry.group)}</section>`;
+  }).join('');
   if(typeof setupStyledSelects==='function')setupStyledSelects();
 }
 // Ao retornar ao aplicativo após a virada de semana, recalcula as quatro semanas encerradas.
