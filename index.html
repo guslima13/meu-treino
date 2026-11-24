@@ -4797,6 +4797,9 @@ body.weekly-evolution-open{overflow:hidden}
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
     <nav class="header-menu" id="headerMenu" hidden aria-label="Menu principal">
+    <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openMyProfile()">
+      <span class="menu-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><span>Meu perfil</span>
+    </button>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();editExercise(null)">
       <span class="menu-item-icon">＋</span><span>Adicionar exercício</span>
     </button>
@@ -4998,7 +5001,7 @@ body.weekly-evolution-open{overflow:hidden}
 <div class="confirm-backdrop" id="exportBackupConfirm" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="exportBackupTitle">
     <h2 id="exportBackupTitle">Baixar backup?</h2>
-    <p>Deseja salvar uma cópia dos seus exercícios, histórico de treinos e configurações?</p>
+    <p>Deseja salvar uma cópia dos seus exercícios, histórico de treinos, configurações e perfil?</p>
     <p style="font-size:12px;opacity:.75;margin-top:10px">Arquivo: backup-meu-treino.json</p>
     <div class="confirm-actions"><button type="button" class="btn" id="cancelExportBackupBtn">Cancelar</button><button type="button" class="btn primary" id="confirmExportBackupBtn">Baixar backup</button></div>
   </section>
@@ -5007,7 +5010,7 @@ body.weekly-evolution-open{overflow:hidden}
 <div class="confirm-backdrop" id="importBackupConfirm" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="importBackupTitle">
     <h2 id="importBackupTitle">Importar backup?</h2>
-    <p>Esta ação substituirá os exercícios, o histórico e as configurações atuais pelos dados do arquivo selecionado. Deseja continuar?</p>
+    <p>Esta ação substituirá os exercícios, o histórico e as configurações atuais pelos dados do arquivo selecionado. O perfil também será restaurado se estiver incluído no backup. Backups antigos preservam o perfil atual. Deseja continuar?</p>
     <div class="confirm-actions"><button type="button" class="btn" id="cancelImportBackupBtn">Cancelar</button><button type="button" class="btn primary" id="confirmImportBackupBtn">Importar backup</button></div>
   </section>
 </div>
@@ -5098,6 +5101,31 @@ body.weekly-evolution-open{overflow:hidden}
 </div>
 
 <input type="file" id="importFile" accept="application/json" hidden>
+
+<section class="summary-page" id="myProfilePage" hidden aria-label="Meu perfil">
+  <div class="summary-page-shell profile-shell">
+    <div class="summary-page-topline"><span class="eyebrow">INFORMAÇÕES PESSOAIS</span><button type="button" class="btn summary-back-btn" onclick="closeMyProfile()">Voltar</button></div>
+    <h1>Meu perfil</h1>
+    <form id="myProfileForm">
+      <div class="profile-panel">
+        <div class="field"><label for="profileName">Nome completo *</label><input id="profileName" required autocomplete="name" placeholder="Digite seu nome completo"></div>
+        <div class="field"><label for="profileBirth">Data de nascimento *</label><input id="profileBirth" required inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" autocomplete="bday"></div>
+        <div class="profile-age"><span>Idade calculada automaticamente</span><strong id="profileAge">—</strong></div>
+        <div class="formrow">
+          <div class="field"><label for="profileHeight">Altura (m) *</label><input id="profileHeight" required inputmode="decimal" placeholder="Ex.: 1,75"></div>
+          <div class="field"><label for="profileWeight">Peso (kg) *</label><input id="profileWeight" required inputmode="decimal" placeholder="Ex.: 80,0"></div>
+        </div>
+        <div class="profile-imc" aria-live="polite"><small>ÍNDICE DE MASSA CORPORAL</small><strong id="profileImc">—</strong><span id="profileClass">Aguardando altura e peso</span><small>IMC calculado automaticamente</small></div>
+        <details id="profileReference"><summary>Tabela de referência do IMC</summary><table><thead><tr><th>IMC (kg/m²)</th><th>Classificação</th></tr></thead><tbody>
+          <tr><td>Abaixo de 18,5</td><td>Abaixo do peso</td></tr><tr><td>18,5 a 24,9</td><td>Peso adequado</td></tr><tr><td>25,0 a 29,9</td><td>Sobrepeso</td></tr><tr><td>30,0 a 34,9</td><td>Obesidade grau I</td></tr><tr><td>35,0 a 39,9</td><td>Obesidade grau II</td></tr><tr><td>40,0 ou mais</td><td>Obesidade grau III</td></tr>
+        </tbody></table><small>Referência geral para adultos; não substitui avaliação individual.</small></details>
+        <small class="muted">* Todos os campos são obrigatórios.</small>
+      </div>
+      <button type="submit" class="btn primary profile-save" id="profileSave" disabled>SALVAR PERFIL</button>
+      <p id="profileError" role="alert" class="profile-error"></p>
+    </form>
+  </div>
+</section>
 
 <section class="summary-page" id="summaryPage" hidden aria-label="Resumo geral dos treinos">
   <div class="summary-page-shell">
@@ -8580,11 +8608,29 @@ function confirmResetDay(){
 // EXPORTAR BACKUP
 // ========================================
 
+const backupProfileKey='smartWorkoutProfileV1';
+function validateBackupProfile(profile){
+  if(profile===null)return;
+  const fields=['profileName','profileBirth','profileHeight','profileWeight'];
+  if(!profile||typeof profile!=='object'||Array.isArray(profile)||!fields.every(k=>typeof profile[k]==='string'&&profile[k].trim()))throw new Error('Perfil inválido');
+  const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(profile.profileBirth);
+  if(!m)throw new Error('Data inválida');
+  const d=+m[1],mo=+m[2],y=+m[3],birth=new Date(y,mo-1,d);
+  if(y<1900||birth>new Date()||birth.getFullYear()!==y||birth.getMonth()!==mo-1||birth.getDate()!==d)throw new Error('Data inválida');
+  const number=v=>/^\d+(?:[,.]\d+)?$/.test(v.trim())?Number(v.trim().replace(',','.')):NaN;
+  const h=number(profile.profileHeight),w=number(profile.profileWeight),b=w/(h*h);
+  if(!(h>0&&w>0&&b>0&&Number.isFinite(b)))throw new Error('Altura ou peso inválido');
+}
 function exportData(){
+let profile;
+try{
+  profile=JSON.parse(localStorage.getItem(backupProfileKey)||'null');
+  validateBackupProfile(profile);
+}catch(error){alert('Não foi possível ler o perfil para exportar o backup. Nenhum dado foi alterado.');return;}
 
 const blob=new Blob(
 
-[JSON.stringify(state,null,2)],
+[JSON.stringify({...state,backupProfile:profile},null,2)],
 
 {type:'application/json'}
 
@@ -8623,9 +8669,13 @@ function importData(file){
       const parsed=JSON.parse(r.result);
       if(!isValidWorkoutData(parsed)) throw new Error('Backup incompleto');
       // Validar sem tocar nos dados atuais.
+      const hasProfile=Object.prototype.hasOwnProperty.call(parsed,'backupProfile');
+      const profile=parsed.backupProfile;
+      if(hasProfile)validateBackupProfile(profile);
+      delete parsed.backupProfile;
       const imported=normalizeState(parsed);
       if(!isValidWorkoutData(imported)) throw new Error('Backup inválido');
-      pendingImportedBackup=imported;
+      pendingImportedBackup={imported,hasProfile,profile};
       document.getElementById('importBackupConfirm').hidden=false;
     }catch(error){
       console.error('Backup inválido:',error);
@@ -8637,12 +8687,26 @@ function importData(file){
 }
 function confirmImportBackup(){
   if(!pendingImportedBackup)return;
-  const imported=pendingImportedBackup;
+  const {imported,hasProfile,profile}=pendingImportedBackup;
   // Persistir e verificar primeiro; só depois trocar o estado em memória.
   try{
     const serialized=JSON.stringify(imported);
-    localStorage.setItem('smartWorkoutData',serialized);
-    if(localStorage.getItem('smartWorkoutData')!==serialized)throw new Error('Gravação não confirmada');
+    const previousWorkout=localStorage.getItem('smartWorkoutData');
+    const previousProfile=localStorage.getItem(backupProfileKey);
+    const restore=(key,value)=>value===null?localStorage.removeItem(key):localStorage.setItem(key,value);
+    try{
+      localStorage.setItem('smartWorkoutData',serialized);
+      if(localStorage.getItem('smartWorkoutData')!==serialized)throw new Error('Gravação não confirmada');
+      if(hasProfile){
+        const profileValue=profile===null?null:JSON.stringify(profile);
+        restore(backupProfileKey,profileValue);
+        if(localStorage.getItem(backupProfileKey)!==profileValue)throw new Error('Gravação do perfil não confirmada');
+      }
+    }catch(error){
+      try{restore('smartWorkoutData',previousWorkout);}catch(e){console.error('Falha ao restaurar treino:',e);}
+      if(hasProfile)try{restore(backupProfileKey,previousProfile);}catch(e){console.error('Falha ao restaurar perfil:',e);}
+      throw error;
+    }
     workoutStorageReadBlocked=false;
     state=imported;
     day=days.includes(imported.selectedDay)?imported.selectedDay:days[0];
@@ -10237,5 +10301,41 @@ if ('serviceWorker' in navigator) {
 main { padding-bottom: 4px !important; }
 @media (max-width: 600px) { main { padding-bottom: 2px !important; } }
 </style>
+<style>
+#myProfilePage .profile-shell{max-width:520px;margin:auto}
+#myProfilePage .profile-panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:12px}
+#myProfilePage .field{margin:0}
+#myProfilePage .profile-age{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--panel2);padding:12px;border-radius:10px;font-size:12px;color:var(--muted)}
+#myProfilePage .profile-age strong{color:var(--accent);font-size:18px;white-space:nowrap}
+#myProfilePage .profile-imc{display:grid;gap:5px;text-align:center;background:#202923;border:1px solid #40564a;border-radius:12px;padding:16px}
+#myProfilePage .profile-imc strong{font-size:32px;color:var(--accent)}
+#myProfilePage small{color:var(--muted);font-size:11px}
+#profileReference{background:#202923;border:1px solid #40564a;border-radius:10px;padding:12px}
+#profileReference summary{cursor:pointer;font-weight:700;font-size:13px}
+#profileReference table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px;text-align:left}
+#profileReference td,#profileReference th{padding:7px 4px;border-bottom:1px solid #40564a}
+#profileReference tr.profile-current{background:#35432a;color:var(--accent)}
+#myProfilePage .profile-save{width:100%;min-height:48px;margin-top:16px}
+#myProfilePage .profile-save:disabled{background:var(--panel2);border-color:var(--line);color:var(--muted);cursor:not-allowed}
+#myProfilePage .profile-error{color:var(--danger);font-size:13px}
+</style>
+<script>
+(function(){
+ const key='smartWorkoutProfileV1', el=id=>document.getElementById(id), page=el('myProfilePage'), form=el('myProfileForm');
+ const fields=['profileName','profileBirth','profileHeight','profileWeight'];
+ function number(v){return /^\d+(?:[,.]\d+)?$/.test(v.trim())?Number(v.trim().replace(',','.')):NaN;}
+ function age(v){const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v);if(!m)return null;const d=+m[1],mo=+m[2],y=+m[3],now=new Date(),birth=new Date(y,mo-1,d);if(y<1900||birth>now||birth.getFullYear()!==y||birth.getMonth()!==mo-1||birth.getDate()!==d)return null;return now.getFullYear()-y-(now.getMonth()+1<mo||(now.getMonth()+1===mo&&now.getDate()<d)?1:0);}
+ function update(){const a=age(el('profileBirth').value),h=number(el('profileHeight').value),w=number(el('profileWeight').value),b=h>0&&w>0?w/(h*h):NaN;const valid=Number.isFinite(b)&&b>0;const i=!valid||a===null||a<18?-1:b<18.5?0:b<25?1:b<30?2:b<35?3:b<40?4:5;
+ el('profileAge').textContent=a===null?'—':a+' anos';el('profileImc').textContent=valid?b.toFixed(1).replace('.',','):'—';
+ const rows=Array.from(document.querySelectorAll('#profileReference tbody tr'));rows.forEach((r,j)=>r.classList.toggle('profile-current',i===j));
+ el('profileClass').textContent=!valid?'Aguardando altura e peso':a===null?'Informe a data de nascimento':a<18?'Classificação de adultos não aplicável':rows[i].cells[1].textContent;
+ const ok=!!el('profileName').value.trim()&&a!==null&&valid;el('profileSave').disabled=!ok;return ok;}
+ el('profileBirth').addEventListener('input',e=>{const s=e.target.value.replace(/\D/g,'').slice(0,8);e.target.value=s.length>4?s.slice(0,2)+'/'+s.slice(2,4)+'/'+s.slice(4):s.length>2?s.slice(0,2)+'/'+s.slice(2):s;});
+ form.addEventListener('input',update);
+ window.openMyProfile=function(){form.reset();el('profileError').textContent='';try{const data=JSON.parse(localStorage.getItem(key)||'{}');fields.forEach(id=>el(id).value=typeof data[id]==='string'?data[id]:'');}catch(e){el('profileError').textContent='Não foi possível ler o perfil salvo.';}el('profileReference').open=false;page.hidden=false;document.body.classList.add('summary-page-open');page.scrollTop=0;update();};
+ window.closeMyProfile=function(){page.hidden=true;document.body.classList.remove('summary-page-open');};
+ form.addEventListener('submit',e=>{e.preventDefault();if(!update())return;try{const data={};fields.forEach(id=>data[id]=el(id).value.trim());const serialized=JSON.stringify(data);localStorage.setItem(key,serialized);if(localStorage.getItem(key)!==serialized)throw Error('Falha na gravação');closeMyProfile();}catch(e){el('profileError').textContent='Não foi possível salvar o perfil. Tente novamente.';}});
+})();
+</script>
 </body>
 </html>
