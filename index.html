@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
+<link rel="manifest" href="./manifest.json">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101010">
@@ -4777,7 +4778,6 @@ body.weekly-evolution-open{overflow:hidden}
 /* Efeito visual de bloqueio no nome da tela Editar. */
 #modal.edit-mode #fName:disabled{opacity:.48!important;filter:grayscale(.55)!important;cursor:not-allowed!important;background:#222924!important;border-color:#3d483e!important;color:#9ba69b!important;-webkit-text-fill-color:#9ba69b!important}
 </style>
-<style>body::before{content:"VERSÃO DE TESTE";display:block;text-align:center;background:#d7ff00;color:#101010;font:bold 11px system-ui;padding:4px;letter-spacing:1px}</style>
 </head>
 
 <body>
@@ -4990,11 +4990,12 @@ body.weekly-evolution-open{overflow:hidden}
 <section class="summary-page" id="backupMenuConfirm" hidden aria-label="Meus treinos">
 <div class="summary-page-shell"><div class="summary-page-topline"><span class="eyebrow">GERENCIAMENTO DE TREINOS</span><button class="btn summary-back-btn" id="closeBackupMenuBtn">Voltar</button></div>
 <h1>Meus treinos</h1>
+<div class="library-tabs" role="group" aria-label="Fichas de treino"><button type="button" class="btn" id="libraryCurrentTab" onclick="setLibraryTab('current')">Meu treino atual</button><button type="button" class="btn" id="libraryHistoryTab" onclick="setLibraryTab('history')">Histórico de treinos</button></div>
 <div id="trainingLibrary"></div><h2 class="library-section-title">Backup de dados</h2><div class="backup-actions library-backups"><button class="btn" id="chooseImportBtn">Importar backup</button><button class="btn primary" id="chooseExportBtn">Exportar backup</button></div></div></section>
 <div class="confirm-backdrop" id="libraryConfirm" hidden style="z-index:10000"><section class="confirm-dialog" role="dialog" aria-modal="true"><h2 id="libraryConfirmTitle"></h2><p id="libraryConfirmText"></p><div class="confirm-actions"><button class="btn" onclick="closeLibraryConfirm()">Voltar</button><button class="btn primary" onclick="confirmLibraryAction()">Confirmar</button></div></section></div>
 <style>
 .library-card{border:1px solid #303535;background:#171919;border-radius:14px;padding:12px;margin:10px 0;display:grid;gap:5px}.library-current{background:#171d17;border-color:#63763a}.library-card small{color:var(--muted)}.library-card strong{font-size:17px}.library-current .library-status{color:#d7ff00;font-weight:700}.library-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;border-top:1px solid #394039;padding-top:9px;margin-top:5px}.library-current .library-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.library-card .btn,.library-backups .btn{width:100%;min-width:0;min-height:36px;height:36px;padding:5px 3px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}.library-card .library-delete{background:#2a2020;color:#ed7777;border-color:#513434}.library-card .library-activate{background:#242d1a;color:#d7ff00;border-color:#4c5d2a;margin-top:3px}.library-warning{color:#ffb0a0;font-size:12px;margin:8px 0}.library-card button:disabled,#trainingLibrary button:disabled,#chooseImportBtn:disabled{opacity:.4;cursor:not-allowed}.library-backups{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.library-icon{width:13px;height:13px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.library-days{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:4px;margin:12px 0}.library-days .btn{min-width:0;padding:7px 2px;font-size:12px}.library-view-list{display:grid;gap:6px;max-height:42vh;overflow:auto}.library-view-row{background:#222524;border-radius:8px;padding:10px;display:grid;gap:4px}.library-view-row small{color:var(--muted)}#libraryRename,#libraryView,#importBackupConfirm,#exportBackupConfirm{z-index:10001}#libraryView .confirm-dialog{height:min(520px,calc(100vh - 36px));height:min(520px,calc(100dvh - 36px));max-height:none;display:flex;flex-direction:column;overflow:hidden}
-.library-section-title{border-top:2px solid #69716a;padding-top:16px;margin-top:24px!important;margin-bottom:12px!important}.library-periods{background:#202323;border-radius:8px;padding:10px;display:grid;gap:7px;margin-top:5px}.library-current .library-periods{background:#20291d}.library-period-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;flex-wrap:wrap}.library-period-row b{color:#d7ff00;white-space:nowrap}.library-period-total{border-top:1px solid #394039;padding-top:7px}.library-periods>small{font-weight:600}#exportBackupConfirm .confirm-dialog,#importBackupConfirm .confirm-dialog{max-height:calc(100dvh - 36px);overflow:auto;overscroll-behavior:contain}#libraryView .confirm-dialog>*{flex-shrink:0}
+.library-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;background:#191b1b;border:1px solid #353939;border-radius:12px;padding:4px;margin:12px 0}.library-tabs .btn{min-width:0;min-height:44px;padding:5px 3px;font-size:12px;white-space:normal}.library-tabs .btn[aria-pressed="true"]{background:#d7ff00;color:#101010;border-color:#d7ff00}.library-section-title{border-top:2px solid #69716a;padding-top:16px;margin-top:24px!important;margin-bottom:12px!important}.library-periods{background:#202323;border-radius:8px;padding:10px;display:grid;gap:7px;margin-top:5px}.library-current .library-periods{background:#20291d}.library-period-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;flex-wrap:wrap}.library-period-row b{color:#d7ff00;white-space:nowrap}.library-period-total{border-top:1px solid #394039;padding-top:7px}.library-periods>small{font-weight:600}#exportBackupConfirm .confirm-dialog,#importBackupConfirm .confirm-dialog{max-height:calc(100dvh - 36px);overflow:auto;overscroll-behavior:contain}#libraryView .confirm-dialog>*{flex-shrink:0}
 #libraryView .library-view-list{flex:1 1 0;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;align-content:start;scrollbar-gutter:stable}
 #libraryView .confirm-actions{margin-top:12px}
 #libraryViewName{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -5418,7 +5419,7 @@ day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 
 
 // Histórico de desfazer independente dos dados principais do treino.
-const UNDO_STORAGE_KEY='demo20261124_smartWorkoutUndoHistory';
+const UNDO_STORAGE_KEY='smartWorkoutUndoHistory';
 function loadUndoHistory(){
   try{
     const entries=JSON.parse(localStorage.getItem(UNDO_STORAGE_KEY)||'[]');
@@ -5572,7 +5573,7 @@ function freshWorkoutState(){
 }
 function loadState(){
   try{
-    const stored=localStorage.getItem('demo20261124_smartWorkoutData');
+    const stored=localStorage.getItem('smartWorkoutData');
     if(stored===null) return freshWorkoutState();
     const parsed=JSON.parse(stored);
     if(!isValidWorkoutData(parsed)) throw new Error('Estrutura de dados inválida');
@@ -5600,8 +5601,8 @@ state.progressVersion=2;
 // Não depende do evento de fechamento, que pode não ocorrer no celular.
 try {
   const serialized=JSON.stringify(state);
-  localStorage.setItem('demo20261124_smartWorkoutData',serialized);
-  if(localStorage.getItem('demo20261124_smartWorkoutData')!==serialized) throw new Error('Falha na verificação da gravação');
+  localStorage.setItem('smartWorkoutData',serialized);
+  if(localStorage.getItem('smartWorkoutData')!==serialized) throw new Error('Falha na verificação da gravação');
   window.__workoutStorageWarningShown=false;
 } catch(error) {
   console.error('Não foi possível salvar os dados do Meu Treino:',error);
@@ -8027,7 +8028,7 @@ function exerciseVariationSignature(ex){
 let exercisePickerVariants=[];
 // Marcações persistentes exibidas somente no menu suspenso de Adicionar.
 // Guardamos apenas as assinaturas dos exercícios ainda não selecionados.
-const NEW_EXERCISE_PICKER_STORAGE_KEY='demo20261124_smartWorkoutNewExercisePickerSignatures';
+const NEW_EXERCISE_PICKER_STORAGE_KEY='smartWorkoutNewExercisePickerSignatures';
 function loadNewExercisePickerSignatures(){
   try{
     const saved=JSON.parse(localStorage.getItem(NEW_EXERCISE_PICKER_STORAGE_KEY)||'[]');
@@ -8574,16 +8575,21 @@ function libraryPeriodsHtml(t,current){const periods=t.periods;return `<div clas
 function librarySnapshot(){return structuredClone({workouts:state.workouts,checks:state.checks,notes:state.notes,weeklyChecks:state.weeklyChecks,sessions:state.sessions,selectedDay:day});}
 function libraryLocked(){return workoutStorageReadBlocked||hasWorkoutInProgress();}
 function libraryIcon(type){const paths={rename:'<path d="m4 16 4 4 12-12-4-4L4 16v4h4"/>',view:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',delete:'<path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"/>',activate:'<path d="M3 12a9 9 0 1 1 3 7M3 5v7h7"/>'};return `<svg class="library-icon" viewBox="0 0 24 24" aria-hidden="true">${paths[type]}</svg>`;}
+let libraryTab="current";
+function setLibraryTab(tab){libraryTab=tab;renderTrainingLibrary();}
 function renderTrainingLibrary(){const l=state.trainingLibrary,locked=libraryLocked(),dis=locked?'disabled':'';const card=(t,current)=>`<div class="library-card ${current?'library-current':''}"><small class="library-status">${current?'TREINO ATUAL':'ARQUIVADO'}</small><strong>${esc(t.name)}</strong><small>Criado em ${esc(t.created)}</small>${current?'':`<small>Arquivado em ${esc(t.archived)}</small>`}${libraryPeriodsHtml(t,current)}<div class="library-actions"><button class="btn" onclick="renameLibrary(${Number(t.id)})">${libraryIcon('rename')}Renomear</button><button class="btn" onclick="viewLibrary(${Number(t.id)})">${libraryIcon('view')}Visualizar</button>${current?'':`<button class="btn library-delete" ${dis} onclick="requestLibrary('delete',${Number(t.id)})">${libraryIcon('delete')}Excluir</button>`}</div>${current?'':`<button class="btn library-activate" ${dis} onclick="requestLibrary('activate',${Number(t.id)})">${libraryIcon('activate')}Definir como treino atual</button>`}</div>`;
- document.getElementById('trainingLibrary').innerHTML=(locked?'<div class="library-card library-warning">TREINO EM ANDAMENTO OU ARMAZENAMENTO BLOQUEADO<br>Finalize o treino atual para criar ou trocar sua ficha de treino.</div>':'')+card(l.current,true)+`<button class="btn primary" style="width:100%" ${dis} onclick="requestLibrary('new')">Criar um novo treino</button><h2 class="library-section-title">Histórico de treinos</h2>`+([...l.archived].sort((a,b)=>libraryDayNumber(b.archived)-libraryDayNumber(a.archived)).map(t=>card(t,false)).join('')||'<p class="summary-page-intro">Nenhum treino arquivado.</p>');document.getElementById('chooseImportBtn').disabled=locked;
+ for(const [id,tab] of [['libraryCurrentTab','current'],['libraryHistoryTab','history']]){const b=document.getElementById(id);b.setAttribute('aria-pressed',String(libraryTab===tab));}
+ const warning=locked?'<div class="library-card library-warning">TREINO EM ANDAMENTO OU ARMAZENAMENTO BLOQUEADO<br>Finalize o treino atual para criar ou trocar sua ficha de treino.</div>':'';
+ const content=libraryTab==='current'?card(l.current,true)+`<button class="btn primary" style="width:100%" ${dis} onclick="requestLibrary('new')">Criar um novo treino</button>`:([...l.archived].sort((a,b)=>libraryDayNumber(b.archived)-libraryDayNumber(a.archived)).map(t=>card(t,false)).join('')||'<p class="summary-page-intro">Nenhum treino arquivado.</p>');
+ document.getElementById('trainingLibrary').innerHTML=warning+content;document.getElementById('chooseImportBtn').disabled=locked;
 }
-function openBackupMenu(){renderTrainingLibrary();const p=document.getElementById('backupMenuConfirm');p.hidden=false;p.scrollTop=0;document.body.classList.add('summary-page-open');}
+function openBackupMenu(){libraryTab="current";renderTrainingLibrary();const p=document.getElementById('backupMenuConfirm');p.hidden=false;p.scrollTop=0;document.body.classList.add('summary-page-open');}
 function closeBackupMenu(){document.getElementById('backupMenuConfirm').hidden=true;document.body.classList.remove('summary-page-open');}
 let libraryPending=null;
 function requestLibrary(action,id){if(libraryLocked())return;libraryPending={action,id};document.getElementById('libraryConfirmTitle').textContent=action==='new'?'Criar um novo treino':action==='activate'?'Definir como treino atual':'Excluir treino arquivado?';document.getElementById('libraryConfirmText').textContent=action==='new'?'Seu treino atual deixará de aparecer para que você possa criar um novo treino do zero.':action==='activate'?'O treino anterior será arquivado e a ficha selecionada voltará à tela principal.':'Esta ficha será excluída definitivamente.';document.getElementById('libraryConfirm').hidden=false;}
 function closeLibraryConfirm(){libraryPending=null;document.getElementById('libraryConfirm').hidden=true;}
-function commitLibrary(next){if(workoutStorageReadBlocked)return false;const old=localStorage.getItem('demo20261124_smartWorkoutData');try{const raw=JSON.stringify(next);localStorage.setItem('demo20261124_smartWorkoutData',raw);if(localStorage.getItem('demo20261124_smartWorkoutData')!==raw)throw Error('Falha na gravação');}catch(e){try{if(old===null)localStorage.removeItem('demo20261124_smartWorkoutData');else localStorage.setItem('demo20261124_smartWorkoutData',old);}catch(_){}alert('Não foi possível salvar a alteração.');return false;}state=next;day=days.includes(next.selectedDay)?next.selectedDay:days[0];undoHistory.length=0;persistUndoHistory();hideUndo();exerciseCollapseOverrides.clear();render();renderTrainingLibrary();return true;}
-function confirmLibraryAction(){const p=libraryPending;closeLibraryConfirm();if(!p||libraryLocked())return;const next=structuredClone(state),l=next.trainingLibrary;const idx=l.archived.findIndex(t=>t.id===p.id);if(p.action==='delete'){if(idx<0)return;l.archived.splice(idx,1);}else{if(p.action==='activate'&&idx<0)return;const target=p.action==='activate'?l.archived.splice(idx,1)[0]:null;const today=libraryDate();l.current.periods[l.current.periods.length-1].end=today;l.archived.unshift({...l.current,archived:today,snapshot:librarySnapshot()});if(target){const {snapshot,archived,...meta}=target;l.current=meta;l.current.periods.push({start:today,end:null});Object.assign(next,snapshot);}else{const id=l.next++;l.current={id,name:'Treino '+String(id).padStart(2,'0'),created:today,periods:[{start:today,end:null}]};Object.assign(next,{workouts:Object.fromEntries(days.map(d=>[d,[]])),checks:{},notes:{},weeklyChecks:{},sessions:{},selectedDay:day});}}if(commitLibrary(next)&&p.action!=='delete')closeBackupMenu();}
+function commitLibrary(next){if(workoutStorageReadBlocked)return false;const old=localStorage.getItem('smartWorkoutData');try{const raw=JSON.stringify(next);localStorage.setItem('smartWorkoutData',raw);if(localStorage.getItem('smartWorkoutData')!==raw)throw Error('Falha na gravação');}catch(e){try{if(old===null)localStorage.removeItem('smartWorkoutData');else localStorage.setItem('smartWorkoutData',old);}catch(_){}alert('Não foi possível salvar a alteração.');return false;}state=next;day=days.includes(next.selectedDay)?next.selectedDay:days[0];undoHistory.length=0;persistUndoHistory();hideUndo();exerciseCollapseOverrides.clear();render();renderTrainingLibrary();return true;}
+function confirmLibraryAction(){const p=libraryPending;closeLibraryConfirm();if(!p||libraryLocked())return;const next=structuredClone(state),l=next.trainingLibrary;const idx=l.archived.findIndex(t=>t.id===p.id);if(p.action==='delete'){if(idx<0)return;l.archived.splice(idx,1);}else{if(p.action==='activate'&&idx<0)return;const target=p.action==='activate'?l.archived.splice(idx,1)[0]:null;const today=libraryDate();l.current.periods[l.current.periods.length-1].end=today;l.archived.unshift({...l.current,archived:today,snapshot:librarySnapshot()});if(target){const {snapshot,archived,...meta}=target;l.current=meta;l.current.periods.push({start:today,end:null});Object.assign(next,snapshot);}else{const id=l.next++;l.current={id,name:'Treino '+String(id).padStart(2,'0'),created:today,periods:[{start:today,end:null}]};Object.assign(next,{workouts:Object.fromEntries(days.map(d=>[d,[]])),checks:{},notes:{},weeklyChecks:{},sessions:{},selectedDay:day});}}if(commitLibrary(next)&&p.action!=='delete'){setLibraryTab('current');document.getElementById('backupMenuConfirm').scrollTop=0;}}
 let libraryRenameId=null,libraryViewId=null;
 function renameLibrary(id){if(workoutStorageReadBlocked)return;const l=state.trainingLibrary,t=[l.current,...l.archived].find(x=>x.id===id);if(!t)return;libraryRenameId=id;const input=document.getElementById('libraryRenameInput');input.value=t.name;document.getElementById('libraryRename').hidden=false;input.focus();input.select();}
 function closeLibraryRename(){libraryRenameId=null;document.getElementById('libraryRename').hidden=true;}
@@ -8651,7 +8657,7 @@ function confirmResetDay(){
 // EXPORTAR BACKUP
 // ========================================
 
-const backupProfileKey='demo20261124_smartWorkoutProfileV1';
+const backupProfileKey='smartWorkoutProfileV1';
 function validateBackupProfile(profile){
   if(profile===null)return;
   const fields=['profileName','profileBirth','profileHeight','profileWeight'];
@@ -8735,19 +8741,19 @@ function confirmImportBackup(){
   // Persistir e verificar primeiro; só depois trocar o estado em memória.
   try{
     const serialized=JSON.stringify(imported);
-    const previousWorkout=localStorage.getItem('demo20261124_smartWorkoutData');
+    const previousWorkout=localStorage.getItem('smartWorkoutData');
     const previousProfile=localStorage.getItem(backupProfileKey);
     const restore=(key,value)=>value===null?localStorage.removeItem(key):localStorage.setItem(key,value);
     try{
-      localStorage.setItem('demo20261124_smartWorkoutData',serialized);
-      if(localStorage.getItem('demo20261124_smartWorkoutData')!==serialized)throw new Error('Gravação não confirmada');
+      localStorage.setItem('smartWorkoutData',serialized);
+      if(localStorage.getItem('smartWorkoutData')!==serialized)throw new Error('Gravação não confirmada');
       if(hasProfile){
         const profileValue=profile===null?null:JSON.stringify(profile);
         restore(backupProfileKey,profileValue);
         if(localStorage.getItem(backupProfileKey)!==profileValue)throw new Error('Gravação do perfil não confirmada');
       }
     }catch(error){
-      try{restore('demo20261124_smartWorkoutData',previousWorkout);}catch(e){console.error('Falha ao restaurar treino:',e);}
+      try{restore('smartWorkoutData',previousWorkout);}catch(e){console.error('Falha ao restaurar treino:',e);}
       if(hasProfile)try{restore(backupProfileKey,previousProfile);}catch(e){console.error('Falha ao restaurar perfil:',e);}
       throw error;
     }
@@ -9320,7 +9326,7 @@ function closeWeeklyEvolution(){
 let activeSummaryFilter='days';
 let summaryLoadGroupIndex='0';
 // Persistência da navegação: independe do ciclo de vida da página.
-const UI_STATE_KEY='demo20261124_smartWorkoutUiState_v1';
+const UI_STATE_KEY='smartWorkoutUiState_v1';
 function readUiState(){
   try { return JSON.parse(localStorage.getItem(UI_STATE_KEY)||'{}')||{}; }
   catch(_){ return {}; }
@@ -9704,7 +9710,7 @@ document.addEventListener('visibilitychange',()=>{
 
 // MODO APLICATIVO / SERVICE WORKER ATUALIZADO
 
-if (false && 'serviceWorker' in navigator) {
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
       const registration = await navigator.serviceWorker.register(
@@ -10286,7 +10292,7 @@ if (false && 'serviceWorker' in navigator) {
 </div>
 <script>
 (function(){
- const REVIEW_KEY='demo20261124_meuTreinoHistoryReviewAtV1';
+ const REVIEW_KEY='meuTreinoHistoryReviewAtV1';
  const YEAR=365*24*60*60*1000;
  const DAY=24*60*60*1000;
  const prompt=document.getElementById('historyReviewPrompt');
@@ -10328,8 +10334,8 @@ if (false && 'serviceWorker' in navigator) {
      try{
        const serialized=JSON.stringify(state);
        if(workoutStorageReadBlocked){showWorkoutStorageReadWarning();throw new Error('Leitura bloqueada');}
-       localStorage.setItem('demo20261124_smartWorkoutData',serialized);
-       if(localStorage.getItem('demo20261124_smartWorkoutData')!==serialized)throw new Error('Gravação não confirmada');
+       localStorage.setItem('smartWorkoutData',serialized);
+       if(localStorage.getItem('smartWorkoutData')!==serialized)throw new Error('Gravação não confirmada');
      }catch(err){state.weeklyChecks=oldWeekly;state.completedWorkouts=oldCompleted;throw err}
      close(365);
      if(typeof render==='function')render();
@@ -10367,7 +10373,7 @@ main { padding-bottom: 4px !important; }
 </style>
 <script>
 (function(){
- const key='demo20261124_smartWorkoutProfileV1', el=id=>document.getElementById(id), page=el('myProfilePage'), form=el('myProfileForm');
+ const key='smartWorkoutProfileV1', el=id=>document.getElementById(id), page=el('myProfilePage'), form=el('myProfileForm');
  const fields=['profileName','profileBirth','profileHeight','profileWeight'];
  function number(v){return /^\d+(?:[,.]\d+)?$/.test(v.trim())?Number(v.trim().replace(',','.')):NaN;}
  function age(v){const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v);if(!m)return null;const d=+m[1],mo=+m[2],y=+m[3],now=new Date(),birth=new Date(y,mo-1,d);if(y<1900||birth>now||birth.getFullYear()!==y||birth.getMonth()!==mo-1||birth.getDate()!==d)return null;return now.getFullYear()-y-(now.getMonth()+1<mo||(now.getMonth()+1===mo&&now.getDate()<d)?1:0);}
