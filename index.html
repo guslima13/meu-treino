@@ -4804,10 +4804,10 @@ body.weekly-evolution-open{overflow:hidden}
       <span class="menu-item-icon">▤</span><span>Cadastro e exclusão</span>
     </button>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openWeeklyEvolution()">
-      <span class="menu-item-icon">↗</span><span>Evolução semanal</span>
+      <span class="menu-item-icon">↗</span><span>Minha evolução</span>
     </button>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openSummaryPage()">
-      <span class="menu-item-icon">▥</span><span>Resumo geral</span>
+      <span class="menu-item-icon">▥</span><span>Resumo do treino</span>
     </button>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openBackupMenu()">
       <span class="menu-item-icon">⇅</span><span>Importar e exportar</span>
@@ -5105,7 +5105,7 @@ body.weekly-evolution-open{overflow:hidden}
       <span class="eyebrow">VISÃO DOS TREINOS ATIVOS</span>
       <button type="button" class="btn summary-back-btn" id="summaryBackBtn" aria-label="Voltar aos treinos">Voltar</button>
     </div>
-    <h1>Resumo geral</h1>
+    <h1>Resumo do treino</h1>
     <div class="summary-overview-cards" id="summaryOverviewCards"></div>
     <nav class="summary-tabs" id="summaryTabs" aria-label="Filtros do resumo">
       <button type="button" class="summary-tab active" data-summary-filter="days" aria-pressed="true">Dias da semana</button>
@@ -5126,7 +5126,7 @@ body.weekly-evolution-open{overflow:hidden}
       <span class="eyebrow">ACOMPANHAMENTO DE EXERCÍCIOS CONCLUÍDOS</span>
       <button type="button" class="btn summary-back-btn" onclick="closeWeeklyEvolution()">Voltar</button>
     </div>
-    <h1>Evolução semanal</h1>
+    <h1>Minha evolução</h1>
     <select id="weeklyEvolutionExercise" aria-label="Selecione o exercício" onchange="weeklySelectedExercise=this.value;renderWeeklyEvolution()"></select>
     <nav class="summary-tabs weekly-evolution-tabs" aria-label="Visualização da evolução semanal">
       <button type="button" class="summary-tab active" id="weeklyNumbersTab" onclick="weeklyView='numbers';renderWeeklyEvolution()">Cargas por semana</button>
