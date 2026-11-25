@@ -4132,8 +4132,10 @@ main { overflow: visible !important; }
 
 
 /* Identificação temporária: somente nas opções do menu suspenso de Adicionar. */
+.new-exercise-tag,
 .styled-select-option .new-exercise-tag{
-  color:var(--accent,#d7ff00);
+  color:#d7ff00!important;
+  -webkit-text-fill-color:#d7ff00!important;
   font-weight:800;
   white-space:pre;
 }
@@ -4322,6 +4324,10 @@ main{padding-bottom:12px!important}
 
 #addBtn:disabled{opacity:.4!important;cursor:not-allowed!important;pointer-events:none!important}
 .bottom-dashboard .toolbar[hidden],.bottom-dashboard .finish-control[hidden],#finishWorkoutBtn[hidden],#addBtn[hidden]{display:none!important}.bottom-dashboard .toolbar .editing-workout-active{color:#d7ff00!important;border-color:#d7ff00!important}
+
+/* Folga inferior para listas de atributos abertas no cadastro. */
+#duplicateExerciseDialog .duplicate-variation-dialog:has(.styled-select-menu:not([hidden])) { padding-bottom: 40px; }
+#duplicateExerciseDialog .duplicate-variation-dialog:has(#variationGrip ~ .styled-select-menu:not([hidden])) { padding-bottom: 64px; }
 </style>
 <style>
 
@@ -4805,6 +4811,11 @@ body.weekly-evolution-open{overflow:hidden}
 .bottom-dashboard .toolbar .icon-action-label{font-size:14px!important;line-height:1.15!important;width:auto!important;text-align:center!important;}
 @media(max-width:600px){.bottom-dashboard .toolbar .icon-action svg,.bottom-dashboard .toolbar .catalog-action-icon{width:19px!important;height:19px!important;flex-basis:19px!important;}.bottom-dashboard .toolbar .catalog-action-icon{font-size:19px!important;}.bottom-dashboard .toolbar .icon-action-label{font-size:clamp(11px,3.25vw,13px)!important;}}
 </style>
+<style id="exercise-title-unification">
+#modal .dialog #modalTitle,#duplicateExerciseDialog.create-exercise-mode #duplicateExerciseTitle{font-size:20px!important;font-weight:800!important;line-height:24px!important;letter-spacing:0!important;text-align:left!important;margin:0 0 16px!important;padding:0!important}
+#duplicateExerciseDialog.create-exercise-mode .duplicate-variation-dialog{padding-top:16px!important;padding-left:16px!important;padding-right:16px!important;width:100%!important;max-width:420px!important;box-sizing:border-box!important}
+#duplicateExerciseDialog.create-exercise-mode .variation-intro{margin-top:0!important}
+</style>
 </head>
 
 <body>
@@ -4827,26 +4838,23 @@ body.weekly-evolution-open{overflow:hidden}
     <nav class="header-menu" id="headerMenu" hidden aria-label="Menu principal">
 <div class="menu-category">PESSOAL</div>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openMyProfile()">
-      <span class="menu-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><span>Meu perfil</span>
+      <span class="menu-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><span>MEU PERFIL</span>
     </button>
     <div class="menu-category">TREINAMENTO</div>
-    <button type="button" class="header-menu-item" onclick="closeHeaderMenu();editExercise(null)">
-      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span>Adicionar exercício</span>
-    </button>
-    <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openInfoCatalog()">
-      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 9h8M8 15h8"/></svg></span><span>Cadastro e exclusão</span>
-    </button>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openWeeklyEvolution()">
-      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 18L19 4M9 4h10v10"/></svg></span><span>Minha evolução</span>
+      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 18L19 4M9 4h10v10"/></svg></span><span>MINHA EVOLUÇÃO</span>
     </button>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openSummaryPage()">
-      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M9 20V4M14 20v-7M19 20V7"/></svg></span><span>Resumo do treino</span>
+      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M9 20V4M14 20v-7M19 20V7"/></svg></span><span>RESUMO DO TREINO</span>
     </button>
     <div class="menu-category">GERENCIAMENTO</div>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openBackupMenu()">
-      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20V4M4 8l4-4 4 4M16 4v16M12 16l4 4 4-4"/></svg></span><span>Meus treinos</span>
+      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20V4M4 8l4-4 4 4M16 4v16M12 16l4 4 4-4"/></svg></span><span>MEUS TREINOS</span>
     </button>
-    <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openDataBackup()"><span class="menu-item-icon"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/></svg></span><span>Backup de dados</span></button>
+    <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openInfoCatalog()">
+      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 9h8M8 15h8"/></svg></span><span>CADASTRO E EXCLUSÃO</span>
+    </button>
+    <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openDataBackup()"><span class="menu-item-icon"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/></svg></span><span>BACKUP DE DADOS</span></button>
     </nav>
   </div>
 </div>
@@ -5021,7 +5029,7 @@ body.weekly-evolution-open{overflow:hidden}
 
 <section class="summary-page" id="backupMenuConfirm" hidden aria-label="Meus treinos">
 <div class="summary-page-shell"><div class="summary-page-topline"><span class="eyebrow">GERENCIAR FICHAS DE TREINOS</span><button class="btn summary-back-btn" id="closeBackupMenuBtn">Voltar</button></div>
-<h1>Meus treinos</h1>
+<h1>MEUS TREINOS</h1>
 <div class="library-tabs" role="group" aria-label="Fichas de treino"><button type="button" class="btn" id="libraryCurrentTab" onclick="setLibraryTab('current')">Meu treino atual</button><button type="button" class="btn" id="libraryHistoryTab" onclick="setLibraryTab('history')">Histórico de treinos</button></div>
 <div id="trainingLibrary"></div></div></section><div class="confirm-backdrop" id="dataBackupMenu" hidden><section class="confirm-dialog"><h2>Backup de dados</h2><div class="backup-actions library-backups"><button class="btn" id="chooseImportBtn">Importar backup</button><button class="btn primary" id="chooseExportBtn">Exportar backup</button></div><div class="confirm-actions"><button class="btn" onclick="document.getElementById('dataBackupMenu').hidden=true">Voltar</button></div></section></div>
 <div class="confirm-backdrop" id="libraryConfirm" hidden style="z-index:10000"><section class="confirm-dialog" role="dialog" aria-modal="true"><h2 id="libraryConfirmTitle"></h2><p id="libraryConfirmText"></p><div class="confirm-actions"><button class="btn" onclick="closeLibraryConfirm()">Voltar</button><button class="btn primary" onclick="confirmLibraryAction()">Confirmar</button></div></section></div>
@@ -5082,7 +5090,7 @@ body.weekly-evolution-open{overflow:hidden}
   <div class="catalog-page-shell">
     <div class="catalog-page-topline"><span class="eyebrow">GERENCIAR INFORMAÇÕES</span><button type="button" class="btn" id="closeInfoCatalogBtn">Voltar</button></div>
     <div class="confirm-dialog info-catalog-dialog">
-    <h1 id="infoCatalogTitle">Cadastro e exclusão</h1>
+    <h1 id="infoCatalogTitle">CADASTRO E EXCLUSÃO</h1>
     <div class="catalog-entry">
       <label for="newExercise">Exercício</label>
       <div>
@@ -5145,7 +5153,7 @@ body.weekly-evolution-open{overflow:hidden}
 <section class="summary-page" id="myProfilePage" hidden aria-label="Meu perfil">
   <div class="summary-page-shell profile-shell">
     <div class="summary-page-topline"><span class="eyebrow">INFORMAÇÕES PESSOAIS</span><button type="button" class="btn summary-back-btn" onclick="closeMyProfile()">Voltar</button></div>
-    <h1>Meu perfil</h1>
+    <h1>MEU PERFIL</h1>
     <form id="myProfileForm">
       <div class="profile-panel">
         <div class="field"><label for="profileName">Nome completo *</label><input id="profileName" required autocomplete="name" placeholder="Digite seu nome completo"></div>
@@ -5173,7 +5181,7 @@ body.weekly-evolution-open{overflow:hidden}
       <span class="eyebrow">VISUALIZAR INFORMAÇÕES DO TREINO</span>
       <button type="button" class="btn summary-back-btn" id="summaryBackBtn" aria-label="Voltar aos treinos">Voltar</button>
     </div>
-    <h1>Resumo do treino</h1>
+    <h1>RESUMO DO TREINO</h1>
     <div class="summary-overview-cards" id="summaryOverviewCards"></div>
     <nav class="summary-tabs" id="summaryTabs" aria-label="Filtros do resumo">
       <button type="button" class="summary-tab active" data-summary-filter="days" aria-pressed="true">Dias da semana</button>
@@ -5194,7 +5202,7 @@ body.weekly-evolution-open{overflow:hidden}
       <span class="eyebrow">ACOMPANHAR EXERCÍCIOS CONCLUÍDOS</span>
       <button type="button" class="btn summary-back-btn" onclick="closeWeeklyEvolution()">Voltar</button>
     </div>
-    <h1>Minha evolução</h1>
+    <h1>MINHA EVOLUÇÃO</h1>
     <select id="weeklyEvolutionExercise" aria-label="Selecione o exercício" onchange="weeklySelectedExercise=this.value;renderWeeklyEvolution()"></select>
     <nav class="summary-tabs weekly-evolution-tabs" aria-label="Visualização da evolução semanal">
       <button type="button" class="summary-tab active" id="weeklyNumbersTab" onclick="weeklyView='numbers';renderWeeklyEvolution()">Cargas por semana</button>
@@ -5217,9 +5225,10 @@ body.weekly-evolution-open{overflow:hidden}
   </div>
 <div class="dialog">
 
-<h2 id="modalTitle">Editar exercício</h2>
+<h2 id="modalTitle">EDITAR EXERCÍCIO</h2>
 
 <form id="exerciseForm">
+
 
 <div class="field">
 <label>Nome do exercício</label>
@@ -5228,7 +5237,8 @@ body.weekly-evolution-open{overflow:hidden}
   <option value="" disabled selected>Selecione um exercício</option>
 </select>
 </div>
-
+<div id="addLocation" hidden><small id="addLocationLabel">Localização na ficha atual</small><strong id="addLocationValue"></strong><button type="button" id="addLocationChange" class="btn" onclick="openEditDayOverview()">Alterar ›</button></div>
+<div class="edit-section-label add-attributes">ATRIBUTOS DO EXERCÍCIO</div>
 <div class="formrow">
 
 <div class="field">
@@ -5262,7 +5272,7 @@ body.weekly-evolution-open{overflow:hidden}
 
 </div>
 
-<div class="formrow">
+<div class="edit-section-label">CONFIGURAÇÃO DAS SÉRIES</div><div class="formrow edit-organization">
 
 <div class="field">
 <label>Quantidade de séries</label>
@@ -5276,6 +5286,7 @@ body.weekly-evolution-open{overflow:hidden}
 <div class="field">
 <label>Dia da semana</label>
 <select id="fDay"><option value="-">-</option><option value="Segunda">Segunda</option><option value="Terça">Terça</option><option value="Quarta">Quarta</option><option value="Quinta">Quinta</option><option value="Sexta">Sexta</option><option value="Sábado">Sábado</option></select>
+<button type="button" id="editDayOverviewBtn" class="btn" onclick="openEditDayOverview()" hidden></button>
 <input id="fNote" type="hidden">
 </div>
 
@@ -6172,7 +6183,7 @@ function alignExerciseDragHandles(){
       actions.style.removeProperty('translate');
       const actionsRect=actions.getBoundingClientRect();
       const actionsCenterX=actionsRect.left + actionsRect.width/2;
-      const corridaExtraLeft = card.classList.contains('exercise-running') ? 12 : 0;
+      const corridaExtraLeft = 0;
       actions.style.setProperty(
         'translate',
         `${checkCenterX-actionsCenterX-corridaExtraLeft}px -13px`,
@@ -6483,11 +6494,10 @@ ${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><pat
 
 </div>
 
-<div class="actions" ${String(e.name||'').trim().toLocaleLowerCase('pt-BR')==='corrida'?'style="translate: -20px 0;"':''}>
+<div class="actions">
 
 <button type="button" class="iconbtn" onclick="editExercise(${i})" title="Editar" aria-label="Editar">✎</button>
 <button type="button" class="iconbtn replace-exercise-icon" onclick="replaceExercise(${i})" ${!structuralEditAllowed()?'disabled aria-disabled="true"':''} title="Substituir exercício" aria-label="Substituir exercício"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9a4 4 0 0 0-4 4v2"/><path d="m4 10 3 3 3-3"/><path d="M4 17h9a4 4 0 0 0 4-4v-2"/><path d="m20 14-3-3-3 3"/></svg></button>
-<button type="button" class="iconbtn move-day-icon" onclick="openMoveDayDialog(${i})" ${!structuralEditAllowed()?'disabled aria-disabled="true"':''} title="Mover para outro dia da semana" aria-label="Mover para outro dia da semana"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="13" height="16" rx="2"/><path d="M7 3v4M12 3v4M3 10h13M13 14h8m-3-3 3 3-3 3"/></svg></button>
 <button type="button" class="iconbtn" onclick="deleteExercise(${i})" ${!structuralEditAllowed()?'disabled aria-disabled="true"':''} title="Excluir exercício" aria-label="Excluir exercício">×</button>
 
 </div>
@@ -7052,25 +7062,31 @@ function structuralEditAllowed(){return !hasWorkoutInProgress() && !!(state.buil
 function syncExerciseIdentityLock(){
   const chosen=editIndex===null && fNameSelect.value!==''?exercisePickerVariants[Number(fNameSelect.value)]:null;
   const locked=!structuralEditAllowed();
-  const attrsLocked=locked && (editIndex!==null || findExerciseWorkoutDay(chosen)!=='-');
+  const attrsLocked=(locked && editIndex!==null) || (editIndex===null && findExerciseWorkoutDay(chosen)!=='-');
   for(const field of [fName,fMuscle,fEquipment,fEquipmentEdit,fExecution,fGrip,fDay]){
-    field.disabled=field===fDay?locked:field===fName?hasWorkoutInProgress():attrsLocked;
+    field.disabled=field===fDay?(editIndex===null?true:locked):field===fName?hasWorkoutInProgress():attrsLocked;
     field.setAttribute('aria-disabled',String(field.disabled));
     if(field.tagName==='SELECT') refreshStyledSelect(field);
   }
-  if(locked){fDay.value=editIndex===null?findExerciseWorkoutDay(chosen):day;refreshStyledSelect(fDay);}
+  if(catalogEditing){fDay.disabled=true;fDay.value=findExerciseWorkoutDay(catalogEditing);for(const field of [fName,fMuscle,fEquipmentEdit,fExecution,fGrip]){field.disabled=hasWorkoutInProgress();if(field.tagName==='SELECT')refreshStyledSelect(field);}}
+  if(fDay.disabled){fDay.value=catalogEditing?findExerciseWorkoutDay(catalogEditing):editIndex===null?(buildAddDay||findExerciseWorkoutDay(chosen)):day;refreshStyledSelect(fDay);} syncEditDayButton();
   fNameSelect.disabled=false;refreshStyledSelect(fNameSelect);
 }
 
 let buildAddDay=null;
+let catalogEditing=null;
 function restrictedBuildAdd(){return buildAddDay!==null && (state.buildMode||editingWorkout) && !hasWorkoutInProgress();}
 function openBuildAdd(){if(hasWorkoutInProgress()||(!state.buildMode&&!editingWorkout))return;editExercise(null,day); }
-function editExercise(i,originDay=null){
+function editExercise(i,originDay=null,catalogItem=null){
+  catalogEditing=catalogItem;
+  if(i===null&&!catalogItem&&(!days.includes(originDay)||!structuralEditAllowed()))return;
   buildAddDay=i===null && days.includes(originDay)?originDay:null;
 
 
-if(i!==null && !state.workouts[day]?.[i]) return;
+if(i!==null && !catalogItem && !state.workouts[day]?.[i]) return;
 editIndex=i;
+modal.classList.toggle('existing-exercise',i!==null);
+document.querySelector('#exerciseForm button[type=submit]').textContent=i===null?(restrictedBuildAdd()?'Adicionar ao treino':'Salvar alterações'):'Salvar alterações';
 
 const e=i===null
 
@@ -7087,12 +7103,12 @@ note:''
 
 }
 
-:state.workouts[day][i];
+:(catalogItem||state.workouts[day][i]);
 
 document.getElementById('modalTitle').textContent=
 i===null
-?'Adicionar exercício'
-:'Editar exercício';
+?(restrictedBuildAdd()?'ADICIONAR EXERCÍCIO':'Configurar exercícios')
+:'EDITAR EXERCÍCIO';
 
 fName.value=e.name||'';
 const nameSelectRoot=fNameSelect.closest('.styled-select');
@@ -7160,16 +7176,18 @@ document.getElementById('decreaseSetsBtn').disabled=(+fSets.value)<=1;
 document.getElementById('increaseSetsBtn').disabled=(+fSets.value)>=20;
 
 fNote.value=e.note||'';
-if(fDay){ const weekdayOrder=['-','Segunda','Terça','Quarta','Quinta','Sexta','Sábado']; Array.from(fDay.options).sort((a,b)=>weekdayOrder.indexOf(a.value)-weekdayOrder.indexOf(b.value)).forEach(option=>fDay.appendChild(option)); fDay.value=i===null?'-':day; fDay.closest('.field').hidden=false; fDay.disabled=hasWorkoutInProgress(); if(fDay.disabled && i===null) fDay.value='-'; refreshStyledSelect(fDay); }
+if(fDay){ const weekdayOrder=['-','Segunda','Terça','Quarta','Quinta','Sexta','Sábado']; Array.from(fDay.options).sort((a,b)=>weekdayOrder.indexOf(a.value)-weekdayOrder.indexOf(b.value)).forEach(option=>fDay.appendChild(option)); fDay.value=i===null?(buildAddDay||'-'):day; fDay.closest('.field').hidden=false; fDay.disabled=hasWorkoutInProgress(); if(fDay.disabled && i===null) fDay.value='-'; refreshStyledSelect(fDay); }
 
+if(i!==null){clearNewExercisePickerMark(e);renderExerciseCatalogList();}
 renderLoadFields(e.loads||[],e.sets||4,isAerobicExercise(e));
 syncExerciseIdentityLock();
 
 modal.classList.remove('edit-mode','add-page-mode');
 modal.classList.add('edit-mode');
 modal.classList.add('open');
+if(catalogEditing)document.querySelector('#exerciseForm button[type=submit]').textContent='Salvar exercício';
 document.body.classList.remove('exercise-page-open');
-document.getElementById('exercisePageEyebrow').textContent=i===null?'ADICIONAR EXERCÍCIO':'EDITAR EXERCÍCIO';
+document.getElementById('exercisePageEyebrow').textContent=i===null?'GERENCIAR TREINO':'EDITAR EXERCÍCIO';
 
 }
 
@@ -7234,10 +7252,11 @@ fNameSelect.addEventListener('change',()=>{
   const index=Number(fNameSelect.value);
   const chosen=Number.isInteger(index)?exercisePickerVariants[index]:null;
   if(!selected || selected.disabled || !chosen) return;
+  clearNewExercisePickerMark(chosen);renderExerciseCatalogList();
   fName.value=String(chosen.name||'');
   handleExerciseNameInput(chosen);
   if(fDay){
-    fDay.value=restrictedBuildAdd()?buildAddDay:findExerciseWorkoutDay(chosen);
+    fDay.value=restrictedBuildAdd()?(days.includes(fDay.value)?fDay.value:buildAddDay):findExerciseWorkoutDay(chosen);
     fDay.disabled=hasWorkoutInProgress();
     refreshStyledSelect(fDay);
   }
@@ -7246,7 +7265,8 @@ fNameSelect.addEventListener('change',()=>{
 });
 
 function closeModal(){
-  buildAddDay=null;
+ document.getElementById("editDayOverview").hidden=true;
+  buildAddDay=null;catalogEditing=null;
 
 
 modal.classList.remove('open','edit-mode','add-page-mode');
@@ -7257,6 +7277,7 @@ document.body.classList.remove('exercise-page-open');
 function saveExercise(ev){
 
 ev.preventDefault();
+if(catalogEditing){saveSharedCatalogExercise();return;}
 
 // Não permite atribuir ou transferir exercícios para outro dia enquanto há treino ativo.
 if(editIndex===null && hasWorkoutInProgress() && String(fDay?.value||'-')!==findExerciseWorkoutDay(fNameSelect.value!==''?exercisePickerVariants[Number(fNameSelect.value)]:null)){
@@ -7348,11 +7369,11 @@ recordUndo(editIndex===null?(fDay?.value==='-'?'Exercício cadastrado':'Exercíc
 if(old) preserveExerciseDropdownValues(old);
 
 if(editIndex===null){
-  const targetDay=structuralEditAllowed()?String(fDay?.value||'-'):findExerciseWorkoutDay(selectedVariantForAdd);
+  const targetDay=restrictedBuildAdd()?buildAddDay:findExerciseWorkoutDay(selectedVariantForAdd);
   // Se o exercício já estiver no dia, atualiza no lugar: não duplica nem perde marcações.
   const originalSignature=exerciseVariationSignature(selectedVariantForAdd);
   const existingInDay=(state.workouts[day]||[]).find(item=>exerciseVariationSignature(item)===originalSignature);
-  if(structuralEditAllowed() && existingInDay && (targetDay==='-' || targetDay===day)){
+  if(restrictedBuildAdd() && existingInDay && (targetDay==='-' || targetDay===day)){
     Object.assign(existingInDay,JSON.parse(JSON.stringify(e)));
     preserveExerciseDropdownValues(selectedVariantForAdd);
     if(!updateCanonicalExerciseFromAdd(selectedVariantForAdd,e)) return;
@@ -7365,11 +7386,12 @@ if(editIndex===null){
 
   // Durante treino ativo, salvar metadados não pode alterar a distribuição
   // dos exercícios pelos dias, nem as marcações já realizadas.
-  if(!structuralEditAllowed()){
+  if(!restrictedBuildAdd()){
     const originalSignature=exerciseVariationSignature(selectedVariantForAdd);
     days.forEach(dayName=>{
       (state.workouts[dayName]||[]).forEach(item=>{
         if(exerciseVariationSignature(item)===originalSignature){
+          if(structuralEditAllowed()){item.name=e.name;item.muscle=e.muscle;item.equipment=e.equipment;item.execution=e.execution;item.grip=e.grip;}
           item.sets=e.sets;
           item.loads=JSON.parse(JSON.stringify(e.loads));
           item.note=e.note;
@@ -8090,13 +8112,16 @@ function refreshExerciseNamePickerOptions(){
   const previousSignature=previous?exerciseVariationSignature(previous):'';
   exercisePickerVariants=getAllExerciseVariants();
   const labels=getExerciseDisplayNames(exercisePickerVariants);
-  select.innerHTML='<option value="" disabled selected>Selecione um exercício</option>'+
-    exercisePickerVariants.map((ex,index)=>{
-      const assigned=restrictedBuildAdd()?findExerciseWorkoutDay(ex):'-';
-      return `<option value="${index}" ${assigned!=='-'?'disabled':''}>${esc(labels[index])}${assigned!=='-'?' — '+esc(assigned):''}</option>`;
-    }).join('');
+  const used=new Set();
+  const option=(index,assigned)=>`<option value="${index}" ${restrictedBuildAdd()&&assigned?'disabled':''}>${esc(labels[index])}</option>`;
+  const groups=days.map(d=>{
+    const indices=(state.workouts[d]||[]).map(ex=>exercisePickerVariants.findIndex(v=>exerciseVariationSignature(v)===exerciseVariationSignature(ex))).filter(i=>i>=0&&!used.has(i)&&used.add(i));
+    return indices.length?`<optgroup label="${esc(d)}">${indices.map(i=>option(i,true)).join('')}</optgroup>`:'';
+  });
+  const outside=exercisePickerVariants.map((_,i)=>i).filter(i=>!used.has(i));
+  select.innerHTML='<option value="" disabled selected>Selecione um exercício</option>'+groups.join('')+(outside.length?`<optgroup label="Fora do treino">${outside.map(i=>option(i,false)).join('')}</optgroup>`:'');
   const nextIndex=previousSignature?exercisePickerVariants.findIndex(ex=>exerciseVariationSignature(ex)===previousSignature):-1;
-  select.value=nextIndex>=0 && !select.options[nextIndex+1]?.disabled?String(nextIndex):'';
+  select.value=nextIndex>=0&&!Array.from(select.options).find(o=>o.value===String(nextIndex))?.disabled?String(nextIndex):'';
   refreshStyledSelect(select);
 }
 function getExerciseDisplayNames(variants){
@@ -8171,8 +8196,8 @@ function renderExerciseCatalogList(){
   const visible=variants.map((ex,index)=>({ex,index,label:labels[index]}))
     .filter(item=>!query || item.label.toLocaleLowerCase('pt-BR').includes(query))
     .sort((a,b)=>a.label.localeCompare(b.label,'pt-BR'));
-  results.innerHTML=visible.length?visible.map(({label,index})=>`
-    <div class="catalog-list-item"><span>${esc(label)}</span>
+  results.innerHTML=visible.length?visible.map(({label,index,ex})=>`
+    <div class="catalog-list-item"><span>${esc(label)}${newExercisePickerSignatures.has(exerciseVariationSignature(ex))?'<b class="new-exercise-tag"> - NOVO</b>':''}</span>
       <div style="display:flex;gap:6px"><button type="button" class="btn" data-exercise-catalog-edit="${index}">Editar</button><button type="button" class="btn danger" data-exercise-catalog-delete="${index}">Excluir</button></div>
     </div>`).join(''):`<div class="catalog-empty">${query?'Nenhum exercício encontrado.':'Nenhum exercício cadastrado.'}</div>`;
 }
@@ -8192,23 +8217,7 @@ function addExerciseCatalogValue(){
     openExerciseVariation(name);
     return;
   }
-  const newExercise={
-    name,
-    muscle:'',
-    equipment:'-',
-    execution:'-',
-    grip:'-',
-    sets:4,
-    loads:[],
-    note:''
-  };
-  state.exerciseCatalog.push(newExercise);
-  markNewExerciseForPicker(newExercise);
-  save();
-  input.value='';
-  renderAllCatalogLists();
-  refreshAllStyledSelects();
-  feedback.textContent=`Exercício "${name}" cadastrado com sucesso.`;
+  openExerciseVariation(name);
 }
 let pendingExerciseVariationName='';
 function normalizeVariationValue(value){
@@ -8232,6 +8241,11 @@ function openExerciseVariation(name){
   const existing=getExistingExerciseVariations(name);
   pendingExerciseVariationName=existing[0]?.name||name;
   const current=existing[existing.length-1]||{};
+  const isNew=existing.length===0 && !pendingExerciseRename?.newName;
+  document.getElementById('duplicateExerciseTitle').textContent=isNew?'CRIAR EXERCÍCIO':'Criar variação do exercício';
+  document.getElementById('duplicateExerciseDialog').classList.toggle('create-exercise-mode',isNew);
+  document.querySelector('#duplicateExerciseDialog .variation-intro').textContent=isNew?'Este exercício ainda não está cadastrado. Selecione os atributos abaixo para criar um novo exercício.':'Este exercício já está cadastrado com os requisitos abaixo. Para adicionar outra versão com o mesmo nome, escolha pelo menos uma opção diferente das versões existentes.';
+  document.getElementById('saveVariationBtn').textContent=isNew?'Criar exercício':'Criar variação';
   const config=[
     ['variationMuscle','muscle'],
     ['variationEquipment','equipment'],
@@ -8240,6 +8254,7 @@ function openExerciseVariation(name){
   ];
 
   const summary=document.getElementById('variationExistingSummary');
+  summary.style.display=isNew?'none':'';
   summary.innerHTML=existing.map((ex,index)=>`
     <div class="variation-existing-item">
       <p class="variation-existing-title">${existing.length>1?`Versão cadastrada ${index+1}`:'Requisitos já cadastrados'}</p>
@@ -8306,11 +8321,11 @@ function saveExerciseVariation(){
   markNewExerciseForPicker(variation);
   preserveExerciseDropdownValues(variation);
   save();
+  const search=document.getElementById('exerciseCatalogSearch'); if(search) search.value='';
   renderAllCatalogLists();
   refreshAllStyledSelects();
   document.getElementById('newExercise').value='';
-  const search=document.getElementById('exerciseCatalogSearch'); if(search) search.value='';
-  document.getElementById('catalogFeedback').textContent=`Variação de "${pendingExerciseVariationName}" cadastrada com sucesso.`;
+  document.getElementById('catalogFeedback').textContent=existing.length?`Variação de "${pendingExerciseVariationName}" cadastrada com sucesso.`:`Exercício "${pendingExerciseVariationName}" cadastrado com sucesso.`;
   closeExerciseVariation();
 }
 
@@ -8424,13 +8439,22 @@ function saveCatalogEdit(){
 }
 let pendingExerciseRename=null;
 function openExerciseCatalogEdit(indexValue){
-  pendingCatalogEdit=null;
-  const variants=getAllExerciseVariants(),index=Number(indexValue),ex=variants[index];if(!ex)return;
-  pendingExerciseRename={signature:exerciseVariationSignature(ex),original:JSON.parse(JSON.stringify(ex))};
-  const editDialog=document.getElementById('catalogEditDialog');
-  document.getElementById('catalogEditTitle').textContent='Editar nome do exercício';
-  document.getElementById('catalogEditInput').value=ex.name||'';
-  editDialog.hidden=false;
+  const ex=getAllExerciseVariants()[Number(indexValue)];if(!ex)return;
+  clearNewExercisePickerMark(ex);renderExerciseCatalogList();
+  editExercise(-1,null,ex);
+}
+function saveSharedCatalogExercise(){
+  const old=catalogEditing;if(!old)return;
+  const e={...old,name:fName.value.trim(),muscle:fMuscle.value.trim(),equipment:fEquipmentEdit.value||'-',execution:fExecution.value||'-',grip:fGrip.value||'-',sets:Math.max(1,Math.min(20,+fSets.value)),loads:readLoadFields(),note:fNote.value.trim()};
+  if(hasWorkoutInProgress())for(const k of ['name','muscle','equipment','execution','grip'])e[k]=old[k];
+  if(!e.name)return;
+  const sig=exerciseVariationSignature(old);
+  if((state.exerciseCatalog||[]).some(x=>exerciseVariationSignature(x)!==sig&&(exerciseVariationSignature(x)===exerciseVariationSignature(e)||(comparisonKey(e.name)!==comparisonKey(old.name)&&comparisonKey(x.name)===comparisonKey(e.name))))){showCatalogNotice('Exercício já cadastrado','Já existe um exercício com esse nome ou combinação de atributos.');return;}
+  recordUndo('Exercício editado no cadastro');preserveExerciseDropdownValues(old);
+  const affected=[];for(const d of days)(state.workouts[d]||[]).forEach((x,i)=>{if(exerciseVariationSignature(x)===sig)affected.push([d,i]);});
+  if(!updateCanonicalExerciseFromAdd(old,e))return;
+  if(old.sets!==e.sets)for(const [d,i] of affected)delete currentWeekData()[d+'_'+i];
+  save();closeModal();renderAllCatalogLists();refreshAllStyledSelects();renderEquipmentOptions();render();
 }
 function saveExerciseCatalogRename(){
   if(!pendingExerciseRename)return false;
@@ -8998,6 +9022,10 @@ function refreshStyledSelect(select){
   } else {
     let lastWeeklyDay='';
     filteredOptions.forEach(option=>{
+      if(isExercisePicker){
+        const group=option.parentElement?.label||"";
+        if(group&&group!==lastWeeklyDay){const h=document.createElement("div");h.className="weekly-select-day-heading add-picker-heading";h.textContent=group;menu.appendChild(h);lastWeeklyDay=group;}
+      }
       if(isWeeklyPicker){
         const day=option.parentElement?.tagName==='OPTGROUP'?option.parentElement.label:'';
         if(day && day!==lastWeeklyDay){
@@ -9048,12 +9076,21 @@ function refreshStyledSelect(select){
       item.setAttribute('aria-selected',String(select.selectedIndex===index));
       item.disabled=option.disabled;
       if(option.disabled) item.setAttribute('aria-disabled','true');
+      let held=false;
+      if(select.id==='fDay'){
+        let timer=null,x=0,y=0;
+        const cancel=()=>{clearTimeout(timer);timer=null;};
+        item.addEventListener('pointerdown',e=>{held=false;x=e.clientX;y=e.clientY;cancel();timer=setTimeout(()=>{held=true;const wasOpen=item.nextElementSibling?.classList.contains('day-hold-preview');menu.querySelectorAll('.day-hold-preview').forEach(n=>n.remove());if(wasOpen)return;const preview=document.createElement('div');preview.className='day-hold-preview';const list=state.workouts[option.value]||[];preview.textContent=list.length?list.map((ex,i)=>(i+1)+'. '+ex.name).join('\n'):'Nenhum exercício cadastrado';item.after(preview);},400);});
+        item.addEventListener('pointermove',e=>{if(Math.hypot(e.clientX-x,e.clientY-y)>10)cancel();});
+        for(const event of ['pointerup','pointercancel','pointerleave'])item.addEventListener(event,cancel);
+        item.addEventListener('contextmenu',e=>e.preventDefault());
+      }
       item.addEventListener('click',()=>{
+        if(held){held=false;return;}
         if(option.disabled || select.disabled) return;
-        if(isExercisePicker){
-          const selectedExercise=exercisePickerVariants[Number(option.value)];
-          if(selectedExercise) clearNewExercisePickerMark(selectedExercise);
-        }
+        // Restore the portaled menu before refreshing its select or firing listeners.
+        closeStyledSelectMenu(menu);
+        trigger.setAttribute('aria-expanded','false');
         select.selectedIndex=index;
         select.dispatchEvent(new Event('input',{bubbles:true}));
         select.dispatchEvent(new Event('change',{bubbles:true}));
@@ -9148,7 +9185,8 @@ function setupStyledSelects(){
       document.querySelectorAll('.styled-select-trigger').forEach(other=>other.setAttribute('aria-expanded','false'));
       if(willOpen){
         refreshStyledSelect(select);
-        if(select.closest('#catalogDependencyList')) openDependencySelectMenu(select,root,trigger,menu);
+        if(select.closest('#duplicateExerciseDialog')) openVariationMenu(root,trigger,menu);
+        else if(select.closest('#catalogDependencyList')) openDependencySelectMenu(select,root,trigger,menu);
         else menu.hidden=false;
       } else closeStyledSelectMenu(menu);
       trigger.setAttribute('aria-expanded',String(willOpen));
@@ -10531,6 +10569,125 @@ button{font-family:inherit;}
 .top-dashboard .workout-btn,.bottom-dashboard .workout-btn,#trainingLibrary .library-build-new,#trainingLibrary .library-build-status,#trainingLibrary .library-card .library-activate,
 .top-dashboard .workout-btn .workout-label,.bottom-dashboard .workout-btn .workout-label,#trainingLibrary .library-build-new .workout-label,#trainingLibrary .library-build-status .workout-label,#trainingLibrary .library-card .library-activate .workout-label{font-family:inherit!important;font-size:15px!important;font-weight:900!important;letter-spacing:.025em!important;line-height:1.2!important;text-transform:uppercase!important;text-align:center!important;}
 @media(max-width:360px){.top-dashboard .workout-btn .workout-label,.bottom-dashboard .workout-btn .workout-label,#trainingLibrary .library-build-new .workout-label,#trainingLibrary .library-build-status .workout-label,#trainingLibrary .library-card .library-activate .workout-label{font-size:13px!important;}}
+</style>
+<style>
+#exerciseList .exercise:not(.is-collapsed) .actions{display:grid!important;grid-template-columns:30px!important;grid-template-rows:repeat(3,30px)!important;grid-auto-rows:30px!important;gap:5px!important;width:30px!important;align-content:start!important;justify-self:end!important;min-height:100px!important}
+#exerciseList .exercise .actions .iconbtn{width:30px!important;height:30px!important;min-width:30px!important}
+.edit-section-label{display:none}.existing-exercise .edit-section-label{display:block;color:#d7ff00;font-size:11px;font-weight:800;letter-spacing:.05em;border-top:1px solid #354139;padding-top:12px;margin:10px 0 4px}.existing-exercise #fDay+.styled-select,.existing-exercise .styled-select:has(#fDay){display:none!important}.existing-exercise #editDayOverviewBtn{width:100%;text-align:left;min-height:42px;color:#d7ff00}.existing-exercise #editDayOverviewBtn:disabled{color:var(--muted)}
+#editDayOverview{z-index:10020!important;overflow:auto;background:#0c0d0d}#editDayOverview .summary-page-shell{padding-bottom:24px}.edit-day-card{background:#181c1a;border:1px solid #36433b;border-radius:12px;padding:12px;margin:8px 0}.edit-day-card:has(input:checked){border-color:#d7ff00}.edit-day-card summary{cursor:pointer;color:#d7ff00;font-size:12px;margin-top:8px}.edit-day-card label{display:flex;align-items:center;gap:9px;color:inherit}.edit-day-card input{accent-color:#d7ff00;width:18px;height:18px}.edit-day-card small{display:block;color:var(--muted);margin:5px 0}.edit-day-card li{font-size:13px;margin:5px 0}.edit-day-footer{display:flex;justify-content:space-between;gap:10px;margin-top:15px}
+</style>
+<section id="editDayOverview" class="summary-page" hidden><div class="summary-page-shell"><div class="summary-page-topline"><span class="eyebrow">ORGANIZAÇÃO SEMANAL</span><button class="btn" onclick="closeEditDayOverview()">Voltar</button></div><h1>Alterar dia do exercício</h1><div id="editDayOverviewInfo" class="edit-day-card"></div><div id="editDayOverviewList"></div><div id="editDayProjection" class="edit-day-card" hidden></div><div class="edit-day-footer"><button class="btn" onclick="closeEditDayOverview()">Cancelar</button><button class="btn primary" onclick="confirmEditDayOverview()">Selecionar dia</button></div></div></section>
+<script>
+function legacySyncEditDayButton(){const loc=document.getElementById('addLocation');loc.hidden=editIndex!==null;const adding=restrictedBuildAdd();document.getElementById('addLocationLabel').textContent=adding?'Adicionar ao treino de':'Localização na ficha atual';document.getElementById('addLocationValue').textContent=adding?(fDay.value||buildAddDay):(fNameSelect.value===''?'Nenhum exercício selecionado':(findExerciseWorkoutDay(exercisePickerVariants[Number(fNameSelect.value)])==='-'?'Fora do treino':findExerciseWorkoutDay(exercisePickerVariants[Number(fNameSelect.value)])));document.getElementById('addLocationChange').hidden=!adding;const b=document.getElementById('editDayOverviewBtn');b.hidden=editIndex===null;b.disabled=!!catalogEditing||!structuralEditAllowed();b.textContent=(fDay.value==='-'?'Fora do treino':fDay.value||'-')+(b.disabled?'':' · Alterar ›');}
+function closeEditDayOverview(){document.getElementById('editDayOverview').hidden=true;}
+function openEditDayOverview(){if(catalogEditing||(editIndex===null&&!restrictedBuildAdd())||!structuralEditAllowed())return;const panel=document.getElementById('editDayOverview');document.getElementById('editDayOverviewInfo').innerHTML='<strong>'+esc(fName.value)+'</strong><small>Dia atual: '+esc(day)+'</small>';document.getElementById('editDayOverviewList').innerHTML=(restrictedBuildAdd()?days:[...days,'-']).map(d=>{const list=state.workouts[d]||[];return `<div class="edit-day-card"><label><input type="radio" name="editDayDestination" value="${esc(d)}" ${d===fDay.value?'checked':''} onchange="updateEditDayProjection()"><strong>${d==='-'?'Sem dia vinculado':esc(d)}${d===day?' · ATUAL':''}</strong></label><small>${list.length} exercícios</small><details ${d===day?'open':''}><summary>Consultar exercícios</summary>${list.length?'<ol>'+list.map(e=>'<li>'+esc(e.name)+'</li>').join('')+'</ol>':'<small>Nenhum exercício cadastrado.</small>'}</details></div>`}).join('');panel.hidden=false;panel.scrollTop=0;updateEditDayProjection();}
+function updateEditDayProjection(){document.getElementById('editDayProjection').hidden=true;}
+function confirmEditDayOverview(){if(!structuralEditAllowed())return;const d=document.querySelector('input[name=editDayDestination]:checked')?.value;if(d==='-'||days.includes(d)){fDay.value=d;refreshStyledSelect(fDay);syncEditDayButton();}closeEditDayOverview();}
+</script>
+<style>
+#modal:not(.existing-exercise) .edit-section-label{display:block;color:#d7ff00;font-size:11px;font-weight:800;letter-spacing:.05em;border-top:1px solid #354139;padding-top:12px;margin:10px 0 4px}
+#modal:not(.existing-exercise) .edit-organization>.field:has(#fDay){display:block!important}
+#modal:not(.existing-exercise) .edit-organization{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+#modal:not(.existing-exercise) .edit-organization>.field{width:100%;min-width:0}
+#addLocation:not([hidden]){display:grid;grid-template-columns:1fr auto;gap:4px 10px;background:#222d1c;border:1px solid #405332;border-radius:10px;padding:12px;margin:8px 0}
+#addLocation small{grid-column:1;color:#a4afa9}#addLocation strong{grid-column:1;color:#d7ff00;font-size:14px}#addLocationChange{grid-column:2;grid-row:1/3;color:#d7ff00}#addLocationChange[hidden]{display:none!important}
+.existing-exercise .add-attributes{display:none!important}.add-picker-heading{border-top:1px solid #354139;margin-top:5px}
+</style><style>#modal.modal.open{z-index:10010!important}.edit-day-card input{position:absolute;opacity:0;width:1px;height:1px}.edit-day-card label{cursor:pointer}.edit-day-card:has(input:checked){background:#252e19}.edit-day-card:has(input:checked) label{color:#d7ff00}#modal .add-attributes{display:block!important}</style><style>
+#modal .edit-section-label{display:none!important}
+#modal .edit-section-label:not(.add-attributes){display:block!important;height:1px!important;font-size:0!important;line-height:0!important;padding:0!important;margin:12px 0!important;border:0!important;background:#354139!important;overflow:hidden}
+#modal .edit-organization{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+#modal .edit-organization>.field:has(#fDay){display:block!important}
+#modal .edit-organization .styled-select:has(#fDay){display:block!important}
+#modal #editDayOverviewBtn,#modal #addLocation{display:none!important}
+#modal .sets-count-control{min-width:0}
+#duplicateExerciseDialog .duplicate-variation-dialog{max-height:calc(100dvh - 12px);padding-bottom:36px}
+.day-hold-preview{white-space:pre-line;font-size:12px;line-height:1.55;color:#c4cec7;background:#101614;border:1px solid #405332;border-radius:7px;padding:8px;margin:3px 5px;pointer-events:none}
+#modal .styled-select-option{touch-action:pan-y;user-select:none;-webkit-touch-callout:none}
+</style><script>
+function syncEditDayButton(){
+ document.getElementById('addLocation').hidden=true;document.getElementById('editDayOverviewBtn').hidden=true;
+ if(editIndex===null){fDay.value=buildAddDay||'-';fDay.disabled=true;}
+ else if(catalogEditing){fDay.value=findExerciseWorkoutDay(catalogEditing);fDay.disabled=true;}
+ else fDay.disabled=!structuralEditAllowed();
+ refreshStyledSelect(fDay);
+}
+function openVariationMenu(root,trigger,menu){
+ const r=trigger.getBoundingClientRect(), gap=5, below=innerHeight-r.bottom-gap-10, above=r.top-gap-10;
+ menu._styledSelectRoot=root;menu.dataset.portal='true';document.body.appendChild(menu);
+ Object.assign(menu.style,{position:'fixed',left:r.left+'px',width:r.width+'px',zIndex:'20000',maxHeight:Math.max(70,Math.min(420,Math.max(above,below)))+'px'});
+ menu.hidden=false;const h=menu.getBoundingClientRect().height;menu.style.top=(below>=h||below>=above?r.bottom+gap:Math.max(8,r.top-gap-h))+'px';
+}
+</script><style id="add-series-day-layout">
+#modal:not(.existing-exercise) .edit-organization .sets-count-control{gap:clamp(3px,1.3vw,8px);width:100%}
+#modal:not(.existing-exercise) .edit-organization .sets-count-control button{width:clamp(30px,10vw,42px);flex-basis:clamp(30px,10vw,42px)}
+#modal:not(.existing-exercise) .edit-organization .styled-select:has(#fDay){display:block!important;width:100%;min-width:0}
+#modal:not(.existing-exercise) .edit-organization .styled-select:has(#fDay) .styled-select-trigger{width:100%;min-width:0}
+</style>
+<style id="exercise-uniform-spacing">
+/* Shared layout for add, card edit and catalog edit. */
+#modal .dialog,#modal.add-page-mode .dialog{box-sizing:border-box;padding:16px!important}
+#modal .dialog h2,#modal.add-page-mode .dialog h2{margin:0 0 16px!important;font-size:22px;line-height:1.2}
+#modal #exerciseForm{display:flex;flex-direction:column;gap:14px;min-width:0;margin:0}
+#modal #exerciseForm .field{display:grid;align-content:start;gap:6px!important;margin:0!important;min-width:0}
+#modal #exerciseForm .field label{margin:0;line-height:1.25}
+#modal #exerciseForm .formrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;margin:0;align-items:start}
+#modal #exerciseForm .edit-section-label:not(.add-attributes){margin:2px 0!important;flex:none}
+#modal #exerciseForm .field input:not([type=hidden]),#modal #exerciseForm .styled-select-trigger{box-sizing:border-box;height:42px!important;min-height:42px!important;max-width:100%;padding:0 10px;line-height:normal}
+#modal #exerciseForm .styled-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:6px}
+#modal #exerciseForm .sets-count-control{display:flex;align-items:center;gap:6px!important;width:100%;min-width:0}
+#modal #exerciseForm .sets-count-control button{width:clamp(30px,10vw,42px)!important;flex:0 0 clamp(30px,10vw,42px)!important;height:42px;display:grid;place-items:center;padding:0}
+#modal #exerciseForm .sets-count-control input{width:0;flex:1;min-width:0;padding:0;text-align:center}
+#modal #exerciseForm .loads-by-set{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 10px!important;margin:0}
+#modal #exerciseForm .load-set-field{display:grid;gap:6px;margin:0;min-width:0}
+#modal #exerciseForm .load-control{gap:5px;align-items:stretch;height:42px}
+#modal #exerciseForm .load-stepper{gap:2px;flex:0 0 30px}
+#modal #exerciseForm .load-stepper button{min-height:0;display:grid;place-items:center;padding:0;line-height:1}
+#modal #exerciseForm .modalactions{margin:2px 0 0!important;gap:10px;align-items:center;justify-content:space-between;flex-wrap:nowrap}
+#modal #exerciseForm .modalactions .btn{min-height:40px;height:40px;display:flex;align-items:center;justify-content:center;padding:0 12px;white-space:nowrap}
+#modal #exerciseForm [hidden]{display:none!important}
+</style>
+<style id="exercise-precise-alignment">
+#modal.modal.open {padding:10px!important}
+#modal .exercise-page-shell {width:100%;max-width:420px;margin-inline:auto}
+#modal .dialog {width:100%!important;max-width:420px!important;margin-inline:auto!important;box-sizing:border-box!important}
+#modal .dialog #modalTitle {font-size:20px!important;line-height:24px!important;text-align:left!important;padding:0!important;margin:0 0 16px!important;letter-spacing:0!important}
+#modal #exerciseForm label {display:block!important;font-family:inherit!important;font-size:12px!important;font-weight:700!important;line-height:15px!important;text-align:left!important;margin:0!important;padding:0!important;letter-spacing:0!important}
+#modal #exerciseForm .field,#modal #exerciseForm .load-set-field {grid-template-columns:minmax(0,1fr)!important;gap:6px!important;align-items:start!important}
+#modal #exerciseForm .formrow,#modal #exerciseForm .loads-by-set {grid-template-columns:repeat(2,minmax(0,1fr))!important;column-gap:10px!important;align-items:start!important}
+#modal #exerciseForm .styled-select,#modal #exerciseForm #equipmentAddField,#modal #exerciseForm #equipmentEditField {width:100%!important;min-width:0!important;margin:0!important;padding:0!important}
+#modal #exerciseForm input:not([type=hidden]):not(.styled-select-native),#modal #exerciseForm .styled-select-trigger {font-family:inherit!important;font-size:14px!important;font-weight:400!important;letter-spacing:0!important;line-height:20px!important;height:42px!important;min-height:42px!important;box-sizing:border-box!important;margin:0!important;padding:0 12px!important;text-align:left!important;border-radius:9px!important}
+#modal #exerciseForm .styled-select-label {font:inherit!important;line-height:20px!important;margin:0!important;padding:0!important;text-align:left!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#modal #exerciseForm .styled-select-arrow {margin:0 0 0 auto!important;align-self:center!important}
+#modal #exerciseForm .sets-count-control #fSets {text-align:center!important;padding:0!important;font-weight:700!important}
+#modal #exerciseForm .sets-count-control button {height:42px!important;min-height:42px!important;line-height:1!important;display:grid!important;place-items:center!important;margin:0!important}
+#modal #exerciseForm .load-control {display:flex!important;align-items:stretch!important;gap:5px!important;margin:0!important;padding:0!important;min-width:0!important}
+#modal #exerciseForm .load-control input {flex:1 1 0!important;min-width:0!important;width:0!important}
+#modal #exerciseForm .load-stepper {display:grid!important;grid-template-rows:repeat(2,minmax(0,1fr))!important;gap:2px!important;height:42px!important;margin:0!important;padding:0!important}
+#modal #exerciseForm .load-stepper button {height:auto!important;min-height:0!important;margin:0!important;font-size:13px!important;line-height:1!important}
+#modal #exerciseForm .modalactions .btn {font-family:inherit!important;font-size:13px!important;font-weight:700!important;line-height:16px!important;text-align:center!important;margin:0!important}
+#modal #exerciseForm [hidden] {display:none!important}
+</style>
+<style id="exercise-day-grid-fix">
+#modal #exerciseForm .edit-organization > .field:has(#fDay),
+#modal #exerciseForm .edit-organization > .field:has(#fSets){display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:15px 42px!important;row-gap:6px!important;align-content:start!important;align-items:start!important;margin:0!important;padding:0!important;min-width:0!important}
+#modal #exerciseForm .edit-organization .styled-select:has(#fDay),#modal #exerciseForm .edit-organization .sets-count-control{height:42px!important;min-height:42px!important;max-height:42px!important;margin:0!important;padding:0!important;box-sizing:border-box!important;align-self:start!important}
+#modal #exerciseForm .edit-organization .styled-select:has(#fDay) .styled-select-trigger{height:42px!important;min-height:42px!important;max-height:42px!important;width:100%!important;margin:0!important;box-sizing:border-box!important;align-items:center!important}
+</style>
+<style id="exercise-final-layout-audit">
+#modal.edit-mode.modal.open,#modal.add-page-mode.modal.open{padding:10px!important;box-sizing:border-box!important}
+#modal.edit-mode .exercise-page-shell,#modal.add-page-mode .exercise-page-shell{width:100%!important;max-width:420px!important;min-width:0!important}
+#modal.edit-mode .dialog,#modal.add-page-mode .dialog{width:100%!important;max-width:420px!important;padding:16px!important;box-sizing:border-box!important;overflow-y:auto!important;max-height:calc(100dvh - 20px)!important}
+#modal #exerciseForm > .field,#modal #exerciseForm .formrow > .field,#modal #exerciseForm .load-set-field{padding:0!important;border:0!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;align-self:start!important}
+#modal #exerciseForm .formrow > .field{grid-template-rows:15px 42px!important;align-content:start!important}
+#modal #exerciseForm .styled-select,#modal #exerciseForm #equipmentAddField,#modal #exerciseForm #equipmentEditField{box-sizing:border-box!important;height:42px!important;min-height:42px!important;max-height:42px!important;align-self:start!important}
+#modal #exerciseForm .styled-select-trigger,#modal #exerciseForm input:not([type=hidden]):not(.styled-select-native){width:100%;max-height:42px!important;min-width:0!important;border-width:1px!important;box-sizing:border-box!important}
+#modal #exerciseForm .sets-count-control #fSets{width:0!important;flex:1 1 0!important;min-width:0!important;appearance:textfield;-moz-appearance:textfield}
+#modal #exerciseForm #fSets::-webkit-inner-spin-button,#modal #exerciseForm #fSets::-webkit-outer-spin-button{appearance:none;margin:0}
+#modal #exerciseForm .load-control input{width:0!important;flex:1 1 0!important}
+#modal #exerciseForm .load-control,#modal #exerciseForm .load-stepper,#modal #exerciseForm .sets-count-control{box-sizing:border-box!important}
+#modal #exerciseForm .load-stepper button{box-sizing:border-box!important;width:100%!important;min-width:0!important}
+#modal #exerciseForm .modalactions{padding:0!important;width:100%!important;box-sizing:border-box!important}
+#modal #exerciseForm [hidden]{display:none!important}
 </style>
 </body>
 </html>
