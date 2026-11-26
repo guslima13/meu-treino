@@ -4839,23 +4839,23 @@ body.weekly-evolution-open{overflow:hidden}
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
     <nav class="header-menu" id="headerMenu" hidden aria-label="Menu principal">
-<div class="menu-category">PESSOAL</div>
+    <div class="menu-category">PESSOAL</div>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openMyProfile()">
       <span class="menu-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><span>MEU PERFIL</span>
     </button>
     <div class="menu-category">TREINAMENTO</div>
-    <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openWeeklyEvolution()">
-      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 18L19 4M9 4h10v10"/></svg></span><span>MINHA EVOLUÇÃO</span>
+    <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openBackupMenu()">
+      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h6"/></svg></span><span>MEUS TREINOS</span>
     </button>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openSummaryPage()">
       <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M9 20V4M14 20v-7M19 20V7"/></svg></span><span>RESUMO DO TREINO</span>
     </button>
-    <div class="menu-category">GERENCIAMENTO</div>
-    <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openBackupMenu()">
-      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h6"/></svg></span><span>MEUS TREINOS</span>
+    <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openWeeklyEvolution()">
+      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 18L19 4M9 4h10v10"/></svg></span><span>MINHA EVOLUÇÃO</span>
     </button>
+    <div class="menu-category">GERENCIAMENTO</div>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openInfoCatalog()">
-      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 9h8M8 15h8"/></svg></span><span>CADASTRO E EXCLUSÃO</span>
+      <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 9h8M8 15h8"/></svg></span><span>CADASTROS</span>
     </button>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openDataBackup()"><span class="menu-item-icon"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/></svg></span><span>BACKUP DE DADOS</span></button>
     </nav>
@@ -5035,7 +5035,25 @@ body.weekly-evolution-open{overflow:hidden}
 <div class="summary-page-shell"><div class="summary-page-topline"><span class="eyebrow">GERENCIAR FICHAS DE TREINOS</span><button class="btn summary-back-btn" id="closeBackupMenuBtn">Voltar</button></div>
 <h1>MEUS TREINOS</h1>
 <div class="library-tabs" role="group" aria-label="Fichas de treino"><button type="button" class="btn" id="libraryCurrentTab" onclick="setLibraryTab('current')">Meu treino atual</button><button type="button" class="btn" id="libraryHistoryTab" onclick="setLibraryTab('history')">Histórico de treinos</button></div>
-<div id="trainingLibrary"></div></div></section><div class="confirm-backdrop" id="dataBackupMenu" hidden><section class="confirm-dialog"><h2>Backup de dados</h2><div class="backup-actions library-backups"><button class="btn" id="chooseImportBtn">Importar backup</button><button class="btn primary" id="chooseExportBtn">Exportar backup</button></div><div class="confirm-actions"><button class="btn" onclick="document.getElementById('dataBackupMenu').hidden=true">Voltar</button></div></section></div>
+<div id="trainingLibrary"></div></div></section><div class="confirm-backdrop" id="dataBackupMenu" hidden>
+  <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="dataBackupTitle">
+    <h2 id="dataBackupTitle">Backup de dados</h2>
+    <p class="backup-intro">Gerencie a segurança das suas informações.</p>
+    <div class="backup-options">
+      <button type="button" class="btn backup-option backup-option-export" id="chooseExportBtn">
+        <span class="backup-option-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg></span>
+        <span class="backup-option-copy"><strong>Exportar backup</strong><small>Salve uma cópia dos seus dados.</small></span>
+        <svg class="backup-option-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <button type="button" class="btn backup-option backup-option-import" id="chooseImportBtn">
+        <span class="backup-option-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m-5 5 5-5 5 5M4 16v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg></span>
+        <span class="backup-option-copy"><strong>Importar backup</strong><small>Restaure os dados de um arquivo salvo.</small></span>
+        <svg class="backup-option-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+    </div>
+    <div class="confirm-actions"><button type="button" class="btn" onclick="document.getElementById('dataBackupMenu').hidden=true">Voltar</button></div>
+  </section>
+</div>
 <div class="confirm-backdrop" id="libraryConfirm" hidden style="z-index:10000"><section class="confirm-dialog" role="dialog" aria-modal="true"><h2 id="libraryConfirmTitle"></h2><p id="libraryConfirmText"></p><div class="confirm-actions"><button class="btn" onclick="closeLibraryConfirm()">Voltar</button><button class="btn primary" onclick="confirmLibraryAction()">Confirmar</button></div></section></div>
 <style>
 .library-card{border:1px solid #303535;background:#171919;border-radius:14px;padding:12px;margin:10px 0;display:grid;gap:5px}.library-current{background:#171d17;border-color:#63763a}.library-card small{color:var(--muted)}.library-card strong{font-size:17px}.library-current .library-status{color:#d7ff00;font-weight:700}.library-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;border-top:1px solid #394039;padding-top:9px;margin-top:5px}.library-current .library-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.library-card .btn,.library-backups .btn{width:100%;min-width:0;min-height:36px;height:36px;padding:5px 3px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}.library-card .library-delete{background:#2a2020;color:#ed7777;border-color:#513434}.library-card .library-activate{background:#242d1a;color:#d7ff00;border-color:#4c5d2a;margin-top:9px}.library-warning{color:#ffb0a0;font-size:12px;margin:8px 0}.library-card button:disabled,#trainingLibrary button:disabled,#chooseImportBtn:disabled{opacity:.4;cursor:not-allowed}.library-backups{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.library-icon{width:13px;height:13px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.library-days{display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:4px;margin:12px 0}.library-days .btn{min-width:0;padding:7px 2px;font-size:12px}.library-view-list{display:grid;gap:6px;max-height:42vh;overflow:auto}.library-view-row{background:#222524;border-radius:8px;padding:10px;display:grid;gap:4px}.library-view-row small{color:var(--muted)}#libraryRename,#libraryView,#importBackupConfirm,#exportBackupConfirm{z-index:10001}#libraryView .confirm-dialog{height:min(520px,calc(100vh - 36px));height:min(520px,calc(100dvh - 36px));max-height:none;display:flex;flex-direction:column;overflow:hidden}
@@ -5090,11 +5108,11 @@ body.weekly-evolution-open{overflow:hidden}
   </section>
 </div>
 
-<section class="catalog-page" id="infoCatalogModal" hidden aria-label="Cadastro e exclusão">
+<section class="catalog-page" id="infoCatalogModal" hidden aria-label="Cadastros">
   <div class="catalog-page-shell">
     <div class="catalog-page-topline"><span class="eyebrow">GERENCIAR INFORMAÇÕES</span><button type="button" class="btn" id="closeInfoCatalogBtn">Voltar</button></div>
     <div class="confirm-dialog info-catalog-dialog">
-    <h1 id="infoCatalogTitle">CADASTRO E EXCLUSÃO</h1>
+    <h1 id="infoCatalogTitle">CADASTROS</h1>
     <div class="catalog-entry">
       <label for="newExercise">Exercício</label>
       <div>
@@ -5146,9 +5164,9 @@ body.weekly-evolution-open{overflow:hidden}
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h6"/></svg>
       <span class="icon-action-label">Meus treinos</span>
     </button>
-    <button class="btn icon-action" id="infoCatalogBtn" title="Cadastro e exclusão" aria-label="Cadastro e exclusão">
+    <button class="btn icon-action" id="infoCatalogBtn" title="Cadastros" aria-label="Cadastros">
       <svg class="catalog-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 9h8M8 15h8"/></svg>
-      <span class="icon-action-label">Cadastro e exclusão</span>
+      <span class="icon-action-label">Cadastros</span>
     </button>
   </div>
 </div>
@@ -10905,5 +10923,49 @@ function ruleConfirm(title,message,action,back=()=>{}){document.getElementById('
 #exerciseList .exercise .saved-load-value{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;height:36px!important;min-height:36px!important;max-height:36px!important;}
 </style>
 
+<style>
+/* Janela de backup: ações verticais com hierarquia visual e descrições. */
+#dataBackupMenu>.confirm-dialog{width:min(100%,390px);max-height:calc(100dvh - 36px);overflow-y:auto;box-sizing:border-box;padding:20px;border-radius:18px;background:#171b1b;border-color:#46534b;}
+#dataBackupMenu h2{margin:0 0 10px;font-size:18px;line-height:24px;font-weight:800;}
+#dataBackupMenu .backup-intro{color:#a0aaa3;font-size:13px;line-height:1.45;margin:0 0 16px;}
+#dataBackupMenu .backup-options{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;}
+#dataBackupMenu .backup-option{display:flex;align-items:center;gap:11px;width:100%;min-width:0;min-height:76px;padding:12px;border-radius:12px;text-align:left;white-space:normal;background:#202323;border:1px solid #394743;color:var(--text);}
+#dataBackupMenu .backup-option-export{background:#242e20;border-color:#536433;color:#d7ff00;}
+#dataBackupMenu .backup-option-icon{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:9px;background:#303e30;color:#d7ff00;}
+#dataBackupMenu .backup-option-export .backup-option-icon{background:#303e27;}
+#dataBackupMenu .backup-option svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+#dataBackupMenu .backup-option-copy{display:grid;gap:4px;flex:1;min-width:0;}
+#dataBackupMenu .backup-option-copy strong{font-size:14px;line-height:1.2;}
+#dataBackupMenu .backup-option-copy small{font-size:11px;font-weight:400;line-height:1.35;color:#a0aaa3;}
+#dataBackupMenu .backup-option-chevron{width:16px!important;height:16px!important;flex:0 0 16px;color:#a0aaa3;}
+#dataBackupMenu .backup-option-export .backup-option-chevron{color:#d7ff00;}
+#dataBackupMenu .backup-option:disabled{opacity:.4;cursor:not-allowed;}
+#dataBackupMenu > .confirm-dialog > .confirm-actions{border-top:1px solid #303535;padding:16px 0 0;margin:16px 0 0;justify-content:flex-end;align-items:center;}
+#dataBackupMenu .confirm-actions .btn{min-height:40px;font-size:13px;border-radius:9px;}
+</style>
+
+<style>
+/* Titulos das cinco paginas: 9px apos o cabecalho e 12px antes do primeiro elemento. */
+#myProfilePage h1,#summaryPage h1,#weeklyEvolutionPage h1,#backupMenuConfirm .summary-page-shell>h1,#infoCatalogModal #infoCatalogTitle{margin-top:-1px!important;margin-bottom:12px!important;}
+#infoCatalogModal .catalog-page-topline{margin-bottom:10px!important;}
+#infoCatalogModal .catalog-entry:first-of-type{padding-top:0!important;}
+#summaryPage .summary-overview-cards{margin-top:0!important;}
+</style>
+
+<style>
+/* Compensação óptica: a referência são as letras visíveis das abas de Meus treinos,
+   não apenas o início da caixa do componente. */
+#myProfilePage h1,#infoCatalogModal #infoCatalogTitle{margin-bottom:20px!important;}
+#summaryPage h1{margin-bottom:19px!important;}
+#weeklyEvolutionPage h1{margin-bottom:9px!important;}
+/* Em telas estreitas, evita a segunda linha dos subtítulos superiores mais longos. */
+@media(max-width:350px){
+  #myProfilePage .summary-page-topline .eyebrow,
+  #summaryPage .summary-page-topline .eyebrow,
+  #weeklyEvolutionPage .summary-page-topline .eyebrow,
+  #backupMenuConfirm .summary-page-topline .eyebrow,
+  #infoCatalogModal .catalog-page-topline .eyebrow{font-size:9px!important;letter-spacing:.5px!important;}
+}
+</style>
 </body>
 </html>
