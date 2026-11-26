@@ -5061,7 +5061,7 @@ body.weekly-evolution-open{overflow:hidden}
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="importBackupTitle">
     <h2 id="importBackupTitle">Importar backup</h2>
     <p>Esta ação substituirá as fichas atuais e arquivadas, os exercícios, o histórico e as configurações atuais pelos dados do arquivo selecionado. O perfil também será restaurado se estiver incluído no backup. Backups antigos preservam o perfil atual. Deseja continuar?</p>
-    <div class="confirm-actions"><button type="button" class="btn" id="cancelImportBackupBtn">Cancelar</button><button type="button" class="btn primary" id="confirmImportBackupBtn">Confirmar</button></div>
+    <div class="confirm-actions"><button type="button" class="btn" id="cancelImportBackupBtn">Voltar</button><button type="button" class="btn primary" id="confirmImportBackupBtn">Confirmar</button></div>
   </section>
 </div>
 <div class="confirm-backdrop" id="storageReadErrorDialog" hidden>
@@ -5361,7 +5361,90 @@ let allExercisesCollapsed=true;
 const exerciseCollapseOverrides=new Map();
 let editIndex=null;
 
+// Regras transacionais e de identidade. Os registros históricos permanecem instantâneos.
+function newExerciseId(prefix='exercise'){return prefix+'_'+(globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'_'+Math.random().toString(36).slice(2));}
+function sameExercise(a,b){return !!a&&!!b&&(a.id&&b.id&&a.id===b.id||exerciseVariationSignature(a)===exerciseVariationSignature(b));}
+function duplicateVariation(e,old){return (state.exerciseCatalog||[]).some(x=>!sameExercise(x,old)&&exerciseVariationSignature(x)===exerciseVariationSignature(e));}
+function duplicateLinks(workouts){const signatures=new Set(),ids=new Set(),duplicates=[];for(const d of days)for(const e of workouts[d]||[]){const sig=exerciseVariationSignature(e);if(signatures.has(sig)||(e.id&&ids.has(e.id)))duplicates.push({day:d,exercise:e});signatures.add(sig);if(e.id)ids.add(e.id);}return duplicates;}
+function weekdayFull(d){return d==='Sábado'?d:d+'-feira';}
+function ruleBusy(){showCatalogNotice('Treino em andamento','Finalize o treino atual antes de realizar esta alteração.');}
+function variationCollision(){showCatalogNotice('Variação já cadastrada','Já existe uma variação deste exercício com os mesmos atributos. Selecione uma combinação diferente.');}
+function identityForNew(e,x){const registry=x.exerciseIdentity||={retired:{},aliases:{}};registry.retired||={};const sig=exerciseVariationSignature(e);const old=registry.retired[sig];if(old&&!(x.exerciseCatalog||[]).some(a=>a.id===old)){delete registry.retired[sig];return old;}return newExerciseId();}
+function reconcileIdentities(x,migrateCatalog=false){
+ const r=x.exerciseIdentity||={};r.retired||={};r.aliases||={};
+ const map=new Map(),used=new Set();
+ for(const e of x.exerciseCatalog||[]){const sig=exerciseVariationSignature(e);if(map.has(sig)){if(e.id&&e.id!==map.get(sig).id)r.aliases[e.id]=map.get(sig).id;e.id=map.get(sig).id;continue;}let id=e.id;if(!id||used.has(id))id=r.retired[sig]&&!used.has(r.retired[sig])?r.retired[sig]:newExerciseId();e.id=id;used.add(id);map.set(sig,e);}
+ // Legacy duplicate catalog entries are retained, not silently erased. New links are checked separately.
+ for(const d of days)for(const e of x.workouts[d]||[]){const sig=exerciseVariationSignature(e);const oldId=e.id;let master=map.get(sig);if(!master&&e.id)master=(x.exerciseCatalog||[]).find(a=>a.id===e.id);if(!master&&migrateCatalog){e.id=e.id&&!used.has(e.id)?e.id:identityForNew(e,x);master=structuredClone(e);x.exerciseCatalog.push(master);map.set(sig,master);used.add(e.id);}if(master){e.id=master.id;if(oldId&&oldId!==e.id&&!used.has(oldId))r.aliases[oldId]=e.id;}else{e.id=e.id||newExerciseId();}}
+ // Archived snapshots are never rewritten. Their complete attributes can disambiguate old history IDs.
+ const archiveById=new Map();for(const t of x.trainingLibrary?.archived||[])for(const ex of Object.values(t.snapshot?.workouts||{}).flat()){if(!ex.id)continue;const sig=exerciseVariationSignature(ex);if(!archiveById.has(ex.id))archiveById.set(ex.id,new Set());archiveById.get(ex.id).add(sig);}
+ // Reconnect records with full identity when possible; old snapshots without two attributes
+ // are matched only if unique, never arbitrarily to a different variation.
+ for(const w of x.completedWorkouts||[])for(const h of w.exercises||[]){const id=h.exerciseId;if(id&&(used.has(id)||r.aliases[id]))continue;const archiveSigs=archiveById.get(id);const sig=h.variationSignature||(h.execution!==undefined&&h.grip!==undefined?exerciseVariationSignature({name:h.exerciseName,muscle:h.muscle,equipment:h.equipment,execution:h.execution,grip:h.grip}):archiveSigs?.size===1?[...archiveSigs][0]:null);let candidates=sig?(x.exerciseCatalog||[]).filter(e=>exerciseVariationSignature(e)===sig):(x.exerciseCatalog||[]).filter(e=>comparisonKey(e.name)===comparisonKey(h.exerciseName)&&comparisonKey(e.muscle||'-')===comparisonKey(h.muscle||'-')&&comparisonKey(e.equipment||'-')===comparisonKey(h.equipment||'-'));if(id&&candidates.length===1)r.aliases[id]=candidates[0].id;else if(id&&sig&&!r.retired[sig])r.retired[sig]=id;}
+ for(const d of days){const session=x.sessions?.[d];if(!isWorkoutOpenStatus(session?.status))continue;session.week||=weeklyDateKey(weeklyStart(new Date(session.startedAt)));session.performedLoads||={};(x.workouts[d]||[]).forEach((e,i)=>{const values=session.performedLoads[e.id]||={};const marks=x.weeklyChecks?.[session.week]?.[d+'_'+i]||[];marks.forEach((done,j)=>{if(done===true&&values[j]===undefined)values[j]=String(e.loads?.[j]??'');});});}
+}
+function historyIdentity(h,x){const r=x.exerciseIdentity||{};let id=h.exerciseId||h.id;if(id){const visited=new Set();while(r.aliases?.[id]&&!visited.has(id)){visited.add(id);id=r.aliases[id];}return id;}return h.variationSignature||exerciseVariationSignature({name:h.exerciseName,muscle:h.muscle,equipment:h.equipment,execution:h.execution,grip:h.grip});}
+function rememberPerformedLoad(e,j,done){const session=state.sessions[day];if(!session||!e)return;session.performedLoads||={};const values=session.performedLoads[e.id]||={};if(done)values[j]=String(e.loads?.[j]??'');else delete values[j];}
+function formOriginal(){return catalogEditing||(editIndex===null?(fNameSelect.value!==''?exercisePickerVariants[Number(fNameSelect.value)]:null):state.workouts[day]?.[editIndex]);}
+function readExerciseForm(old){return {...old,id:old.id||identityForNew(old,state),name:String(fName.value).trim(),muscle:fMuscle.value.trim(),equipment:String(editIndex===null?fEquipment.value:fEquipmentEdit.value).trim()||'-',execution:fExecution.value.trim()||'-',grip:fGrip.value.trim()||'-',sets:Math.max(1,Math.min(Math.max(5,Number(old.sets)||1),Math.trunc(Number(fSets.value)||1))),note:fNote.value.trim(),loads:readLoadFields()};}
+function variationFields(){return [[fMuscle,'muscle'],[editIndex===null?fEquipment:fEquipmentEdit,'equipment'],[fExecution,'execution'],[fGrip,'grip']];}
+function rememberFormAttributes(){window.__acceptedExerciseAttributes=Object.fromEntries(variationFields().map(([f,k])=>[k,f.value]));}
+function validFormAttributes(old,e){if(variationFields().every(([f,k])=>comparisonKey(f.value||'-')===comparisonKey(window.__acceptedExerciseAttributes?.[k]||'-')))return true;showCatalogNotice('Editar exercício','Confirme a alteração dos atributos antes de salvar.');return false;}
+function installVariationRules(){
+ for(const field of [fMuscle,fEquipment,fEquipmentEdit,fExecution,fGrip])field.addEventListener('change',ev=>{
+  const old=formOriginal();if(!old||!modal.classList.contains('open'))return;
+  const pair=variationFields().find(([f])=>f===field);if(!pair)return;const key=pair[1];const accepted=window.__acceptedExerciseAttributes||{};const prior=accepted[key]??old[key]??'-';if(comparisonKey(prior)===comparisonKey(field.value))return;
+  const e=readExerciseForm(old);const revert=()=>{field.value=prior;refreshStyledSelect(field);};
+  if(hasWorkoutInProgress()&&findExerciseWorkoutDay(old)!=='-'){revert();ruleBusy();return;}
+  if(duplicateVariation({...e,name:old.name},old)){revert();variationCollision();return;}
+  const intended=Object.fromEntries(variationFields().map(([f,k])=>[k,f.value]));
+  ruleConfirm('Criar variação','Deseja criar uma nova variação deste exercício em vez de alterar seus atributos originais?',()=>{
+    closeModal();openInfoCatalog();pendingExerciseRename=null;openExerciseVariation(old.name);
+    for(const [id,k] of [['variationMuscle','muscle'],['variationEquipment','equipment'],['variationExecution','execution'],['variationGrip','grip']]){const el=document.getElementById(id);preserveSelectValue(el,intended[k]);el.value=intended[k];}refreshAllStyledSelects();
+  },()=>{rememberFormAttributes();if(key==='muscle'){const values=readLoadFields();renderLoadFields(values,fSets.value,isAerobicExercise({muscle:fMuscle.value}));}refreshAllStyledSelects();});
+ },true);
+}
+function validateCatalogTransform(transform){const list=state.exerciseCatalog||[];const proposed=list.map(transform);const seen=new Map();for(let i=0;i<proposed.length;i++){const sig=exerciseVariationSignature(proposed[i]);if(seen.has(sig)&&exerciseVariationSignature(list[i])!==exerciseVariationSignature(list[seen.get(sig)])){variationCollision();return false;}seen.set(sig,i);}if(hasWorkoutInProgress()&&Object.values(state.workouts).flat().some(e=>exerciseVariationSignature(transform(e))!==exerciseVariationSignature(e))){ruleBusy();return false;}return true;}
+function setStorageValue(k,v){if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}
+function recoverInterruptedImport(){try{const raw=localStorage.getItem('smartWorkoutImportJournalV2');if(!raw)return;const previous=JSON.parse(raw);for(const [k,v] of Object.entries(previous)){if(['smartWorkoutData','smartWorkoutProfileV1',...backupSettingKeys()].includes(k)&&(v===null||typeof v==='string'))setStorageValue(k,v);}localStorage.removeItem('smartWorkoutImportJournalV2');}catch(e){workoutStorageReadBlocked=true;}}
+function persistWorkoutTransaction(next){const raw=JSON.stringify(next),previous=localStorage.getItem('smartWorkoutData');if(previous===raw){durableState=raw;return true;}if(previous!==null){const parsed=JSON.parse(previous);if(!isValidWorkoutData(parsed))throw Error('Dados anteriores inválidos');localStorage.setItem('smartWorkoutRecoveryV2',previous);}localStorage.setItem('smartWorkoutData',raw);if(localStorage.getItem('smartWorkoutData')!==raw){setStorageValue('smartWorkoutData',previous);throw Error('Gravação não confirmada');}durableState=raw;return true;}
+function backupSettingKeys(){return ['smartWorkoutNewExercisePickerSignatures','smartWorkoutUiState_v1','meuTreinoHistoryReviewAtV1'];}
+function normalizedNewMarkers(values,catalog){const raw=new Set(Array.isArray(values)?values.filter(v=>typeof v==='string'):[]);return new Set((catalog||[]).filter(e=>raw.has(exerciseVariationSignature(e))||raw.has([e.name,e.muscle,e.equipment,e.execution,e.grip].map(v=>String(v??'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR')).join('|'))).map(exerciseVariationSignature));}
+function collectBackupSettings(){const out=Object.fromEntries(backupSettingKeys().map(k=>[k,localStorage.getItem(k)]));out.smartWorkoutNewExercisePickerSignatures=JSON.stringify([...newExercisePickerSignatures]);return out;}
+function validateBackupSettings(v){if(v===undefined)return {};if(!v||typeof v!=='object'||Array.isArray(v))throw Error('Configurações inválidas');const out={};for(const k of backupSettingKeys()){if(!Object.hasOwn(v,k))continue;const raw=v[k];if(raw===null){out[k]=null;continue;}if(typeof raw!=='string')throw Error('Configuração inválida');if(k==='smartWorkoutNewExercisePickerSignatures'){const a=JSON.parse(raw);if(!Array.isArray(a)||!a.every(x=>typeof x==='string'))throw Error('Lista inválida');}else if(k==='smartWorkoutUiState_v1'){const a=JSON.parse(raw);if(!a||typeof a!=='object'||Array.isArray(a))throw Error('Interface inválida');}else if(!Number.isFinite(Number(raw)))throw Error('Data inválida');out[k]=raw;}return out;}
+function updateImportedGreeting(){try{const name=JSON.parse(localStorage.getItem('smartWorkoutProfileV1')||'{}')?.profileName||'';document.querySelector('.greeting').textContent=name.trim()?'Olá, '+name.trim().split(/\s+/)[0]+'!':'Olá!';}catch(_){}}
+// Inverse operation calculated from before/after snapshots, applied to current state.
+function undoSnapshot(x){const wk=weekKey();return structuredClone({workouts:x.workouts,exerciseCatalog:x.exerciseCatalog,catalogs:x.catalogs,equipmentPrepositions:x.equipmentPrepositions,exerciseIdentity:x.exerciseIdentity,weeklyChecks:x.weeklyChecks?.[wk]||{},sessions:x.sessions,todayNoticeDismissedDate:x.todayNoticeDismissedDate,todayNoticeResumeAt:x.todayNoticeResumeAt,week:wk,library:x.trainingLibrary?.current?.id});}
+function eq(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+function inverseFields(target,before,after){for(const key of new Set([...Object.keys(before||{}),...Object.keys(after||{})])){if(eq(before?.[key],after?.[key]))continue;if(!eq(target?.[key],after?.[key]))continue;if(before?.[key]===undefined)delete target[key];else target[key]=structuredClone(before[key]);}return target;}
+function inverseObject(target,before,after){for(const key of new Set([...Object.keys(before||{}),...Object.keys(after||{})])){const a=before?.[key],b=after?.[key];if(eq(a,b))continue;if(a&&b&&target[key]&&typeof a==='object'&&!Array.isArray(a)&&typeof b==='object'&&!Array.isArray(b)){inverseObject(target[key],a,b);continue;}if(eq(target[key],b)){if(a===undefined)delete target[key];else target[key]=structuredClone(a);}}}
+function workoutLocations(workouts,marks){const out=new Map();for(const d of days)(workouts[d]||[]).forEach((e,i)=>{if(!out.has(e.id))out.set(e.id,{exercise:e,day:d,index:i,marks:marks[d+'_'+i]});});return out;}
+function restoreLinkNotice(d){showCatalogNotice('Restaurar exercício','');const el=document.getElementById('catalogNoticeMessage');const b=document.createElement('strong');b.style.color='#d7ff00';b.textContent='('+weekdayFull(d)+')';el.append(document.createTextNode('Este exercício já está vinculado ao treino atual '),b,document.createTextNode(' e não pode ser restaurado.'));}
+function applyInverseAction(current,entry){
+ const {before:b,after:a}=entry;if(b.library!==current.trainingLibrary.current.id)return null;
+ const n=structuredClone(current),sameWeek=b.week===weekKey(),marks=n.weeklyChecks[weekKey()]||{};const bl=workoutLocations(b.workouts,b.weeklyChecks),al=workoutLocations(a.workouts,a.weeklyChecks),cl=workoutLocations(n.workouts,marks);
+ const changed=new Set([...bl.keys(),...al.keys()].filter(id=>{const x=bl.get(id),y=al.get(id);return !eq(x?.exercise,y?.exercise)||x?.day!==y?.day||x?.index!==y?.index;}));
+ // Do not restore a removed exercise if that identity (or its variation) is already linked.
+ for(const id of changed){const x=bl.get(id),y=al.get(id),z=cl.get(id);if(x&&!y){const conflict=[...cl.values()].find(v=>sameExercise(v.exercise,x.exercise));if(conflict){restoreLinkNotice(conflict.day);return null;}}}
+ // Rebuild only affected entries while retaining current values and checks for unrelated cards.
+ const target=new Map(cl);
+ for(const id of changed){const x=bl.get(id),y=al.get(id),z=cl.get(id);if(!x&&y){if(z&&eq(z.exercise,y.exercise)&&z.day===y.day)target.delete(id);continue;}if(x&&!y){target.set(id,{...structuredClone(x),marks:sameWeek?structuredClone(x.marks):undefined});continue;}if(x&&y&&z){const e=inverseFields(structuredClone(z.exercise),x.exercise,y.exercise);const restored=structuredClone(z.marks||[]);if(sameWeek&&Number(x.exercise.sets)>Number(y.exercise.sets)){for(let j=Number(y.exercise.sets);j<Number(x.exercise.sets);j++)restored[j]=x.marks?.[j]===true;}if(e.sets<restored.length)restored.length=e.sets;target.set(id,{exercise:e,day:z.day===y.day?x.day:z.day,index:z.day===y.day&&z.index===y.index?x.index:z.index,marks:restored});}}
+ // Keep original duplicate legacy links intact: do not apply ambiguous inverse.
+ if(duplicateLinks(current.workouts).length&&changed.size){showCatalogNotice('Restaurar exercício','Resolva os vínculos duplicados da ficha antes de restaurar uma alteração.');return null;}
+ if(changed.size){const otherMarks=Object.fromEntries(Object.entries(marks).filter(([k])=>!days.some(d=>k.startsWith(d+'_'))));for(const d of days){const rows=[...target.values()].filter(v=>v.day===d).sort((u,v)=>u.index-v.index);n.workouts[d]=rows.map(v=>v.exercise);rows.forEach((v,i)=>{if(v.marks!==undefined)otherMarks[d+'_'+i]=v.marks;});}n.weeklyChecks[weekKey()]=otherMarks;const dup=duplicateLinks(n.workouts);if(dup.length){restoreLinkNotice(dup[0].day);return null;}}
+ // Catalog edits and additions/deletions are likewise scoped to the recorded IDs.
+ const bc=new Map(b.exerciseCatalog.map(e=>[e.id,e])),ac=new Map(a.exerciseCatalog.map(e=>[e.id,e]));const nc=new Map(n.exerciseCatalog.map(e=>[e.id,e]));for(const id of new Set([...bc.keys(),...ac.keys()])){const x=bc.get(id),y=ac.get(id),z=nc.get(id);if(eq(x,y))continue;if(x&&!y){if(!z)nc.set(id,structuredClone(x));}else if(!x&&y){if(z&&eq(z,y)&&!Object.values(n.workouts).flat().some(e=>e.id===id))nc.delete(id);}else if(z)nc.set(id,inverseFields(z,x,y));}n.exerciseCatalog=[...nc.values()];
+ const sigs=new Set();for(const e of n.exerciseCatalog){const sig=exerciseVariationSignature(e);if(sigs.has(sig)){variationCollision();return null;}sigs.add(sig);}
+ for(const k of ['catalogs','equipmentPrepositions','exerciseIdentity'])inverseObject(n[k]||={},b[k],a[k]);
+ // Only the restart operation changes a session. Never restore a completed workout record.
+ if(sameWeek&&entry.message==='Progresso do treino reiniciado'&&days.every(d=>eq(b.sessions?.[d],a.sessions?.[d])||eq(n.sessions?.[d],a.sessions?.[d]))){inverseObject(n.sessions,b.sessions,a.sessions);const changedMarks=new Set([...Object.keys(b.weeklyChecks),...Object.keys(a.weeklyChecks)]);for(const k of changedMarks)if(!eq(b.weeklyChecks[k],a.weeklyChecks[k])&&eq(marks[k],a.weeklyChecks[k])){if(b.weeklyChecks[k]===undefined)delete marks[k];else marks[k]=structuredClone(b.weeklyChecks[k]);}n.weeklyChecks[weekKey()]=marks;for(const k of ['todayNoticeDismissedDate','todayNoticeResumeAt'])if(eq(n[k],a[k]))n[k]=b[k];}
+ return n;
+}
+
 let workoutStorageReadBlocked=false;
+var durableState=null, storageRecoveryMessage='', storageRollbackPending=false;
+var pendingUndoEntry=null;
+recoverInterruptedImport();
 let state=loadState();
 day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 
@@ -5371,16 +5454,7 @@ day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 
 // Histórico de desfazer independente dos dados principais do treino.
 const UNDO_STORAGE_KEY='smartWorkoutUndoHistory';
-function loadUndoHistory(){
-  try{
-    const entries=JSON.parse(localStorage.getItem(UNDO_STORAGE_KEY)||'[]');
-    if(!Array.isArray(entries)) return [];
-    return entries.filter(entry=>entry && entry.state && entry.state.workouts && typeof entry.message==='string').slice(-3);
-  }catch(error){
-    console.warn('Não foi possível recuperar o histórico de desfazer:',error);
-    return [];
-  }
-}
+function loadUndoHistory(){try{const entries=JSON.parse(localStorage.getItem(UNDO_STORAGE_KEY)||'[]');return Array.isArray(entries)?entries.filter(e=>e&&e.before&&e.after&&typeof e.message==='string').slice(-3):[];}catch(_){return [];}}
 const undoHistory=loadUndoHistory();
 function persistUndoHistory(){
   try{
@@ -5405,32 +5479,20 @@ function hideUndo(){
 }
 
 function recordUndo(message){
-  if(applyingUndo) return;
-  undoHistory.push({state:structuredClone(state),message});
-  if(undoHistory.length>UNDO_LIMIT) undoHistory.shift();
-  persistUndoHistory();
-  const latest=undoHistory[undoHistory.length-1];
-  document.getElementById('undoMessage').textContent=latest.message+' · '+undoHistory.length+'/3';
-  document.getElementById('undoToast').classList.add('show');
-  if(undoTimer) clearTimeout(undoTimer);
-  undoTimer=setTimeout(hideUndo,5000);
+ if(applyingUndo)return;
+ if(pendingUndoEntry){const i=undoHistory.indexOf(pendingUndoEntry);if(i>=0)undoHistory.splice(i,1);}
+ pendingUndoEntry={before:undoSnapshot(state),after:null,message};undoHistory.push(pendingUndoEntry);if(undoHistory.length>UNDO_LIMIT)undoHistory.shift();
+ document.getElementById('undoMessage').textContent=message+' · '+undoHistory.length+'/3';document.getElementById('undoToast').classList.add('show');if(undoTimer)clearTimeout(undoTimer);undoTimer=setTimeout(hideUndo,5000);
 }
 
 function undoLastAction(){
-  if(!undoHistory.length) return;
-  const previous=undoHistory.pop();
-  persistUndoHistory();
-  applyingUndo=true;
-  state=previous.state;
-  save();
-  render();
-  applyingUndo=false;
-  if(undoHistory.length){
-    document.getElementById('undoMessage').textContent='Desfeito. '+undoHistory.length+' ação(ões) disponível(is)';
-    document.getElementById('undoToast').classList.add('show');
-    if(undoTimer) clearTimeout(undoTimer);
-    undoTimer=setTimeout(hideUndo,5000);
-  }else hideUndo();
+ if(!undoHistory.length||pendingUndoEntry)return;
+ if(hasWorkoutInProgress()){ruleBusy();return;}
+ const entry=undoHistory[undoHistory.length-1];if(!entry.after)return;
+ const next=applyInverseAction(state,entry);if(!next)return;
+ applyingUndo=true;const old=state;state=next;if(!save()){state=old;applyingUndo=false;return;}
+ undoHistory.pop();persistUndoHistory();applyingUndo=false;renderAllCatalogLists();refreshAllStyledSelects();render();
+ if(undoHistory.length){document.getElementById('undoMessage').textContent='Desfeito. '+undoHistory.length+' ação(ões) disponível(is)';document.getElementById('undoToast').classList.add('show');if(undoTimer)clearTimeout(undoTimer);undoTimer=setTimeout(hideUndo,5000);}else hideUndo();
 }
 
 
@@ -5446,7 +5508,7 @@ function weekKey(){
 }
 
 function comparisonKey(value){
-  return String(value??'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
+  return String(value??'').trim().replace(/\s+/g,' ').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 }
 
 function normalizeState(x){
@@ -5454,6 +5516,7 @@ function normalizeState(x){
 if(!x||!x.workouts)
 throw new Error('Backup inválido');
 
+const legacyCatalogMigration=!Array.isArray(x.exerciseCatalog)||!x.trainingLibrary;
 x.checks=x.checks||{};
 x.notes=x.notes||{};
 x.weeklyChecks=x.weeklyChecks||{};
@@ -5472,20 +5535,6 @@ if(x.equipmentPrepositions && Object.prototype.hasOwnProperty.call(x.equipmentPr
 if(!Array.isArray(x.exerciseCatalog)) x.exerciseCatalog=[];
 if(!Array.isArray(x.loadHistory)) x.loadHistory=[];
 if(!Array.isArray(x.completedWorkouts)) x.completedWorkouts=[];
-const ensureExerciseId=ex=>{if(ex && typeof ex==='object' && !ex.id) ex.id='exercise_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);};
-Object.values(x.workouts||{}).flat().forEach(ensureExerciseId);
-x.exerciseCatalog.forEach(ensureExerciseId);
-const exerciseSignature=ex=>[ex?.name,ex?.muscle,ex?.execution,ex?.grip,ex?.equipment].map(v=>comparisonKey(v)).join('|');
-const knownExerciseNames=new Set(x.exerciseCatalog.map(exerciseSignature));
-Object.values(x.workouts||{}).flat().forEach(ex=>{
-  const name=String(ex?.name||'').trim();
-  const key=exerciseSignature(ex);
-  if(!x.trainingLibrary && name && !knownExerciseNames.has(key)){
-    x.exerciseCatalog.push(JSON.parse(JSON.stringify(ex)));
-    knownExerciseNames.add(key);
-  }
-});
-
 if((x.progressVersion||0)<2){
 
 const oldChecks={};
@@ -5504,15 +5553,41 @@ if(!x.trainingLibrary) x.trainingLibrary={current:{id:1,name:'Treino 01',created
 const lib=x.trainingLibrary;
 if(!lib.current||!Array.isArray(lib.archived)||!Number.isSafeInteger(lib.next)||lib.next<2||lib.archived.some(t=>!t||!t.snapshot||!days.every(d=>Array.isArray(t.snapshot.workouts?.[d])))) throw new Error('Histórico de fichas inválido');
 for(const t of [lib.current,...lib.archived]) libraryEnsurePeriods(t,t===lib.current);
+reconcileIdentities(x,legacyCatalogMigration);
 return x;
 
 }
 
 // Não converter erros de leitura em dados iniciais: isso poderia sobrescrever o backup local.
 function isValidWorkoutData(raw){
-  return !!raw && typeof raw==='object' && !Array.isArray(raw) &&
-    !!raw.workouts && typeof raw.workouts==='object' &&
-    days.every(d=>Array.isArray(raw.workouts[d]));
+ const obj=v=>v&&typeof v==='object'&&!Array.isArray(v);
+ const str=v=>typeof v==='string';
+ const exercise=e=>obj(e)&&str(e.name)&&!!e.name.trim()&&Number.isSafeInteger(Number(e.sets))&&Number(e.sets)>=1&&Number(e.sets)<=100&&['muscle','equipment','execution','grip','note','id'].every(k=>e[k]===undefined||str(e[k]))&&['loads','reps'].every(k=>e[k]===undefined||(Array.isArray(e[k])&&e[k].every(v=>v===null||str(v)||typeof v==='number')));
+ const workouts=w=>obj(w)&&days.every(d=>Array.isArray(w[d])&&w[d].every(exercise));
+ const checks=c=>obj(c)&&Object.values(c).every(v=>Array.isArray(v)&&v.every(x=>x===true||x===false||x===null));
+ const session=v=>obj(v)&&['idle','active','paused','finished'].includes(v.status)&&(!isWorkoutOpenStatus(v.status)||(typeof v.startedAt==='string'&&Number.isFinite(Date.parse(v.startedAt))));
+ if(!obj(raw)||!workouts(raw.workouts))return false;
+ if(raw.exerciseCatalog!==undefined&&(!Array.isArray(raw.exerciseCatalog)||!raw.exerciseCatalog.every(exercise)))return false;
+ if(raw.catalogs!==undefined&&(!obj(raw.catalogs)||Object.values(raw.catalogs).some(v=>!Array.isArray(v)||!v.every(str))))return false;
+ if(raw.weeklyChecks!==undefined&&(!obj(raw.weeklyChecks)||!Object.values(raw.weeklyChecks).every(checks)))return false;
+ if(raw.sessions!==undefined&&(!obj(raw.sessions)||!Object.values(raw.sessions).every(session)))return false;
+ if(raw.completedWorkouts!==undefined&&(!Array.isArray(raw.completedWorkouts)||!raw.completedWorkouts.every(w=>obj(w)&&days.includes(w.day)&&Number.isFinite(Date.parse(w.finishedAt||w.startedAt))&&Array.isArray(w.exercises)&&w.exercises.every(e=>obj(e)&&str(e.exerciseName)&&Array.isArray(e.completedSets)&&e.completedSets.every(v=>typeof v==='boolean')&&Array.isArray(e.loads)))))return false;
+ if(raw.loadHistory!==undefined&&!Array.isArray(raw.loadHistory))return false;
+ if(raw.trainingLibrary!==undefined){const l=raw.trainingLibrary;if(!obj(l)||!obj(l.current)||!Array.isArray(l.archived)||!Number.isSafeInteger(l.next)||![l.current,...l.archived].every(t=>obj(t)&&str(t.name)&&Number.isSafeInteger(t.id)&&str(t.created))||new Set([l.current,...l.archived].map(t=>t.id)).size!==l.archived.length+1||!l.archived.every(t=>obj(t.snapshot)&&workouts(t.snapshot.workouts)))return false;}
+ if(raw.exerciseIdentity!==undefined&&(!obj(raw.exerciseIdentity)||['aliases','retired'].some(k=>raw.exerciseIdentity[k]!==undefined&&(!obj(raw.exerciseIdentity[k])||Object.values(raw.exerciseIdentity[k]).some(v=>!str(v))))))return false;
+ if(raw.newExercisePickerSignatures!==undefined&&(!Array.isArray(raw.newExercisePickerSignatures)||!raw.newExercisePickerSignatures.every(str)))return false;
+ if(raw.checks!==undefined&&!checks(raw.checks))return false;
+ if(raw.notes!==undefined&&!obj(raw.notes))return false;
+ if(raw.equipmentPrepositions!==undefined&&(!obj(raw.equipmentPrepositions)||Object.values(raw.equipmentPrepositions).some(v=>!['na','no','com'].includes(v))))return false;
+ if(raw.selectedDay!==undefined&&!days.includes(raw.selectedDay))return false;
+ if(raw.buildMode!==undefined&&typeof raw.buildMode!=='boolean')return false;
+ const validWeek=k=>typeof k==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(k)&&Number.isFinite(Date.parse(k+'T12:00:00'));
+ const sessionDetails=v=>(v.week===undefined||validWeek(v.week))&&(v.performedLoads===undefined||obj(v.performedLoads)&&Object.values(v.performedLoads).every(a=>obj(a)&&Object.values(a).every(x=>str(x)||typeof x==='number')))&&(v.preStartSnapshot==null||obj(v.preStartSnapshot)&&checks(v.preStartSnapshot.progress||{}));
+ if(raw.sessions&&Object.values(raw.sessions).some(v=>!sessionDetails(v)))return false;
+ if(raw.weeklyChecks&&Object.keys(raw.weeklyChecks).some(k=>!validWeek(k)))return false;
+ if(raw.completedWorkouts&&raw.completedWorkouts.some(w=>w.exercises.some(e=>e.loads.some(v=>v!==null&&!str(v)&&typeof v!=='number')||e.completedSets.length!==e.loads.length)))return false;
+ if(raw.trainingLibrary&&raw.trainingLibrary.archived.some(t=>{const snap=t.snapshot;return snap.weeklyChecks!==undefined&&(!obj(snap.weeklyChecks)||Object.values(snap.weeklyChecks).some(v=>!checks(v)))||snap.sessions!==undefined&&(!obj(snap.sessions)||Object.values(snap.sessions).some(v=>!session(v)||!sessionDetails(v)));}))return false;
+ return true;
 }
 function freshWorkoutState(){
   return normalizeState({
@@ -5522,18 +5597,14 @@ function freshWorkoutState(){
   });
 }
 function loadState(){
-  try{
-    const stored=localStorage.getItem('smartWorkoutData');
-    if(stored===null) return freshWorkoutState();
-    const parsed=JSON.parse(stored);
-    if(!isValidWorkoutData(parsed)) throw new Error('Estrutura de dados inválida');
-    return normalizeState(parsed);
-  }catch(error){
-    console.error('Leitura do Meu Treino bloqueada para proteger os dados:',error);
-    workoutStorageReadBlocked=true;
-    // Estado temporário somente para renderizar a tela, nunca para gravar.
-    return freshWorkoutState();
-  }
+ try{
+  const stored=localStorage.getItem('smartWorkoutData');
+  if(stored===null){durableState=JSON.stringify(freshWorkoutState());return JSON.parse(durableState);}
+  const parsed=JSON.parse(stored);if(!isValidWorkoutData(parsed))throw Error('Dados inválidos');
+  const normalized=normalizeState(parsed);durableState=JSON.stringify(normalized);return normalized;
+ }catch(error){
+  try{const raw=localStorage.getItem('smartWorkoutRecoveryV2');const parsed=JSON.parse(raw);if(!isValidWorkoutData(parsed))throw Error('Sem recuperação');const recovered=normalizeState(parsed);localStorage.setItem('smartWorkoutData',JSON.stringify(recovered));durableState=JSON.stringify(recovered);storageRecoveryMessage='Foi recuperada a última cópia válida. Alterações mais recentes podem não ter sido preservadas.';setTimeout(()=>showCatalogNotice('Dados recuperados',storageRecoveryMessage),0);return recovered;}catch(_){workoutStorageReadBlocked=true;return freshWorkoutState();}
+ }
 }
 function showWorkoutStorageReadWarning(){
   if(workoutStorageReadBlocked) document.getElementById('storageReadErrorDialog').hidden=false;
@@ -5541,31 +5612,20 @@ function showWorkoutStorageReadWarning(){
 if(workoutStorageReadBlocked) setTimeout(showWorkoutStorageReadWarning,0);
 
 function save(){
-
-if(workoutStorageReadBlocked){ showWorkoutStorageReadWarning(); return; }
-
-if(state.emptyNewLibrary&&Object.values(state.workouts).some(a=>a.length))delete state.emptyNewLibrary;
-state.selectedDay=day;
-state.progressVersion=2;
-
-// Gravação imediata com verificação e aviso em caso de falha.
-// Não depende do evento de fechamento, que pode não ocorrer no celular.
-try {
-  const serialized=JSON.stringify(state);
-  localStorage.setItem('smartWorkoutData',serialized);
-  if(localStorage.getItem('smartWorkoutData')!==serialized) throw new Error('Falha na verificação da gravação');
-  window.__workoutStorageWarningShown=false;
-} catch(error) {
-  console.error('Não foi possível salvar os dados do Meu Treino:',error);
-  if(!window.__workoutStorageWarningShown){
-    window.__workoutStorageWarningShown=true;
-    setTimeout(()=>alert('ATENÇÃO: o navegador não conseguiu salvar suas alterações. Não feche o aplicativo. Verifique o armazenamento disponível e exporte um backup dos seus treinos.'),0);
-  }
-}
-
-const summaryPage=document.getElementById('summaryPage');
-if(summaryPage && !summaryPage.hidden && typeof renderSummaryPage==='function') renderSummaryPage();
-
+ if(workoutStorageReadBlocked){showWorkoutStorageReadWarning();return false;}
+ if(storageRollbackPending)return false;
+ if(state.emptyNewLibrary&&Object.values(state.workouts).some(a=>a.length))delete state.emptyNewLibrary;
+ state.selectedDay=day;state.progressVersion=2;
+ try{
+  if(!persistWorkoutTransaction(state))throw Error('Gravação não confirmada');
+  if(pendingUndoEntry){pendingUndoEntry.after=undoSnapshot(state);pendingUndoEntry=null;persistUndoHistory();}
+ }catch(error){
+  if(pendingUndoEntry){const index=undoHistory.indexOf(pendingUndoEntry);if(index>=0)undoHistory.splice(index,1);pendingUndoEntry=null;}
+  if(durableState){state=JSON.parse(durableState);day=days.includes(state.selectedDay)?state.selectedDay:day;try{newExercisePickerSignatures.clear();for(const sig of state.newExercisePickerSignatures||[])newExercisePickerSignatures.add(sig);}catch(_){}}
+  storageRollbackPending=true;setTimeout(()=>{try{render();renderAllCatalogLists();}finally{storageRollbackPending=false;}showCatalogNotice('Falha ao salvar','Não foi possível salvar esta alteração. Confira os dados antes de continuar.');},0);return false;
+ }
+ const summaryPage=document.getElementById('summaryPage');if(summaryPage&&!summaryPage.hidden&&typeof renderSummaryPage==='function')renderSummaryPage();
+ return true;
 }
 
 // ========================================
@@ -5588,12 +5648,14 @@ return state.weeklyChecks[k];
 function checksFor(dayName,i){
 
 const data=weekData();
+const session=state.sessions?.[dayName];
+const targetData=isWorkoutOpenStatus(session?.status)&&session.week!==weekKey()?(state.weeklyChecks[session.week]||={}):data;
 const k=dayName+'_'+i;
 
-if(!Array.isArray(data[k]))
-data[k]=[];
+if(!Array.isArray(targetData[k]))
+targetData[k]=[];
 
-return data[k];
+return targetData[k];
 
 }
 
@@ -5660,7 +5722,7 @@ const currentWeek=weekKey();
 let session=state.sessions[day];
 
 // Cada sessão pertence a um ciclo semanal.
-// Quando a semana muda (segunda-feira), o status volta automaticamente
+// Quando a semana muda (domingo), o status volta automaticamente
 // para "idle", mesmo que o treino tenha sido finalizado ou ficado pendente.
 if(!session || (session.week!==currentWeek && !isWorkoutOpenStatus(session.status))){
 
@@ -5715,10 +5777,12 @@ function localDateKey(date=new Date()){
 }
 
 function startWorkout(){
+  if(!(state.workouts[day]||[]).length){showCatalogNotice("Iniciar treino","Nenhum exercício foi adicionado a este dia.");return;}
 if(state.buildMode||editingWorkout)return;
+  if(duplicateLinks(state.workouts).length){showCatalogNotice("Exercícios vinculados mais de uma vez","A ficha contém vínculos duplicados de uma versão anterior. Retire os vínculos repetidos antes de iniciar.");return;}
   if((state.workouts[day]||[]).some(e=>libraryMissing(e).length)){alert("Substitua os exercícios ou atributos excluídos antes de iniciar o treino.");return;}
   const session=getWorkoutStatus();
-  if(isWorkoutOpenStatus(session.status)) return;
+  if(session.status!=='idle') return;
 
   // Apenas um treino pode permanecer em andamento por vez, independentemente do dia.
   const otherActiveDay=days.find(workoutDay=>
@@ -5747,6 +5811,7 @@ if(state.buildMode||editingWorkout)return;
     dayProgressSnapshot[key]=structuredClone(weeklyProgress[key]);
   });
   session.preStartSnapshot={
+    sessionBefore:structuredClone({...session,preStartSnapshot:null}),
     progress:dayProgressSnapshot,
     todayNoticeDismissedDate:state.todayNoticeDismissedDate??null,
     todayNoticeResumeAt:state.todayNoticeResumeAt??null
@@ -5754,6 +5819,7 @@ if(state.buildMode||editingWorkout)return;
   session.cancelOpportunityConsumed=true;
   session.cancelAvailableUntil=isFirstStartThisWeek?Date.now()+60*1000:null;
   session.status='active';
+  session.performedLoads={};
   session.startedAt=new Date().toISOString();
   session.finishedAt=null;
   session.resetExpiresAt=null;
@@ -5799,7 +5865,7 @@ function confirmCancelWorkout(){
   }
   closeCancelWorkoutDialog();
   const snapshot=session.preStartSnapshot;
-  const weeklyProgress=weekData();
+  const weeklyProgress=(state.weeklyChecks[session.week||weekKey()]||={});
   Object.keys(weeklyProgress).filter(key=>key.startsWith(target+'_')).forEach(key=>delete weeklyProgress[key]);
   if(snapshot?.progress){
     Object.entries(snapshot.progress).forEach(([key,value])=>{weeklyProgress[key]=structuredClone(value);});
@@ -5810,7 +5876,8 @@ function confirmCancelWorkout(){
   }
   session.status='idle';session.startedAt=null;session.finishedAt=null;
   session.resetExpiresAt=null;session.cancelAvailableUntil=null;session.preStartSnapshot=null;
-  session.replacesCompletedWorkoutId=null;
+  session.replacesCompletedWorkoutId=snapshot?.sessionBefore?.replacesCompletedWorkoutId||null;
+  session.performedLoads={};
   session.cancelOpportunityConsumed=true;
   save();render();
 }
@@ -5822,6 +5889,17 @@ if(state.buildMode)return;
   const session=options.targetDay ? state.sessions?.[targetDay] : getWorkoutStatus();
   if(!session) return;
   if(!isWorkoutOpenStatus(session.status)) return;
+  const wk=session.week||weekKey();
+  const marks=(state.weeklyChecks[wk]||={});
+  if(!(state.workouts[targetDay]||[]).some((e,i)=>(marks[targetDay+'_'+i]||[]).slice(0,Number(e.sets)||1).some(v=>v===true))){
+    const cancel=()=>{
+      if(!isWorkoutOpenStatus(session.status))return;
+      const snapshot=session.preStartSnapshot;
+      Object.keys(marks).filter(k=>k.startsWith(targetDay+'_')).forEach(k=>delete marks[k]);
+      if(snapshot){Object.assign(marks,structuredClone(snapshot.progress||{}));state.todayNoticeDismissedDate=snapshot.todayNoticeDismissedDate;state.todayNoticeResumeAt=snapshot.todayNoticeResumeAt;}
+      if(snapshot?.sessionBefore){state.sessions[targetDay]=structuredClone(snapshot.sessionBefore);}else Object.assign(session,{status:'idle',startedAt:null,finishedAt:null,resetExpiresAt:null,cancelAvailableUntil:null,preStartSnapshot:null,performedLoads:{}});save();render();
+    };if(options.automatic)cancel();else ruleConfirm('Cancelar treino','Nenhuma série foi concluída. Deseja cancelar o treino sem registrar a realização?',cancel);return;
+  }
   session.status='finished';
   session.cancelAvailableUntil=null;
   session.preStartSnapshot=null;
@@ -5837,13 +5915,14 @@ if(state.buildMode)return;
     const completed=Array.from({length:count},(_,setIndex)=>checks[setIndex]===true);
     if(!completed.some(Boolean)) return [];
     // Registra cada série confirmada individualmente; séries pendentes ficam vazias.
-    const loads=Array.from({length:count},(_,setIndex)=>completed[setIndex]?String((exercise.loads||[])[setIndex]??'').trim():'');
+    const loads=Array.from({length:count},(_,setIndex)=>completed[setIndex]?String(session.performedLoads?.[exercise.id]?.[setIndex]??(exercise.loads||[])[setIndex]??'').trim():'');
     const numericLoads=loads.filter(value=>value!=='').map(value=>Number(value.replace(',','.'))).filter(Number.isFinite);
     return [{
       exerciseId:exercise.id||(exercise.id='exercise_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9)),
       exerciseName:String(exercise.name||'Exercício'),
       muscle:String(exercise.muscle||''),
       equipment:String(exercise.equipment||''),
+      execution:String(exercise.execution||'-'),grip:String(exercise.grip||'-'),variationSignature:exerciseVariationSignature(exercise),
       loads,
       completedSets:completed,
       average:numericLoads.length?numericLoads.reduce((sum,value)=>sum+value,0)/numericLoads.length:null
@@ -5879,6 +5958,7 @@ if(state.buildMode)return;
 function isDayWorkoutCompleted(targetDay){
   const exercises=state.workouts[targetDay]||[];
   if(!exercises.length) return false;
+  if(state.sessions?.[targetDay]?.week===weekKey()&&state.sessions[targetDay].status==='finished')return true;
   const checks=weekData();
   return exercises.every((exercise,index)=>{
     const setCount=+exercise.sets||1;
@@ -6045,7 +6125,7 @@ addBtn.querySelector('.icon-action-label').textContent=editLabel;
 addBtn.querySelector('svg').innerHTML=editingWorkout?'<path d="m5 12 4 4L19 6"/>':'<path d="M12 5H5v14h14v-7M10 14l1-4 8-8 3 3-8 8-4 1Z"/>';
 addBtn.classList.toggle('editing-workout-active',editingWorkout);
 // Só permite marcar séries e exercícios enquanto o treino estiver ativo.
-const canMarkProgress=session.status==='active';
+const canMarkProgress=isWorkoutOpenStatus(session.status);
 document.querySelectorAll('.set-done-btn,.exercise-done-btn').forEach(button=>{
 button.disabled=!canMarkProgress;
 });
@@ -6536,12 +6616,13 @@ save();
 function toggleSet(i,j,v){
 if(state.buildMode)return;
 
-if(getWorkoutStatus().status!=='active') return;
+if(!isWorkoutOpenStatus(getWorkoutStatus().status)) return;
 
 
 const a=checksFor(day,i);
 const wasDone=a[j]===true;
 a[j]=v;
+if(wasDone!==v)rememberPerformedLoad(state.workouts[day][i],j,v);
 // A marcação é provisória; a carga só entra no histórico ao finalizar o treino.
 
 save();
@@ -6595,7 +6676,7 @@ renderWorkoutButtons();
 
 function toggleExercise(i){
 
-if(getWorkoutStatus().status!=='active') return;
+if(!isWorkoutOpenStatus(getWorkoutStatus().status)) return;
 
 const exercise=state.workouts[day][i];
 if(!exercise) return;
@@ -6611,6 +6692,7 @@ const alreadyDone=Array.from(
 for(let j=0;j<count;j++){
   const wasDone=checks[j]===true;
   checks[j]=!alreadyDone;
+  if(wasDone!==!alreadyDone)rememberPerformedLoad(exercise,j,!alreadyDone);
   // Nenhum registro de carga é criado antes da finalização do treino.
 }
 
@@ -6719,7 +6801,7 @@ save();
 
 function currentWeekData(){
 
-return weekData();
+const session=state.sessions?.[day];return isWorkoutOpenStatus(session?.status)&&session.week!==weekKey()?(state.weeklyChecks[session.week]||={}):weekData();
 
 }
 
@@ -6855,7 +6937,8 @@ function formatTimeValue(value){
 function renderLoadFields(loads,sets,aerobic=isAerobicExercise({muscle:fMuscle.value})){
   const container=document.getElementById('loadsBySet');
   if(!container) return;
-  const count=Math.max(1,Math.min(5,Number(sets)||1));
+  const count=Math.max(1,Math.min(100,Number(sets)||1));
+  container.classList.toggle('legacy-load-fields',count>5);
   const abdominal=isAbdominalExercise({muscle:fMuscle.value});
   const label=document.getElementById('loadsLabel');
   if(label) label.textContent=aerobic?'Tempo de cada série':'Carga de cada série';
@@ -6939,45 +7022,19 @@ function preserveExerciseDropdownValues(exercise){
   });
 }
 
-function upsertExerciseCatalog(exercise, oldExercise=null){
-  state.exerciseCatalog=Array.isArray(state.exerciseCatalog)?state.exerciseCatalog:[];
-  const oldSignature=oldExercise?exerciseVariationSignature(oldExercise):'';
-  const newName=String(exercise?.name||'').trim();
-  const newSignature=exerciseVariationSignature(exercise);
-  if(oldSignature && oldSignature!==newSignature){
-    // Renomear/alterar uma versão não pode apagar as outras variações do mesmo nome.
-    state.exerciseCatalog=state.exerciseCatalog.filter(item=>exerciseVariationSignature(item)!==oldSignature);
-  }
-  if(!newName) return;
-  const copy=JSON.parse(JSON.stringify(exercise));
-  const signature=item=>[item?.name,item?.muscle,item?.execution,item?.grip,item?.equipment].map(v=>comparisonKey(v)).join('|');
-  const index=state.exerciseCatalog.findIndex(item=>signature(item)===signature(copy));
-  if(index>=0) state.exerciseCatalog[index]=copy;
-  else state.exerciseCatalog.push(copy);
+function upsertExerciseCatalog(exercise,oldExercise=null){
+ const copy=structuredClone(exercise);copy.id=oldExercise?.id||copy.id||identityForNew(copy,state);
+ const index=state.exerciseCatalog.findIndex(e=>e.id===copy.id||oldExercise&&exerciseVariationSignature(e)===exerciseVariationSignature(oldExercise));
+ if(index>=0)state.exerciseCatalog[index]=copy;else state.exerciseCatalog.push(copy);exercise.id=copy.id;preserveExerciseDropdownValues(copy);return true;
 }
 
-function updateCanonicalExerciseFromAdd(selectedVariant, updatedExercise){
-  if(!selectedVariant || !updatedExercise) return false;
-  const previousSignature=exerciseVariationSignature(selectedVariant);
-  const catalog=state.exerciseCatalog||[];
-  const index=catalog.findIndex(item=>exerciseVariationSignature(item)===previousSignature);
-  if(index<0) return false;
-  // Catálogo mestre guarda TODOS os atributos, inclusive séries, cargas e notas.
-  // O exercício não precisa estar atribuído a nenhum dia para manter esses valores.
-  const updated=JSON.parse(JSON.stringify(updatedExercise));
-  const conflicting=catalog.some((item,i)=>i!==index && exerciseVariationSignature(item)===exerciseVariationSignature(updated));
-  if(conflicting){
-    showCatalogNotice('Exercício já cadastrado','Essa combinação de nome e atributos já existe no cadastro.');
-    return false;
-  }
-  catalog[index]=updated;
-  // Propaga os mesmos dados às ocorrências ativas da mesma variação.
-  Object.values(state.workouts||{}).forEach(workout=>(workout||[]).forEach(item=>{
-    if(exerciseVariationSignature(item)===previousSignature){
-      Object.assign(item,JSON.parse(JSON.stringify(updated)));
-    }
-  }));
-  return true;
+function updateCanonicalExerciseFromAdd(selectedVariant,updatedExercise){
+ if(!selectedVariant||!updatedExercise)return false;const old=state.exerciseCatalog.find(e=>e.id===selectedVariant.id)||selectedVariant;const e={...updatedExercise,id:old.id||identityForNew(old,state)};
+ if(duplicateVariation(e,old)){variationCollision();return false;}
+ const countChanged=Number(old.sets)!==Number(e.sets),noteChanged=String(old.note||'')!==String(e.note||'');
+ const loadChanged=j=>String(old.loads?.[j]??'')!==String(e.loads?.[j]??'');
+ upsertExerciseCatalog(e,old);updatedExercise.id=e.id;
+ for(const d of days)(state.workouts[d]||[]).forEach((item,i)=>{if(sameExercise(item,old)){const previous=Number(item.sets)||1;for(const k of ['id','name','muscle','equipment','execution','grip'])item[k]=e[k];if(noteChanged)item.note=e.note;if(countChanged)item.sets=e.sets;const len=Number(item.sets)||1;item.loads=Array.from({length:len},(_,j)=>loadChanged(j)||j>=previous?e.loads?.[j]??'':item.loads?.[j]??'');if(previous!==Number(item.sets))resizeRuleChecks(d,i,item.sets);}});return true;
 }
 
 function getCatalogValues(category,includeDash=false){
@@ -7039,35 +7096,19 @@ function preserveSelectValue(select, value){
   select.value=desired;
 }
 
-function findExerciseWorkoutDay(exercise){
-  if(!exercise) return '-';
-  const key=comparisonKey(exercise.name);
-  if(!key) return '-';
-  for(const dayName of days){
-    const found=(state.workouts[dayName]||[]).some(item=>
-      comparisonKey(item.name)===key &&
-      ['muscle','equipment','execution','grip'].every(k=>comparisonKey(item[k]||'-')===comparisonKey(exercise[k]||'-'))
-    );
-    if(found) return dayName;
-  }
-  return '-';
-}
+function findExerciseWorkoutDay(exercise){return exercise?days.find(d=>(state.workouts[d]||[]).some(e=>sameExercise(e,exercise)))||'-':'-';}
 
 // Durante um treino ativo, os atributos de identidade ficam somente para leitura.
 // Em Adicionar, o seletor de exercício continua acessível para consultar/ajustar séries e cargas.
 function structuralEditAllowed(){return !hasWorkoutInProgress() && !!(state.buildMode||editingWorkout);}
 function syncExerciseIdentityLock(){
-  const chosen=editIndex===null && fNameSelect.value!==''?exercisePickerVariants[Number(fNameSelect.value)]:null;
-  const locked=!structuralEditAllowed();
-  const attrsLocked=(locked && editIndex!==null) || (editIndex===null && findExerciseWorkoutDay(chosen)!=='-');
-  for(const field of [fName,fMuscle,fEquipment,fEquipmentEdit,fExecution,fGrip,fDay]){
-    field.disabled=field===fDay?(editIndex===null?true:locked):field===fName?hasWorkoutInProgress():attrsLocked;
-    field.setAttribute('aria-disabled',String(field.disabled));
-    if(field.tagName==='SELECT') refreshStyledSelect(field);
-  }
-  if(catalogEditing){fDay.disabled=true;fDay.value=findExerciseWorkoutDay(catalogEditing);for(const field of [fName,fMuscle,fEquipmentEdit,fExecution,fGrip]){field.disabled=hasWorkoutInProgress();if(field.tagName==='SELECT')refreshStyledSelect(field);}}
-  if(fDay.disabled){fDay.value=catalogEditing?findExerciseWorkoutDay(catalogEditing):editIndex===null?(buildAddDay||findExerciseWorkoutDay(chosen)):day;refreshStyledSelect(fDay);} syncEditDayButton();
-  fNameSelect.disabled=false;refreshStyledSelect(fNameSelect);
+ const source=formOriginal();const linked=!!source&&findExerciseWorkoutDay(source)!=='-';const blocked=hasWorkoutInProgress()&&linked;
+ const editingCard=editIndex!==null&&!catalogEditing;
+ for(const field of [fName,fMuscle,fEquipment,fEquipmentEdit,fExecution,fGrip]){field.disabled=blocked||(editingCard&&!structuralEditAllowed()&&field!==fName);field.setAttribute('aria-disabled',String(field.disabled));if(field.tagName==='SELECT')refreshStyledSelect(field);}
+ fDay.disabled=!!catalogEditing||editIndex===null||!structuralEditAllowed();if(fDay.disabled)fDay.value=catalogEditing?findExerciseWorkoutDay(catalogEditing):editIndex===null?(buildAddDay||findExerciseWorkoutDay(source)):day;refreshStyledSelect(fDay);syncEditDayButton();
+ fNameSelect.disabled=false;refreshStyledSelect(fNameSelect);fSets.disabled=blocked;
+ document.getElementById('decreaseSetsBtn').disabled=blocked||Number(fSets.value)<=1;document.getElementById('increaseSetsBtn').disabled=blocked||Number(fSets.value)>=5;
+ fNote.disabled=blocked;
 }
 
 let buildAddDay=null;
@@ -7167,7 +7208,7 @@ if(i===null){
 preserveSelectValue(fMuscle,e.muscle);
 refreshAllStyledSelects();
 
-fSets.value=e.sets||4;
+fSets.max=String(Math.max(5,Number(e.sets)||1));fSets.value=e.sets||4;
 
 document.getElementById('decreaseSetsBtn').disabled=(+fSets.value)<=1;
 document.getElementById('increaseSetsBtn').disabled=(+fSets.value)>=5;
@@ -7185,6 +7226,7 @@ modal.classList.add('open');
 if(catalogEditing)document.querySelector('#exerciseForm button[type=submit]').textContent='Salvar exercício';
 document.body.classList.remove('exercise-page-open');
 document.getElementById('exercisePageEyebrow').textContent=i===null?'GERENCIAR TREINO':'EDITAR EXERCÍCIO';
+  rememberFormAttributes();
 
 }
 
@@ -7218,7 +7260,7 @@ function handleExerciseNameInput(selectedVariant=null){
     setField(fExecution,match.execution||'-');
     setField(fGrip,match.grip||'-');
     refreshAllStyledSelects();
-    fSets.value=match.sets||4;
+    fSets.max=String(Math.max(5,Number(match.sets)||1));fSets.value=match.sets||4;
     fNote.value=match.note||'';
     renderLoadFields(match.loads||[],match.sets||4,isAerobicExercise(match));
   }else{
@@ -7239,7 +7281,6 @@ function handleExerciseNameInput(selectedVariant=null){
 fMuscle.addEventListener('change',()=>{
   // Tempo e carga são unidades diferentes: ao trocar o grupo muscular,
   // limpa os valores antigos e recria os campos no formato da nova categoria.
-  renderLoadFields([],fSets.value,isAerobicExercise({muscle:fMuscle.value}));
   refreshAllStyledSelects();
 });
 
@@ -7258,6 +7299,7 @@ fNameSelect.addEventListener('change',()=>{
     refreshStyledSelect(fDay);
   }
   syncExerciseIdentityLock();
+  rememberFormAttributes();
   refreshStyledSelect(fNameSelect);
 });
 
@@ -7273,205 +7315,26 @@ document.body.classList.remove('exercise-page-open');
 }
 
 function saveExercise(ev){
-
-ev.preventDefault();
-if(catalogEditing){saveSharedCatalogExercise();return;}
-
-// Não permite atribuir ou transferir exercícios para outro dia enquanto há treino ativo.
-if(editIndex===null && hasWorkoutInProgress() && String(fDay?.value||'-')!==findExerciseWorkoutDay(fNameSelect.value!==''?exercisePickerVariants[Number(fNameSelect.value)]:null)){
-  alert('A seleção de dias fica bloqueada enquanto houver treino em andamento. Você pode salvar as demais informações.');
-  return;
-}
-
-const old=editIndex===null
-?null
-:state.workouts[day][editIndex];
-
-let selectedVariantForAdd=null;
-if(editIndex===null){
-  const selectedIndex=Number(fNameSelect.value);
-  selectedVariantForAdd=Number.isInteger(selectedIndex)?exercisePickerVariants[selectedIndex]:null;
-  if(fNameSelect.value==='' || !selectedVariantForAdd){
-    alert('Selecione um exercício válido.');
-    return;
-  }
-}
-
-const e={
-
-...(old||{}),
-
-name:String(fName.value).trim(),
-
-muscle:fMuscle.value.trim(),
-
-equipment:String(editIndex===null?fEquipment.value:fEquipmentEdit.value).trim()||'-',
-
-execution:fExecution.value.trim()||'-',
-
-grip:fGrip.value.trim()||'-',
-
-sets:Math.max(
-1,
-Math.min(5,+fSets.value)
-),
-
-note:fNote.value.trim(),
-
-loads:readLoadFields()
-
-};
-
-if(editIndex===null && restrictedBuildAdd() && (findExerciseWorkoutDay(selectedVariantForAdd)!=='-' || findExerciseWorkoutDay(e)!=='-')){
-  showCatalogNotice('Exercício já vinculado','Este exercício já está em um dia da ficha atual. Selecione outro exercício.');
-  return;
-}
-if(!structuralEditAllowed()){
-  const canonical=editIndex===null?selectedVariantForAdd:old;
-  if(canonical && (editIndex!==null || findExerciseWorkoutDay(canonical)!=='-')){
-    (hasWorkoutInProgress()?['name','muscle','equipment','execution','grip']:['muscle','equipment','execution','grip']).forEach(key=>{
-      e[key]=canonical[key]|| (key==='name'||key==='muscle'?'':'-');
-    });
-  }
-}
-if(editIndex!==null && !old) return;
-if(editIndex!==null && old){
-  const proposedSignature=exerciseVariationSignature(e);
-  const oldSignature=exerciseVariationSignature(old);
-  const duplicateVariant=(state.exerciseCatalog||[]).some(item=>
-    exerciseVariationSignature(item)!==oldSignature &&
-    exerciseVariationSignature(item)===proposedSignature
-  );
-  if(duplicateVariant){
-    showCatalogNotice('Exercício já cadastrado','Essa combinação de nome e atributos já existe no cadastro. Altere pelo menos um atributo antes de salvar.');
-    return;
-  }
-}
-if(editIndex!==null && old && comparisonKey(e.name)!==comparisonKey(old.name)){
-  const duplicateName=(state.exerciseCatalog||[]).some(item=>
-    exerciseVariationSignature(item)!==exerciseVariationSignature(old) &&
-    comparisonKey(item?.name)===comparisonKey(e.name)
-  ) || Object.values(state.workouts||{}).flat().some(item=>
-    item!==old &&
-    exerciseVariationSignature(item)!==exerciseVariationSignature(old) &&
-    comparisonKey(item?.name)===comparisonKey(e.name)
-  );
-  if(duplicateName){
-    showCatalogNotice('Nome de exercício já cadastrado','Já existe um exercício com esse nome. Para criar outra versão, utilize a área de Cadastro e escolha atributos diferentes.');
-    return;
-  }
-}
-recordUndo(editIndex===null?(fDay?.value==='-'?'Exercício cadastrado':'Exercício adicionado'):'Exercício editado');
-
-// Registra os valores anteriores antes de qualquer alteração do exercício.
-if(old) preserveExerciseDropdownValues(old);
-
-if(editIndex===null){
-  const targetDay=restrictedBuildAdd()?buildAddDay:findExerciseWorkoutDay(selectedVariantForAdd);
-  // Se o exercício já estiver no dia, atualiza no lugar: não duplica nem perde marcações.
-  const originalSignature=exerciseVariationSignature(selectedVariantForAdd);
-  const existingInDay=(state.workouts[day]||[]).find(item=>exerciseVariationSignature(item)===originalSignature);
-  if(restrictedBuildAdd() && existingInDay && (targetDay==='-' || targetDay===day)){
-    Object.assign(existingInDay,JSON.parse(JSON.stringify(e)));
-    preserveExerciseDropdownValues(selectedVariantForAdd);
-    if(!updateCanonicalExerciseFromAdd(selectedVariantForAdd,e)) return;
-    save();renderAllCatalogLists();refreshAllStyledSelects();renderEquipmentOptions();closeModal();render();return;
-  }
-  // A seleção em Adicionar altera os dados do cadastro mestre existente.
-  // Nunca cria um novo item no catálogo por causa de edição de metadados.
-  preserveExerciseDropdownValues(selectedVariantForAdd);
-  if(!updateCanonicalExerciseFromAdd(selectedVariantForAdd,e)) return;
-
-  // Durante treino ativo, salvar metadados não pode alterar a distribuição
-  // dos exercícios pelos dias, nem as marcações já realizadas.
-  if(!restrictedBuildAdd()){
-    const originalSignature=exerciseVariationSignature(selectedVariantForAdd);
-    days.forEach(dayName=>{
-      (state.workouts[dayName]||[]).forEach(item=>{
-        if(exerciseVariationSignature(item)===originalSignature){
-          if(structuralEditAllowed()){item.name=e.name;item.muscle=e.muscle;item.equipment=e.equipment;item.execution=e.execution;item.grip=e.grip;}
-          item.sets=e.sets;
-          item.loads=JSON.parse(JSON.stringify(e.loads));
-          item.note=e.note;
-        }
-      });
-    });
-  }else{
-    // Fora do treino, preserva a movimentação original entre dias.
-    const originalSignature=exerciseVariationSignature(selectedVariantForAdd);
-    const sameVariant=item=>exerciseVariationSignature(item)===exerciseVariationSignature(e) || exerciseVariationSignature(item)===originalSignature;
-    days.forEach(dayName=>{
-      const list=state.workouts[dayName]||[];
-      for(let idx=list.length-1;idx>=0;idx--){
-        if(sameVariant(list[idx])){ list.splice(idx,1); shiftChecksForDayAfterDelete(dayName,idx); }
-      }
-    });
-    if(targetDay!=='-'){
-      state.workouts[targetDay]=state.workouts[targetDay]||[];
-      state.workouts[targetDay].push(e);
-    }
-  }
-}
-
-else{
-
-state.workouts[day][editIndex]=e;
-
-// O nome do exercício funciona como item de catálogo: ao renomeá-lo,
-// atualiza as ocorrências com o mesmo nome antigo em todos os dias.
-if(old.name){
-  const oldSignature=exerciseVariationSignature(old);
-  // Sincroniza somente as cópias da mesma variação, sem sobrescrever outras
-  // versões que compartilham o nome, mas possuem requisitos diferentes.
-  Object.values(state.workouts||{}).forEach(workout=>workout.forEach(ex=>{
-    if(ex!==e && exerciseVariationSignature(ex)===oldSignature){
-      Object.assign(ex,JSON.parse(JSON.stringify(e)));
-    }
-  }));
-}
-
-if(old.sets!==e.sets)
-clearChecks(editIndex);
-
-// Editar permite a mesma distribuição por dia que Adicionar, sem criar
-// registros de evolução ou alterar sessões concluídas.
-const targetDay=!structuralEditAllowed()?day:String(fDay.value||'-');
-if(targetDay!==day && (targetDay==='-' || days.includes(targetDay))){
-  const source=state.workouts[day];
-  const checks=(currentWeekData()[day+'_'+editIndex]||[]).slice();
-  source.splice(editIndex,1);
-  shiftChecksForDayAfterDelete(day,editIndex);
-  if(targetDay!=='-'){
-    const target=state.workouts[targetDay]||(state.workouts[targetDay]=[]);
-    const targetIndex=target.length;
-    target.push(e);
-    if(checks.length && !state.buildMode) currentWeekData()[targetDay+'_'+targetIndex]=checks;
-  }
-}
-
-}
-
-if(editIndex!==null) upsertExerciseCatalog(e,old||null);
-if(editIndex===null && fDay?.value==='-'){
-  save(); renderAllCatalogLists(); refreshAllStyledSelects(); renderEquipmentOptions(); closeModal();
-  document.getElementById('catalogFeedback')?.replaceChildren();
-  render(); return;
-}
-save();
-
-// Mantém a lista de exclusão sincronizada imediatamente após adicionar,
-// editar ou renomear um exercício. A lista é derivada dos treinos salvos.
-renderAllCatalogLists();
-refreshAllStyledSelects();
-
-// Atualiza imediatamente a lista suspensa compartilhada de equipamentos.
-renderEquipmentOptions();
-
-closeModal();
-
-render();
-
-
+ ev.preventDefault();if(catalogEditing){saveSharedCatalogExercise();return;}
+ const old=formOriginal();if(!old)return;
+ const adding=editIndex===null;
+ if(adding&&(!restrictedBuildAdd()||findExerciseWorkoutDay(old)!=='-')){if(hasWorkoutInProgress())ruleBusy();else showCatalogNotice('Exercício já vinculado','Este exercício já está em um dia da ficha atual. Selecione outro exercício.');return;}
+ const e=readExerciseForm(old);if(!e.name)return;
+ const active=hasWorkoutInProgress();
+ if(active&&(adding||e.sets!==Number(old.sets)||e.note!==(old.note||'')||exerciseVariationSignature(e)!==exerciseVariationSignature(old)||fDay.value!==day)){ruleBusy();return;}
+ if(!adding&&!structuralEditAllowed()&&['muscle','equipment','execution','grip'].some(k=>comparisonKey(e[k]||'-')!==comparisonKey(old[k]||'-'))){showCatalogNotice('Editar exercício','Conclua o treino e acesse Editar treino para alterar os atributos.');return;}
+ if(duplicateVariation(e,old)){variationCollision();return;}
+ if(!validFormAttributes(old,e))return;
+ recordUndo(adding?'Exercício adicionado':'Exercício editado');
+ if(adding){upsertExerciseCatalog(e,old);state.workouts[buildAddDay].push(structuredClone(e));}
+ else{
+  const sourceDay=day,idx=editIndex,targetDay=structuralEditAllowed()?fDay.value:day;
+  if(targetDay!==sourceDay&&targetDay!=='-'&&(state.workouts[targetDay]||[]).some(other=>sameExercise(other,old))){pendingUndoEntry=null;undoHistory.pop();showCatalogNotice('Exercício já vinculado','Este exercício já está em um dia da ficha atual.');return;}
+  const currentMarks=(currentWeekData()[day+'_'+idx]||[]).slice();
+  state.workouts[sourceDay][idx]=e;upsertExerciseCatalog(e,old);resizeRuleChecks(sourceDay,idx,e.sets);for(const d of days)(state.workouts[d]||[]).forEach((other,i)=>{if(other!==e&&sameExercise(other,old)){for(const k of ['id','name','muscle','equipment','execution','grip'])other[k]=e[k];}});
+  if(targetDay!==sourceDay&&(targetDay==='-'||days.includes(targetDay))){state.workouts[sourceDay].splice(idx,1);shiftChecksAfterDelete(idx);if(targetDay!=='-'){const target=state.workouts[targetDay];const n=target.length;target.push(e);if(currentMarks.length)weekData()[targetDay+'_'+n]=Array.from({length:e.sets},(_,j)=>currentMarks[j]===true);}}
+ }
+ if(!save())return;closeModal();renderAllCatalogLists();refreshAllStyledSelects();renderEquipmentOptions();render();
 }
 
 // ========================================
@@ -7493,17 +7356,7 @@ function shiftChecksAfterInsert(i){
   state.weeklyChecks[weekKey()]=next;
 }
 
-function duplicateExercise(i){
-  const original=state.workouts[day][i];
-  if(!original) return;
-  recordUndo('Exercício duplicado');
-  const copy=JSON.parse(JSON.stringify(original));
-  state.workouts[day].splice(i+1,0,copy);
-  upsertExerciseCatalog(copy);
-  shiftChecksAfterInsert(i);
-  save();
-  render();
-}
+function duplicateExercise(i){showCatalogNotice('Exercício já vinculado','Este exercício já está em um dia da ficha atual. Cadastre uma variação para adicionar outra versão.');}
 
 function replaceExercise(i){
   if(!structuralEditAllowed()) return;
@@ -7626,6 +7479,7 @@ function confirmDirectExerciseSwap(){
   const source=state.workouts[sourceDay]?.[sourceIndex];
   if(!target || !source) return;
 
+  if(duplicateLinks(state.workouts).length){showCatalogNotice('Exercícios vinculados mais de uma vez','Retire os vínculos repetidos antes de realizar esta troca.');return;}
   recordUndo('Exercícios trocados entre treinos');
   state.workouts[targetDay][targetIndex]=JSON.parse(JSON.stringify(source));
   state.workouts[sourceDay][sourceIndex]=JSON.parse(JSON.stringify(target));
@@ -7670,8 +7524,10 @@ function openDuplicateExerciseConfirm(selected,sourceDay,sourceIndex,targetIndex
 }
 
 function chooseReplacement(index){
+  if(!structuralEditAllowed()){if(hasWorkoutInProgress())ruleBusy();return;}
   const i=window.exerciseReplacementTarget;
-  const selected=window.exerciseReplacementCatalog?.[index];
+  const candidate=window.exerciseReplacementCatalog?.[index];
+  const selected=candidate&&state.exerciseCatalog.find(e=>e.id===candidate.id);
   if(!selected || !Number.isInteger(i) || !state.workouts[day][i]) return;
 
   // Só considera duplicado quando nome e características da variação coincidem.
@@ -7987,6 +7843,7 @@ function moveExerciseToDay(targetDay){
   const source=state.workouts[day]||[];
   const exercise=source[index];
   if(!exercise) return;
+  if(days.some(d=>d!==day&&(state.workouts[d]||[]).some(e=>sameExercise(e,exercise)))){showCatalogNotice('Exercício já vinculado','Este exercício já está em um dia da ficha atual.');return;}
   recordUndo('Exercício movido para outro dia');
   const checks=(currentWeekData()[day+'_'+index]||[]).slice();
   source.splice(index,1);
@@ -8031,32 +7888,22 @@ function renderCatalogList(category){
     </div>`).join(''):'<div class="catalog-empty">Nenhuma opção cadastrada.</div>';
 }
 function exerciseVariationSignature(ex){
-  return [ex?.name,ex?.muscle,ex?.equipment,ex?.execution,ex?.grip]
-    .map(v=>comparisonKey(v)).join('|');
+ return JSON.stringify([comparisonKey(ex?.name),...['muscle','equipment','execution','grip'].map(k=>comparisonKey(ex?.[k]||'-')||'-')]);
 }
 let exercisePickerVariants=[];
 // Marcações persistentes exibidas somente no menu suspenso de Adicionar.
 // Guardamos apenas as assinaturas dos exercícios ainda não selecionados.
 const NEW_EXERCISE_PICKER_STORAGE_KEY='smartWorkoutNewExercisePickerSignatures';
 function loadNewExercisePickerSignatures(){
-  try{
-    const saved=JSON.parse(localStorage.getItem(NEW_EXERCISE_PICKER_STORAGE_KEY)||'[]');
-    return new Set(Array.isArray(saved)?saved.filter(value=>typeof value==='string') : []);
-  }catch(error){
-    return new Set();
-  }
+ try{const source=Array.isArray(state.newExercisePickerSignatures)?state.newExercisePickerSignatures:JSON.parse(localStorage.getItem(NEW_EXERCISE_PICKER_STORAGE_KEY)||'[]');return normalizedNewMarkers(source,state.exerciseCatalog);}catch(_){return new Set();}
 }
 const newExercisePickerSignatures=loadNewExercisePickerSignatures();
-function persistNewExercisePickerSignatures(){
-  try{
-    localStorage.setItem(NEW_EXERCISE_PICKER_STORAGE_KEY,JSON.stringify([...newExercisePickerSignatures]));
-  }catch(error){}
-}
+function persistNewExercisePickerSignatures(defer=false){state.newExercisePickerSignatures=[...newExercisePickerSignatures];if(!defer&&!save()){newExercisePickerSignatures.clear();for(const sig of state.newExercisePickerSignatures||[])newExercisePickerSignatures.add(sig);}}
 function markNewExerciseForPicker(exercise){
   const signature=exerciseVariationSignature(exercise);
   if(!signature) return;
   newExercisePickerSignatures.add(signature);
-  persistNewExercisePickerSignatures();
+  persistNewExercisePickerSignatures(true);
 }
 function clearNewExercisePickerMark(exercise){
   const signature=exerciseVariationSignature(exercise);
@@ -8311,14 +8158,16 @@ function saveExerciseVariation(){
     )
   );
   if(same){
-    showCatalogNotice('Variação já cadastrada','Escolha pelo menos um atributo diferente. Essa combinação já existe.');
+    variationCollision();
     return;
   }
   state.exerciseCatalog=Array.isArray(state.exerciseCatalog)?state.exerciseCatalog:[];
+  recordUndo("Exercício cadastrado");
+  variation.id=identityForNew(variation,state);
   state.exerciseCatalog.push(variation);
   markNewExerciseForPicker(variation);
   preserveExerciseDropdownValues(variation);
-  save();
+  if(!save())return;
   const search=document.getElementById('exerciseCatalogSearch'); if(search) search.value='';
   renderAllCatalogLists();
   refreshAllStyledSelects();
@@ -8334,6 +8183,7 @@ function renderAllCatalogLists(){
 }
 let pendingCatalogDelete=null;
 function requestCatalogDelete(type,details){
+  if(type==='exercise' && ruleLinkedNotice(details.signature))return;
   pendingCatalogDelete={type,...details};
   const name=String(details.label??details.value??details.name??'').trim();
   document.getElementById('catalogDeleteConfirmMessage').textContent=
@@ -8361,6 +8211,7 @@ function getCatalogDependencyExercises(category,value){
   return [...unique.entries()];
 }
 function deleteCatalogValue(category,value){
+  if(hasWorkoutInProgress()&&Object.values(state.workouts).flat().some(e=>comparisonKey(e[category])===comparisonKey(value))){ruleBusy();return;}
   if(!catalogLabels[category] || !String(value).trim()) return;
   const dependencies=getCatalogDependencyExercises(category,value);
   if(dependencies.length){openCatalogDependencyDialog(category,value,dependencies);return;}
@@ -8385,8 +8236,10 @@ function saveCatalogDependencyChanges(){
   const pending=pendingCatalogDependency;if(!pending)return;
   const rows=[...document.querySelectorAll('#catalogDependencyList select')];
   if(!rows.length || rows.length!==pending.dependencies.length || rows.some(row=>!row.value)){showCatalogNotice('Substituição necessária','Selecione uma opção para cada exercício antes de excluir. Se não houver outra opção, cadastre uma nova primeiro.');return;}
-  recordUndo(`${catalogLabels[pending.category]} substituído e excluído do cadastro`);
   const replacements=new Map(rows.map(row=>[row.dataset.dependencySignature,row.value]));
+  const proposed=ex=>replacements.has(exerciseVariationSignature(ex))?{...ex,[pending.category]:replacements.get(exerciseVariationSignature(ex))}:ex;
+  if(!validateCatalogTransform(proposed))return;
+  recordUndo(`${catalogLabels[pending.category]} substituído e excluído do cadastro`);
   [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{
     const replacement=replacements.get(exerciseVariationSignature(ex));
     if(replacement) ex[pending.category]=replacement;
@@ -8399,18 +8252,20 @@ function performDeleteCatalogValue(category,value,skipUndo=false){
   if(!catalogLabels[category]) return;
   const normalized=comparisonKey(value);
   if(!normalized) return;
+  if(hasWorkoutInProgress()&&Object.values(state.workouts).flat().some(e=>comparisonKey(e[category])===normalized)){ruleBusy();return;}
   if(!skipUndo) recordUndo(`${catalogLabels[category]} excluído do cadastro`);
   state.catalogs=state.catalogs||{};
   state.catalogs[category]=(state.catalogs[category]||[]).filter(item=>comparisonKey(item)!==normalized);
   [...Object.values(state.workouts||{}).flat(),...(state.exerciseCatalog||[])].forEach(ex=>{
     if(comparisonKey(ex?.[category])===normalized) ex[category]=category==='muscle'?'':'-';
   });
-  save();renderAllCatalogLists();refreshAllStyledSelects();render();
+  if(!save())return;renderAllCatalogLists();refreshAllStyledSelects();render();
   document.getElementById('catalogFeedback').textContent=`Opção "${value}" excluída com sucesso.`;
 }
 
 let pendingCatalogEdit=null;
 function openCatalogEdit(category,value){
+  if(hasWorkoutInProgress()&&Object.values(state.workouts).flat().some(e=>comparisonKey(e[category])===comparisonKey(value))){ruleBusy();return;}
   pendingExerciseRename=null;
   pendingCatalogEdit={category,value};
   document.getElementById('catalogEditTitle').textContent=`Editar ${catalogLabels[category]}`;
@@ -8426,11 +8281,12 @@ function saveCatalogEdit(){
   if(!newValue){showCatalogNotice('Nome obrigatório','Digite um nome para continuar.');return;}
   const duplicate=getCatalogValues(category,false).some(v=>comparisonKey(v)===comparisonKey(newValue)&&comparisonKey(v)!==comparisonKey(oldValue));
   if(duplicate){showCatalogNotice('Opção já cadastrada',`Já existe uma opção com esse nome em ${catalogLabels[category]}.`);return;}
+  if(!validateCatalogTransform(ex=>comparisonKey(ex[category])===comparisonKey(oldValue)?{...ex,[category]:newValue}:ex))return;
   recordUndo(`${catalogLabels[category]} renomeado`);
   state.catalogs[category]=(state.catalogs[category]||[]).map(v=>comparisonKey(v)===comparisonKey(oldValue)?newValue:v);
   [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{if(comparisonKey(ex?.[category])===comparisonKey(oldValue))ex[category]=newValue;});
   if(category==='equipment'&&state.equipmentPrepositions){const oldKey=Object.keys(state.equipmentPrepositions).find(k=>comparisonKey(k)===comparisonKey(oldValue));if(oldKey){state.equipmentPrepositions[newValue]=state.equipmentPrepositions[oldKey];delete state.equipmentPrepositions[oldKey];}}
-  closeCatalogEdit();save();renderAllCatalogLists();refreshAllStyledSelects();render();
+  closeCatalogEdit();if(!save())return;renderAllCatalogLists();refreshAllStyledSelects();render();
   document.getElementById('catalogFeedback').textContent=`${catalogLabels[category]} atualizado para "${newValue}".`;
 }
 let pendingExerciseRename=null;
@@ -8440,17 +8296,13 @@ function openExerciseCatalogEdit(indexValue){
   editExercise(-1,null,ex);
 }
 function saveSharedCatalogExercise(){
-  const old=catalogEditing;if(!old)return;
-  const e={...old,name:fName.value.trim(),muscle:fMuscle.value.trim(),equipment:fEquipmentEdit.value||'-',execution:fExecution.value||'-',grip:fGrip.value||'-',sets:Math.max(1,Math.min(5,+fSets.value)),loads:readLoadFields(),note:fNote.value.trim()};
-  if(hasWorkoutInProgress())for(const k of ['name','muscle','equipment','execution','grip'])e[k]=old[k];
-  if(!e.name)return;
-  const sig=exerciseVariationSignature(old);
-  if((state.exerciseCatalog||[]).some(x=>exerciseVariationSignature(x)!==sig&&(exerciseVariationSignature(x)===exerciseVariationSignature(e)||(comparisonKey(e.name)!==comparisonKey(old.name)&&comparisonKey(x.name)===comparisonKey(e.name))))){showCatalogNotice('Exercício já cadastrado','Já existe um exercício com esse nome ou combinação de atributos.');return;}
-  recordUndo('Exercício editado no cadastro');preserveExerciseDropdownValues(old);
-  const affected=[];for(const d of days)(state.workouts[d]||[]).forEach((x,i)=>{if(exerciseVariationSignature(x)===sig)affected.push([d,i]);});
-  if(!updateCanonicalExerciseFromAdd(old,e))return;
-  if(old.sets!==e.sets)for(const [d,i] of affected)delete currentWeekData()[d+'_'+i];
-  save();closeModal();renderAllCatalogLists();refreshAllStyledSelects();renderEquipmentOptions();render();
+ const old=catalogEditing;if(!old)return;
+ if(hasWorkoutInProgress()&&findExerciseWorkoutDay(old)!=='-'){ruleBusy();return;}
+ const e=readExerciseForm(old);if(!e.name)return;
+ if(duplicateVariation(e,old)){variationCollision();return;}if(!validFormAttributes(old,e))return;
+ recordUndo('Exercício editado no cadastro');preserveExerciseDropdownValues(old);
+ if(!updateCanonicalExerciseFromAdd(old,e))return;
+ if(!save())return;closeModal();renderAllCatalogLists();refreshAllStyledSelects();renderEquipmentOptions();render();
 }
 function saveExerciseCatalogRename(){
   if(!pendingExerciseRename)return false;
@@ -8470,22 +8322,11 @@ function saveExerciseCatalogRename(){
   recordUndo('Exercício renomeado no cadastro');
   const oldSig=pendingExerciseRename.signature;
   [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{if(exerciseVariationSignature(ex)===oldSig)ex.name=newName;});
-  closeCatalogEdit();pendingExerciseRename=null;save();renderAllCatalogLists();refreshAllStyledSelects();render();
+  closeCatalogEdit();pendingExerciseRename=null;if(!save())return;renderAllCatalogLists();refreshAllStyledSelects();render();
   document.getElementById('catalogFeedback').textContent=`Exercício renomeado para "${newName}".`;return true;
 }
 function shiftChecksForDayAfterDelete(dayName,index){
-  state.weeklyChecks=state.weeklyChecks||{};
-  Object.keys(state.weeklyChecks).forEach(week=>{
-    const data=state.weeklyChecks[week]||{};
-    const next={};
-    Object.keys(data).forEach(key=>{
-      if(!key.startsWith(dayName+'_')){next[key]=data[key];return;}
-      const n=Number(key.slice(dayName.length+1));
-      if(!Number.isInteger(n)||n<index) next[key]=data[key];
-      else if(n>index) next[dayName+'_'+(n-1)]=data[key];
-    });
-    state.weeklyChecks[week]=next;
-  });
+ const data=weekData();const next={};Object.keys(data).forEach(key=>{if(!key.startsWith(dayName+'_')){next[key]=data[key];return;}const n=Number(key.slice(dayName.length+1));if(!Number.isInteger(n)||n<index)next[key]=data[key];else if(n>index)next[dayName+'_'+(n-1)]=data[key];});state.weeklyChecks[weekKey()]=next;
 }
 function deleteExerciseFromGlobalCatalog(indexValue){
   const variants=getAllExerciseVariants();
@@ -8496,10 +8337,11 @@ function deleteExerciseFromGlobalCatalog(indexValue){
   requestCatalogDelete('exercise',{signature:exerciseVariationSignature(exercise),label});
 }
 function performDeleteExerciseFromGlobalCatalog(signature,label){
-  if(!signature) return;
+  if(!signature || ruleLinkedNotice(signature)) return;
   recordUndo('Exercício excluído do cadastro geral');
   const matches=ex=>exerciseVariationSignature(ex)===signature;
   [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].filter(matches).forEach(preserveExerciseDropdownValues);
+  state.exerciseCatalog.filter(matches).forEach(e=>{(state.exerciseIdentity.retired||={})[exerciseVariationSignature(e)]=e.id;});
   state.exerciseCatalog=(state.exerciseCatalog||[]).filter(ex=>!matches(ex));
   days.forEach(dayName=>{
     const list=state.workouts[dayName]||[];
@@ -8509,6 +8351,7 @@ function performDeleteExerciseFromGlobalCatalog(signature,label){
   document.getElementById('catalogFeedback').textContent=`Exercício "${label||'variação'}" excluído com sucesso.`;
 }
 function showCatalogNotice(title,message){
+  document.getElementById('catalogNotice').style.zIndex='100000';
   document.getElementById('catalogNoticeTitle').textContent=title;
   document.getElementById('catalogNoticeMessage').textContent=message;
   document.getElementById('catalogNotice').hidden=false;
@@ -8528,7 +8371,6 @@ function saveEquipmentPreposition(){
   if(!pendingEquipmentPrepositionValue) return;
   state.equipmentPrepositions=state.equipmentPrepositions||{};
   state.equipmentPrepositions[pendingEquipmentPrepositionValue]=document.getElementById('equipmentPrepositionChoice').value;
-  save();
   const value=pendingEquipmentPrepositionValue;
   closeEquipmentPrepositionDialog();
   finishAddCatalogValue('equipment',value);
@@ -8539,7 +8381,7 @@ function finishAddCatalogValue(category,value){
   state.catalogs=state.catalogs||{muscle:[],equipment:[],execution:[],grip:[]};
   state.catalogs[category]=state.catalogs[category]||[];
   state.catalogs[category].push(value);
-  save();
+  if(!save())return;
   if(input) input.value='';
   document.getElementById('catalogFeedback').textContent=`${catalogLabels[category]} "${value}" cadastrado com sucesso.`;
   renderCatalogList(category);
@@ -8584,9 +8426,9 @@ function libraryDaysLabel(n){return n+' '+(n===1?'dia':'dias');}
 function libraryPeriodsHtml(t,current){const periods=t.periods,visible=periods.filter(p=>libraryPeriodDays(p)>=1);return `<div class="library-periods">${visible.length?`<small>${current&&visible.length===1&&visible[0].end==null?'Período atual':'Períodos de utilização'}</small>`:''}${visible.map(p=>`<div class="library-period-row"><span>${esc(p.start)} – ${p.end?esc(p.end):'Hoje'}</span><b>${libraryDaysLabel(libraryPeriodDays(p))}</b></div>`).join('')}<div class="library-period-row library-period-total"><span>Tempo total de utilização</span><b>${libraryDaysLabel(periods.reduce((sum,p)=>sum+libraryPeriodDays(p),0))}</b></div></div>`;}
 function librarySnapshot(){return structuredClone({workouts:state.workouts,checks:state.checks,notes:state.notes,weeklyChecks:state.weeklyChecks,sessions:state.sessions,selectedDay:day});}
 function libraryLocked(){return workoutStorageReadBlocked||hasWorkoutInProgress()||!!state.buildMode;}
-function openDataBackup(){document.getElementById("chooseImportBtn").disabled=libraryLocked();document.getElementById("dataBackupMenu").hidden=false;}
+function openDataBackup(){document.getElementById("chooseImportBtn").disabled=hasWorkoutInProgress()||!!state.buildMode;document.getElementById("dataBackupMenu").hidden=false;}
 function resetLibraryProgress(next){next.checks={};next.weeklyChecks={};next.sessions={};next.todayNoticeDismissedDate=null;next.todayNoticeResumeAt=null;}
-function concludeBuild(){if(!state.buildMode||workoutStorageReadBlocked)return;const next=structuredClone(state);next.buildMode=false;resetLibraryProgress(next);next.trainingLibrary.current.periods=[{start:libraryDate(),end:null,startAt:Date.now()}];if(commitLibrary(next)){closeBackupMenu();render();}}
+function concludeBuild(confirmed=false){if(!state.buildMode||workoutStorageReadBlocked)return;if(!confirmed&&!Object.values(state.workouts).some(a=>a.length)){ruleConfirm('Concluir construção','Nenhum exercício foi adicionado à ficha de treino. Deseja concluir a construção mesmo assim?',()=>concludeBuild(true));return;}const next=structuredClone(state);next.buildMode=false;resetLibraryProgress(next);next.trainingLibrary.current.periods=[{start:libraryDate(),end:null,startAt:Date.now()}];if(commitLibrary(next)){closeBackupMenu();render();}}
 function libraryIcon(type){const paths={rename:'<path d="m4 16 4 4 12-12-4-4L4 16v4h4"/>',view:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',delete:'<path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"/>',activate:'<path d="M3 12a9 9 0 1 1 3 7M3 5v7h7"/>'};return `<svg class="library-icon" viewBox="0 0 24 24" aria-hidden="true">${paths[type]}</svg>`;}
 let libraryTab="current";
 function setLibraryTab(tab){libraryTab=tab;renderTrainingLibrary();}
@@ -8594,15 +8436,20 @@ function renderTrainingLibrary(){const l=state.trainingLibrary,locked=libraryLoc
  for(const [id,tab] of [['libraryCurrentTab','current'],['libraryHistoryTab','history']]){const b=document.getElementById(id);b.setAttribute('aria-pressed',String(libraryTab===tab));}
  const warning=locked&&!state.buildMode?'<div class="library-card library-warning">TREINO EM ANDAMENTO OU ARMAZENAMENTO BLOQUEADO<br>Finalize o treino atual para criar ou trocar sua ficha de treino.</div>':'';
  const content=libraryTab==='current'?(state.emptyNewLibrary&&!Object.values(state.workouts).some(a=>a.length)&&!state.buildMode?'<p class="summary-page-intro">Nenhum treino cadastrado.</p>':card(l.current,true))+(state.buildMode?`<div class="workout-btn start active build-status library-build-status" role="status"><svg class="build-hammer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 12-8.4 8.4a2 2 0 0 1-2.8-2.8L12 9"/><path d="m18 15 4-4-3-3-2 2-3-3 2-2-3-3-4 4 3 3-1 1 3 3 1-1z"/></svg><span class="workout-label">NOVO TREINO EM CONSTRUÇÃO</span></div>`:`<button type="button" class="workout-btn start library-build-new" ${dis} onclick="requestLibrary('new')"><svg class="build-hammer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 12-8.4 8.4a2 2 0 0 1-2.8-2.8L12 9"/><path d="m18 15 4-4-3-3-2 2-3-3 2-2-3-3-4 4 3 3-1 1 3 3 1-1z"/></svg><span class="workout-label">CONSTRUIR NOVO TREINO</span></button>`):([...l.archived].sort((a,b)=>libraryDayNumber(b.archived)-libraryDayNumber(a.archived)).map(t=>card(t,false)).join('')||'<p class="summary-page-intro">Nenhum treino arquivado.</p>');
- document.getElementById('trainingLibrary').innerHTML=warning+content;document.getElementById('chooseImportBtn').disabled=locked;
+ document.getElementById('trainingLibrary').innerHTML=warning+content;document.getElementById('chooseImportBtn').disabled=hasWorkoutInProgress()||!!state.buildMode;
 }
 function openBackupMenu(){libraryTab="current";renderTrainingLibrary();const p=document.getElementById('backupMenuConfirm');p.hidden=false;p.scrollTop=0;document.body.classList.add('summary-page-open');}
 function closeBackupMenu(){document.getElementById('backupMenuConfirm').hidden=true;document.body.classList.remove('summary-page-open');}
 let libraryPending=null;
-function requestLibrary(action,id){if(libraryLocked())return;libraryPending={action,id};document.getElementById('libraryConfirmTitle').textContent=action==='new'?'Construir novo treino':action==='activate'?'Definir como treino atual':'Excluir treino arquivado?';document.getElementById('libraryConfirmText').textContent=action==='new'?'Seu treino atual deixará de aparecer para que você possa criar um novo treino do zero.':action==='activate'?'O treino anterior será arquivado e a ficha selecionada voltará à tela principal.':'Esta ficha será excluída definitivamente.';document.getElementById('libraryConfirm').hidden=false;}
+function requestLibrary(action,id){if(hasWorkoutInProgress()){ruleBusy();return;}if(libraryLocked())return;libraryPending={action,id};document.getElementById('libraryConfirmTitle').textContent=action==='new'?'Construir novo treino':action==='activate'?'Definir como treino atual':'Excluir treino arquivado?';document.getElementById('libraryConfirmText').textContent=action==='new'?'Seu treino atual deixará de aparecer para que você possa criar um novo treino do zero.':action==='activate'?'O treino anterior será arquivado e a ficha selecionada voltará à tela principal.':'Esta ficha será excluída definitivamente.';document.getElementById('libraryConfirm').hidden=false;}
 function closeLibraryConfirm(){libraryPending=null;document.getElementById('libraryConfirm').hidden=true;}
-function commitLibrary(next){if(workoutStorageReadBlocked)return false;const old=localStorage.getItem('smartWorkoutData');try{const raw=JSON.stringify(next);localStorage.setItem('smartWorkoutData',raw);if(localStorage.getItem('smartWorkoutData')!==raw)throw Error('Falha na gravação');}catch(e){try{if(old===null)localStorage.removeItem('smartWorkoutData');else localStorage.setItem('smartWorkoutData',old);}catch(_){}alert('Não foi possível salvar a alteração.');return false;}state=next;day=days.includes(next.selectedDay)?next.selectedDay:days[0];undoHistory.length=0;persistUndoHistory();hideUndo();exerciseCollapseOverrides.clear();render();renderTrainingLibrary();return true;}
-function confirmLibraryAction(){const p=libraryPending;closeLibraryConfirm();if(!p||libraryLocked())return;const next=structuredClone(state),l=next.trainingLibrary;const idx=l.archived.findIndex(t=>t.id===p.id);if(p.action==='delete'){if(idx<0)return;l.archived.splice(idx,1);}else{if(p.action==='activate'&&idx<0)return;const target=p.action==='activate'?l.archived.splice(idx,1)[0]:null;const today=libraryDate(),now=Date.now();l.current.periods[l.current.periods.length-1].end=today;l.current.periods[l.current.periods.length-1].endAt=now;if(!next.emptyNewLibrary||Object.values(next.workouts).some(a=>a.length))l.archived.unshift({...l.current,archived:today,snapshot:librarySnapshot()});delete next.emptyNewLibrary;if(target){const {snapshot,archived,...meta}=target;l.current=meta;l.current.periods.push({start:today,end:null,startAt:now});Object.assign(next,snapshot);resetLibraryProgress(next);}else{next.buildMode=true;const id=l.next++;l.current={id,name:'Treino '+String(id).padStart(2,'0'),created:today,periods:[{start:today,end:null,startAt:now}]};Object.assign(next,{workouts:Object.fromEntries(days.map(d=>[d,[]])),checks:{},notes:{},weeklyChecks:{},sessions:{},selectedDay:day});resetLibraryProgress(next);}}if(commitLibrary(next)&&p.action!=='delete'){setLibraryTab('current');document.getElementById('backupMenuConfirm').scrollTop=0;if(p.action==='new')closeBackupMenu();}}
+function commitLibrary(next){
+ if(workoutStorageReadBlocked)return false;const previous=state;
+ if(duplicateLinks(next.workouts).length){showCatalogNotice('Exercícios vinculados mais de uma vez','A ficha possui vínculos duplicados e não pode ser ativada. Nenhum dado foi alterado.');return false;}
+ reconcileIdentities(next);if(duplicateLinks(next.workouts).length){showCatalogNotice('Exercícios vinculados mais de uma vez','A ficha possui vínculos duplicados e não pode ser ativada. Nenhum dado foi alterado.');return false;}state=next;day=days.includes(next.selectedDay)?next.selectedDay:days[0];if(!save()){state=previous;return false;}
+ undoHistory.length=0;persistUndoHistory();hideUndo();exerciseCollapseOverrides.clear();render();renderTrainingLibrary();return true;
+}
+function confirmLibraryAction(){const p=libraryPending;closeLibraryConfirm();if(!p)return;if(hasWorkoutInProgress()){ruleBusy();return;}if(libraryLocked())return;const next=structuredClone(state),l=next.trainingLibrary;const idx=l.archived.findIndex(t=>t.id===p.id);if(p.action==='delete'){if(idx<0)return;l.archived.splice(idx,1);}else{if(p.action==='activate'&&idx<0)return;const target=p.action==='activate'?l.archived.splice(idx,1)[0]:null;const today=libraryDate(),now=Date.now();l.current.periods[l.current.periods.length-1].end=today;l.current.periods[l.current.periods.length-1].endAt=now;if(!next.emptyNewLibrary||Object.values(next.workouts).some(a=>a.length))l.archived.unshift({...l.current,archived:today,snapshot:librarySnapshot()});delete next.emptyNewLibrary;if(target){const {snapshot,archived,...meta}=target;l.current=meta;l.current.periods.push({start:today,end:null,startAt:now});Object.assign(next,snapshot);resetLibraryProgress(next);for(const ex of Object.values(next.workouts).flat()){const master=next.exerciseCatalog.find(e=>e.id===ex.id||next.exerciseIdentity?.aliases?.[ex.id]===e.id)||next.exerciseCatalog.find(e=>exerciseVariationSignature(e)===exerciseVariationSignature(ex));if(master)for(const k of ['id','name','muscle','equipment','execution','grip'])ex[k]=master[k];}}else{next.buildMode=true;const id=l.next++;l.current={id,name:'Treino '+String(id).padStart(2,'0'),created:today,periods:[{start:today,end:null,startAt:now}]};Object.assign(next,{workouts:Object.fromEntries(days.map(d=>[d,[]])),checks:{},notes:{},weeklyChecks:{},sessions:{},selectedDay:day});resetLibraryProgress(next);}}if(commitLibrary(next)&&p.action!=='delete'){setLibraryTab('current');document.getElementById('backupMenuConfirm').scrollTop=0;if(p.action==='new')closeBackupMenu();}}
 let libraryRenameId=null,libraryViewId=null;
 function renameLibrary(id){if(workoutStorageReadBlocked)return;const l=state.trainingLibrary,t=[l.current,...l.archived].find(x=>x.id===id);if(!t)return;libraryRenameId=id;const input=document.getElementById('libraryRenameInput');input.value=t.name;document.getElementById('libraryRename').hidden=false;input.focus();input.select();}
 function closeLibraryRename(){libraryRenameId=null;document.getElementById('libraryRename').hidden=true;}
@@ -8674,7 +8521,6 @@ function confirmResetDay(){
 const backupProfileKey='smartWorkoutProfileV1';
 function validateBackupProfile(profile){
   if(profile===null)return;
-  function updateGreeting(){let name='';try{name=JSON.parse(localStorage.getItem(key)||'{}').profileName||'';}catch(_){}document.querySelector('.greeting').textContent=name.trim()?'Olá, '+name.trim().split(/\s+/)[0]+'!':'Olá!';} updateGreeting();
  const fields=['profileName','profileBirth','profileHeight','profileWeight'];
   if(!profile||typeof profile!=='object'||Array.isArray(profile)||!fields.every(k=>typeof profile[k]==='string'&&profile[k].trim()))throw new Error('Perfil inválido');
   const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(profile.profileBirth);
@@ -8686,6 +8532,7 @@ function validateBackupProfile(profile){
   if(!(h>0&&w>0&&b>0&&Number.isFinite(b)))throw new Error('Altura ou peso inválido');
 }
 function exportData(){
+if(workoutStorageReadBlocked){showCatalogNotice('Backup indisponível','Os dados salvos não puderam ser lidos. Importe um backup válido para recuperá-los.');return;}
 let profile;
 try{
   profile=JSON.parse(localStorage.getItem(backupProfileKey)||'null');
@@ -8694,7 +8541,7 @@ try{
 
 const blob=new Blob(
 
-[JSON.stringify({...state,backupProfile:profile},null,2)],
+[JSON.stringify({...state,backupProfile:profile,backupSettings:collectBackupSettings()},null,2)],
 
 {type:'application/json'}
 
@@ -8727,64 +8574,16 @@ function closeImportBackupDialog(){
   document.getElementById('importBackupConfirm').hidden=true;
 }
 function importData(file){
- if(hasWorkoutInProgress())return;
-  const r=new FileReader();
-  r.onload=()=>{
-    try{
-      const parsed=JSON.parse(r.result);
-      if(!isValidWorkoutData(parsed)) throw new Error('Backup incompleto');
-      // Validar sem tocar nos dados atuais.
-      const hasProfile=Object.prototype.hasOwnProperty.call(parsed,'backupProfile');
-      const profile=parsed.backupProfile;
-      if(hasProfile)validateBackupProfile(profile);
-      delete parsed.backupProfile;
-      const imported=normalizeState(parsed);
-      if(!isValidWorkoutData(imported)) throw new Error('Backup inválido');
-      pendingImportedBackup={imported,hasProfile,profile};
-      document.getElementById('importBackupConfirm').hidden=false;
-    }catch(error){
-      console.error('Backup inválido:',error);
-      alert('Não foi possível ler esse backup. Nenhum dado foi alterado.');
-    }
-  };
-  r.onerror=()=>alert('Não foi possível abrir esse arquivo. Nenhum dado foi alterado.');
-  r.readAsText(file);
+ if(hasWorkoutInProgress()){ruleBusy();return;}if(state.buildMode)return;
+ const r=new FileReader();const invalid=()=>showCatalogNotice('Backup inválido','O arquivo selecionado está corrompido ou é incompatível com o aplicativo. Nenhum dado foi alterado.');
+ r.onload=()=>{try{const parsed=JSON.parse(r.result);if(!isValidWorkoutData(parsed))throw Error('Backup incompleto');const hasProfile=Object.prototype.hasOwnProperty.call(parsed,'backupProfile');const profile=parsed.backupProfile;if(hasProfile)validateBackupProfile(profile);const settings=validateBackupSettings(parsed.backupSettings);delete parsed.backupProfile;delete parsed.backupSettings;const imported=normalizeState(parsed);const markerSource=Array.isArray(imported.newExercisePickerSignatures)?imported.newExercisePickerSignatures:Object.hasOwn(settings,'smartWorkoutNewExercisePickerSignatures')?JSON.parse(settings.smartWorkoutNewExercisePickerSignatures||'[]'):[...newExercisePickerSignatures];imported.newExercisePickerSignatures=[...normalizedNewMarkers(markerSource,imported.exerciseCatalog)];if(!isValidWorkoutData(imported)||duplicateLinks(imported.workouts).length||new Set(imported.exerciseCatalog.map(exerciseVariationSignature)).size!==imported.exerciseCatalog.length||Object.values(imported.sessions).filter(v=>isWorkoutOpenStatus(v.status)).length>1)throw Error('Backup incompatível');if(hasWorkoutInProgress()){ruleBusy();return;}pendingImportedBackup={imported,hasProfile,profile,settings};document.getElementById('importBackupConfirm').hidden=false;}catch(e){console.warn(e);invalid();}};r.onerror=invalid;r.readAsText(file);
 }
 function confirmImportBackup(){
-  if(!pendingImportedBackup||hasWorkoutInProgress()||state.buildMode)return;
-  const {imported,hasProfile,profile}=pendingImportedBackup;
-  // Persistir e verificar primeiro; só depois trocar o estado em memória.
-  try{
-    const serialized=JSON.stringify(imported);
-    const previousWorkout=localStorage.getItem('smartWorkoutData');
-    const previousProfile=localStorage.getItem(backupProfileKey);
-    const restore=(key,value)=>value===null?localStorage.removeItem(key):localStorage.setItem(key,value);
-    try{
-      localStorage.setItem('smartWorkoutData',serialized);
-      if(localStorage.getItem('smartWorkoutData')!==serialized)throw new Error('Gravação não confirmada');
-      if(hasProfile){
-        const profileValue=profile===null?null:JSON.stringify(profile);
-        restore(backupProfileKey,profileValue);
-        if(localStorage.getItem(backupProfileKey)!==profileValue)throw new Error('Gravação do perfil não confirmada');
-      }
-    }catch(error){
-      try{restore('smartWorkoutData',previousWorkout);}catch(e){console.error('Falha ao restaurar treino:',e);}
-      if(hasProfile)try{restore(backupProfileKey,previousProfile);}catch(e){console.error('Falha ao restaurar perfil:',e);}
-      throw error;
-    }
-    workoutStorageReadBlocked=false;
-    state=imported;
-    undoHistory.length=0;persistUndoHistory();hideUndo();
-    day=days.includes(imported.selectedDay)?imported.selectedDay:days[0];
-    closeImportBackupDialog();
-    render();
-    if(!document.getElementById('backupMenuConfirm').hidden)renderTrainingLibrary();
-    alert('Backup importado!');
-  }catch(error){
-    console.error('Falha ao importar backup:',error);
-    closeImportBackupDialog();
-    alert('Não foi possível salvar o backup. Verifique o armazenamento do navegador.');
-  }
+ if(!pendingImportedBackup)return;if(hasWorkoutInProgress()){closeImportBackupDialog();ruleBusy();return;}if(state.buildMode)return;
+ const {imported,hasProfile,profile,settings}=pendingImportedBackup;const values={'smartWorkoutData':JSON.stringify(imported)};if(hasProfile)values[backupProfileKey]=profile===null?null:JSON.stringify(profile);Object.assign(values,settings);
+ let previous=null;try{previous=Object.fromEntries(Object.keys(values).map(k=>[k,localStorage.getItem(k)]));localStorage.setItem('smartWorkoutImportJournalV2',JSON.stringify(previous));if(previous.smartWorkoutData){let valid=false;try{valid=isValidWorkoutData(JSON.parse(previous.smartWorkoutData));}catch(_){}if(valid)localStorage.setItem('smartWorkoutRecoveryV2',previous.smartWorkoutData);}for(const [k,v] of Object.entries(values)){setStorageValue(k,v);if(localStorage.getItem(k)!==v)throw Error('Gravação não confirmada');}localStorage.removeItem('smartWorkoutImportJournalV2');}
+ catch(error){let restored=true;try{if(previous)for(const [k,v] of Object.entries(previous)){setStorageValue(k,v);if(localStorage.getItem(k)!==v)restored=false;}if(restored)localStorage.removeItem('smartWorkoutImportJournalV2');}catch(_){restored=false;}closeImportBackupDialog();if(!restored)workoutStorageReadBlocked=true;showCatalogNotice('Falha na importação',restored?'Não foi possível concluir a importação. Os dados anteriores foram preservados.':'Não foi possível confirmar a recuperação dos dados anteriores. Não faça novas alterações.');return;}
+ workoutStorageReadBlocked=false;state=imported;durableState=JSON.stringify(imported);undoHistory.length=0;pendingUndoEntry=null;persistUndoHistory();hideUndo();day=days.includes(imported.selectedDay)?imported.selectedDay:days[0];newExercisePickerSignatures.clear();for(const sig of imported.newExercisePickerSignatures||[])newExercisePickerSignatures.add(sig);updateImportedGreeting();closeImportBackupDialog();renderAllCatalogLists();refreshAllStyledSelects();render();if(!document.getElementById('backupMenuConfirm').hidden)renderTrainingLibrary();showCatalogNotice('Backup importado','Os dados do backup foram importados.');
 }
 
 // ========================================
@@ -8828,7 +8627,7 @@ document.getElementById('chooseExportBtn').onclick=()=>{document.getElementById(
 document.getElementById('cancelExportBackupBtn').onclick=()=>{document.getElementById('exportBackupConfirm').hidden=true;};
 document.getElementById('confirmExportBackupBtn').onclick=()=>{document.getElementById('exportBackupConfirm').hidden=true;exportData();};
 document.getElementById('exportBackupConfirm').addEventListener('click',e=>{if(e.target.id==='exportBackupConfirm')document.getElementById('exportBackupConfirm').hidden=true;});
-document.getElementById('chooseImportBtn').onclick=()=>{if(libraryLocked())return;importFile.click();};
+document.getElementById('chooseImportBtn').onclick=()=>{if(hasWorkoutInProgress()){ruleBusy();return;}if(state.buildMode)return;importFile.click();};
 document.getElementById('cancelImportBackupBtn').onclick=closeImportBackupDialog;
 document.getElementById('confirmImportBackupBtn').onclick=confirmImportBackup;
 document.getElementById('importBackupConfirm').addEventListener('click',e=>{if(e.target.id==='importBackupConfirm')closeImportBackupDialog();});
@@ -8907,8 +8706,9 @@ cancelBtn.onclick=closeModal;
 
 exerciseForm.onsubmit=saveExercise;
 function updateSetCount(nextValue){
+  if(hasWorkoutInProgress()&&findExerciseWorkoutDay(formOriginal())!=='-'){ruleBusy();return;}
   const currentLoads=readLoadFields();
-  const next=Math.max(1,Math.min(5,Math.trunc(Number(nextValue)||1)));
+  const next=Math.max(1,Math.min(Math.max(5,Number(fSets.value)||1),Math.trunc(Number(nextValue)||1)));
   fSets.value=next;
   // Mantém as cargas das séries que continuam existindo.
   // As novas séries recebem campos vazios.
@@ -8918,8 +8718,9 @@ function updateSetCount(nextValue){
 }
 
 fSets.addEventListener('input',()=>{
+  if(hasWorkoutInProgress()&&findExerciseWorkoutDay(formOriginal())!=='-'){fSets.value=formOriginal().sets;return;}
   const current=readLoadFields();
-  const next=Math.max(1,Math.min(5,Math.trunc(Number(fSets.value)||1)));
+  const next=Math.max(1,Math.min(Math.max(5,Number(formOriginal()?.sets)||1),Math.trunc(Number(fSets.value)||1)));
   if(fSets.value!=='') fSets.value=next;
   renderLoadFields(current,next);
   document.getElementById('decreaseSetsBtn').disabled=next<=1;
@@ -9236,26 +9037,18 @@ function weeklyStart(date){const d=new Date(date);d.setHours(0,0,0,0);d.setDate(
 function weeklyDateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function weeklyNumber(v){const str=String(v??'').trim();return /^\d+(?:[,.]\d+)?$/.test(str)?Number(str.replace(',','.')):null;}
 function weeklyGroups(){
- const groups=new Map(), active=state.workouts||{};
- const periods=weeklyPeriods(), oldest=periods[periods.length-1], end=new Date(periods[0]);end.setDate(end.getDate()+7);
- const add=(ex,d,priority)=>{const sig=summaryExerciseSignature(ex);let g=groups.get(sig);if(!g){g={signature:sig,name:ex.name,muscle:ex.muscle||'-',equipment:ex.equipment||'-',ids:[],day:d,priority};groups.set(sig,g);}if(ex.id&&!g.ids.includes(ex.id))g.ids.push(ex.id);if(priority>g.priority){g.day=d;g.priority=priority;}return g;};
- days.forEach(d=>(active[d]||[]).forEach(ex=>add(ex,d,2)));
- const records=[...(state.completedWorkouts||[])].filter(w=>{const t=new Date(w.finishedAt||w.startedAt||'');return t>=oldest&&t<end;}).sort((a,b)=>new Date(a.finishedAt)-new Date(b.finishedAt));
- for(const w of records)for(const ex of w.exercises||[]){
-  if(!days.includes(w.day)||!ex.completedSets?.some(Boolean))continue;
-  const candidates=[...groups.values()].filter(g=>g.ids.includes(ex.exerciseId));
-  const fallback=[...groups.values()].filter(g=>comparisonKey(g.name)===comparisonKey(ex.exerciseName)&&comparisonKey(g.muscle)===comparisonKey(ex.muscle||'-')&&comparisonKey(g.equipment)===comparisonKey(ex.equipment||'-'));
-  const g=candidates[0]||(fallback.length===1?fallback[0]:null)||add({id:ex.exerciseId,name:ex.exerciseName,muscle:ex.muscle,equipment:ex.equipment},w.day,1);
-  if(ex.exerciseId&&!g.ids.includes(ex.exerciseId))g.ids.push(ex.exerciseId);
-  if(g.priority<2)g.day=w.day;
- }
- return days.flatMap(d=>[...groups.values()].filter(g=>g.day===d).map(g=>({key:d+'|'+(g.ids[0]||g.signature),day:d,group:g})));
+ const groups=new Map();const periods=weeklyPeriods(),oldest=periods[periods.length-1],end=new Date(periods[0]);end.setDate(end.getDate()+7);
+ const catalog=state.exerciseCatalog||[];const add=(ex,d,priority,id)=>{const key=id||ex.id||exerciseVariationSignature(ex);let g=groups.get(key);if(!g){g={signature:exerciseVariationSignature(ex),name:ex.name,muscle:ex.muscle||'-',equipment:ex.equipment||'-',execution:ex.execution||'-',grip:ex.grip||'-',ids:[key],day:d,priority};groups.set(key,g);}if(priority>g.priority){Object.assign(g,{day:d,priority,name:ex.name,muscle:ex.muscle||'-',equipment:ex.equipment||'-'});}return g;};
+ days.forEach(d=>(state.workouts[d]||[]).forEach(ex=>add(ex,d,3,ex.id)));
+ const records=(state.completedWorkouts||[]).filter(w=>{const t=new Date(w.finishedAt||w.startedAt||'');return t>=oldest&&t<end;}).sort((a,b)=>new Date(a.finishedAt)-new Date(b.finishedAt));
+ for(const w of records)for(const ex of w.exercises||[]){if(!days.includes(w.day)||!ex.completedSets?.some(Boolean))continue;const id=historyIdentity(ex,state);const current=catalog.find(e=>e.id===id);const historical={name:ex.exerciseName,muscle:ex.muscle,equipment:ex.equipment,execution:ex.execution,grip:ex.grip};const g=add(current||historical,w.day,current?2:1,id);if(g.priority<3)g.day=w.day;}
+ return days.flatMap(d=>[...groups.values()].filter(g=>g.day===d).map(g=>({key:d+'|'+g.ids[0],day:d,group:g})));
 }
 function weeklyRecords(group,weekDate){
   const key=weeklyDateKey(weekDate), end=new Date(weekDate.getTime()+7*86400000);
   const ids=new Set(group.ids.map(String));
   const signature=ex=>summaryExerciseSignature(ex)===group.signature;
-  const matching=ex=>ids.has(String(ex.exerciseId||ex.id||'')) || (ex.exerciseName && comparisonKey(ex.exerciseName)===comparisonKey(group.name) && comparisonKey(ex.muscle||'')===comparisonKey(group.muscle||'') && comparisonKey(ex.equipment||'')===comparisonKey(group.equipment||''));
+  const matching=ex=>ids.has(String(historyIdentity(ex,state)));
   const records=[];
   // Instantâneos dos treinos encerrados preservam a carga da época e as séries pendentes.
   (state.completedWorkouts||[]).forEach(workout=>{
@@ -9635,6 +9428,8 @@ document.getElementById('summaryPage')?.addEventListener('scroll',persistUiState
 
 setupStyledSelects();
 setupEquipmentPicker();
+state.newExercisePickerSignatures=[...newExercisePickerSignatures];
+installVariationRules();
 allExercisesCollapsed=allExercisesCollapsedByDay[day]??true;
 exerciseCollapseOverrides.clear();
 render();
@@ -9643,7 +9438,7 @@ render();
 // Não apagar o estado salvo de treinos, séries ou histórico.
 (function openTodayWorkoutOnStartup(){
   const todayIndex=new Date().getDay();
-  const todayDay=days[todayIndex===0?0:todayIndex-1];
+  const todayDay=days.find(d=>isWorkoutOpenStatus(state.sessions?.[d]?.status))||days[todayIndex===0?0:todayIndex-1];
   if(day!==todayDay){
     day=todayDay;
     state.selectedDay=day;
@@ -10421,7 +10216,7 @@ main { padding-bottom: 4px !important; }
  form.addEventListener('input',update);
  window.openMyProfile=function(){form.reset();el('profileError').textContent='';try{const data=JSON.parse(localStorage.getItem(key)||'{}');fields.forEach(id=>el(id).value=typeof data[id]==='string'?data[id]:'');}catch(e){el('profileError').textContent='Não foi possível ler o perfil salvo.';}el('profileReference').open=false;page.hidden=false;document.body.classList.add('summary-page-open');page.scrollTop=0;update();};
  window.closeMyProfile=function(){page.hidden=true;document.body.classList.remove('summary-page-open');};
- form.addEventListener('submit',e=>{e.preventDefault();if(!update())return;try{const data={};fields.forEach(id=>data[id]=el(id).value.trim());const serialized=JSON.stringify(data);localStorage.setItem(key,serialized);if(localStorage.getItem(key)!==serialized)throw Error('Falha na gravação');updateGreeting();closeMyProfile();}catch(e){el('profileError').textContent='Não foi possível salvar o perfil. Tente novamente.';}});
+ form.addEventListener('submit',e=>{e.preventDefault();if(!update())return;try{const data={};fields.forEach(id=>data[id]=el(id).value.trim());const serialized=JSON.stringify(data),previous=localStorage.getItem(key);try{localStorage.setItem(key,serialized);if(localStorage.getItem(key)!==serialized)throw Error('Falha na gravação');}catch(error){try{setStorageValue(key,previous);}catch(_){}throw error;}updateGreeting();closeMyProfile();}catch(e){el('profileError').textContent='Não foi possível salvar o perfil. Tente novamente.';}});
 })();
 </script>
 <style>
@@ -11020,5 +10815,14 @@ function openVariationMenu(root,trigger,menu){
 #weeklyEvolutionPage h1,#backupMenuConfirm .summary-page-shell>h1,#infoCatalogModal #infoCatalogTitle{margin-bottom:7px!important;}
 </style>
 
+<script>
+function resizeRuleChecks(d,i,n){const data=currentWeekData(),k=d+'_'+i;if(Array.isArray(data[k]))data[k]=Array.from({length:n},(_,j)=>data[k][j]===true);}
+function ruleLinkedNotice(sig){const d=days.find(d=>(state.workouts[d]||[]).some(e=>exerciseVariationSignature(e)===sig));if(!d)return false;showCatalogNotice('Excluir exercício','Este exercício está vinculado ao treino atual. Retire-o da ficha antes de excluí-lo do cadastro.');const el=document.getElementById('catalogNoticeMessage');el.textContent='Este exercício está vinculado ao treino atual ';const b=document.createElement('strong');b.style.color='#d7ff00';b.textContent='('+weekdayFull(d)+')';el.append(b,document.createTextNode('.'),document.createElement('br'),document.createTextNode('Retire-o da ficha antes de excluí-lo do cadastro.'));return true;}
+function ruleConfirm(title,message,action,back=()=>{}){document.getElementById('ruleConfirmation')?.remove();const overlay=document.createElement('div');overlay.id='ruleConfirmation';overlay.className='confirm-backdrop';overlay.style.zIndex='99999';const panel=document.createElement('section');panel.className='confirm-dialog';panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');const h=document.createElement('h2');h.textContent=title;const p=document.createElement('p');p.textContent=message;const row=document.createElement('div');row.className='confirm-actions';for(const [label,fn] of [['Voltar',back],['Confirmar',action]]){const b=document.createElement('button');b.type='button';b.textContent=label;b.className='btn'+(label==='Confirmar'?' primary':'');b.onclick=()=>{overlay.remove();fn();};row.append(b);}panel.append(h,p,row);overlay.append(panel);document.body.append(overlay);}
+</script>
+<script>
+(function(){let last=weekKey();const check=()=>{const current=weekKey();if(current!==last){last=current;render();}};setInterval(check,10000);window.addEventListener("pageshow",check);document.addEventListener("visibilitychange",()=>{if(!document.hidden)check();});})();
+</script>
+<style>#loadsBySet.legacy-load-fields{display:grid!important;grid-template-columns:none!important;grid-auto-flow:column;grid-auto-columns:minmax(74px,calc((100% - 24px)/5));overflow-x:auto;scrollbar-width:none}#loadsBySet.legacy-load-fields::-webkit-scrollbar{display:none}</style>
 </body>
 </html>
