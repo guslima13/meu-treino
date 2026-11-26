@@ -10983,8 +10983,11 @@ function openVariationMenu(root,trigger,menu){
 #exerciseList .exercise .sets-table.legacy-extra-sets{grid-template-columns:none!important;grid-auto-columns:calc((100% - 16px)/5)!important;overflow-x:auto!important;overflow-y:hidden!important;}
 </style>
 <style>
-/* Seta geral: posição superior central, independente do estado do card. */
-#exerciseList .exercise .exhead>.exercise-collapse-all-btn{top:0!important;bottom:auto!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;z-index:3!important;}
+/* Seta geral: 3px do limite interno superior, com reserva vertical para o título. */
+#exerciseList .exercise .exhead>.exercise-collapse-all-btn{top:-9px!important;bottom:auto!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;z-index:3!important;}
+#exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn)>div:first-child>.exnum{box-sizing:border-box!important;min-height:22px!important;padding-top:0!important;max-width:calc(50% + 4px)!important;overflow-wrap:anywhere!important;}
+#exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn)>div:first-child>h3{margin-top:2px!important;}
+
 </style>
 </body>
 </html>
