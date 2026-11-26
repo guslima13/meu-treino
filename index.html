@@ -4858,7 +4858,7 @@ body.weekly-evolution-open{overflow:hidden}
       <span class="menu-item-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h14M4 12h10M4 18h10M19 10v8M15 14h8"/></svg></span><span>CADASTROS</span>
     </button>
     <button type="button" class="header-menu-item" onclick="closeHeaderMenu();openDataBackup()"><span class="menu-item-icon"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/></svg></span><span>BACKUP DE DADOS</span></button>
-    <div class="menu-version">Versão 1.0.8</div>
+    <div class="menu-version">Versão 1.0.9</div>
     </nav>
   </div>
 </div>
@@ -4945,7 +4945,7 @@ body.weekly-evolution-open{overflow:hidden}
 <div class="confirm-backdrop" id="resetConfirm" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="resetConfirmTitle">
     <h2 id="resetConfirmTitle">Reiniciar treino</h2>
-    <p>Todas as séries concluídas no treino anterior se manterão salvas no histórico.</p>
+    <p>Todas as séries concluídas no treino anterior permanecerão salvas no histórico.</p>
     <div class="confirm-actions">
       <button type="button" class="btn" id="cancelResetBtn">Voltar</button>
       <button type="button" class="btn primary" id="confirmResetBtn">Confirmar</button>
@@ -4989,7 +4989,7 @@ body.weekly-evolution-open{overflow:hidden}
 
 <div class="confirm-backdrop" id="equipmentPrepositionDialog" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="equipmentPrepositionTitle">
-    <h2 id="equipmentPrepositionTitle">Qual preposição quer usar?</h2>
+    <h2 id="equipmentPrepositionTitle">Qual preposição deseja utilizar?</h2>
     <p>Escolha como este equipamento deverá aparecer quando for necessário diferenciar exercícios com o mesmo nome.</p>
     <div class="field"><label for="equipmentPrepositionChoice">Preposição</label>
       <select id="equipmentPrepositionChoice">
@@ -5006,7 +5006,7 @@ body.weekly-evolution-open{overflow:hidden}
 <div class="confirm-backdrop" id="catalogDeleteConfirm" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogDeleteConfirmTitle">
     <h2 id="catalogDeleteConfirmTitle">Confirmar exclusão</h2>
-    <p id="catalogDeleteConfirmMessage">Quer realmente excluir este item do cadastro de informações?</p>
+    <p id="catalogDeleteConfirmMessage">Deseja excluir este item do cadastro?</p>
     <div class="confirm-actions">
       <button type="button" class="btn" id="cancelCatalogDeleteBtn">Cancelar</button>
       <button type="button" class="btn primary" id="confirmCatalogDeleteBtn">Excluir</button>
@@ -5531,7 +5531,7 @@ function undoLastAction(){
  const next=applyInverseAction(state,entry);if(!next)return;
  applyingUndo=true;const old=state;state=next;if(!save()){state=old;applyingUndo=false;return;}
  undoHistory.pop();persistUndoHistory();applyingUndo=false;renderAllCatalogLists();refreshAllStyledSelects();render();
- if(undoHistory.length){document.getElementById('undoMessage').textContent='Desfeito. '+undoHistory.length+' ação(ões) disponível(is)';document.getElementById('undoToast').classList.add('show');if(undoTimer)clearTimeout(undoTimer);undoTimer=setTimeout(hideUndo,5000);}else hideUndo();
+ if(undoHistory.length){document.getElementById('undoMessage').textContent='Desfeito. '+undoHistory.length+(undoHistory.length===1?' ação disponível':' ações disponíveis');document.getElementById('undoToast').classList.add('show');if(undoTimer)clearTimeout(undoTimer);undoTimer=setTimeout(hideUndo,5000);}else hideUndo();
 }
 
 
@@ -6272,7 +6272,7 @@ function showDayWorkoutPreview(targetDay,anchor){
         <small>${esc(ex.muscle||'Grupo muscular não informado')}</small>
       </div>
       <div class="day-preview-side">
-        <span>${Number(ex.sets)||1} séries</span>
+        <span>${Number(ex.sets)||1} ${(Number(ex.sets)||1)===1?'série':'séries'}</span>
         <small>${esc(ex.equipment||'Sem equipamento informado')}</small>
       </div>
     </div>`).join(''):'<div class="day-preview-empty">Nenhum exercício cadastrado</div>';
@@ -6450,8 +6450,7 @@ document.getElementById(
 document.getElementById(
 'weeklyDescription'
 ).textContent=
-weekly.done+' de '+weekly.total+
-' séries concluídas nesta semana.';
+weekly.done+' de '+weekly.total+(weekly.total===1?' série concluída nesta semana.':' séries concluídas nesta semana.');
 
 // EXERCÍCIOS
 
@@ -6570,7 +6569,7 @@ ${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><pat
 
 }).join('')
 
-:'<div class="empty">Nenhum exercício neste treino. Acesse “Meus treinos” e selecione “Editar treino” para começar.</div>';
+:'<div class="empty">Nenhum exercício cadastrado neste treino. Acesse “Meus treinos” e selecione “Editar treino” para começar.</div>';
 
 if(hasWorkoutInProgress()||state.buildMode)editingWorkout=false;
 if((state.buildMode||editingWorkout)&&!hasWorkoutInProgress()){const list=document.getElementById("exerciseList");list.querySelector(".empty")?.remove();list.insertAdjacentHTML("beforeend",`<button type="button" class="build-add-card" onclick="openBuildAdd()" aria-label="Adicionar exercício em ${esc(day)}">+</button>`);}
@@ -6652,7 +6651,7 @@ const weekly=weeklyTotals();
 const weeklyPercent=weekly.total?Math.min(100,weekly.done/weekly.total*100):0;
 document.getElementById('weeklyProgressBar').style.width=weeklyPercent+'%';
 document.getElementById('weeklyPercent').textContent=Math.round(weeklyPercent)+'%';
-document.getElementById('weeklyDescription').textContent=weekly.done+' de '+weekly.total+' séries concluídas nesta semana.';
+document.getElementById('weeklyDescription').textContent=weekly.done+' de '+weekly.total+(weekly.total===1?' série concluída nesta semana.':' séries concluídas nesta semana.');
 // Os botões de início/fim continuam sincronizados sem substituir os exercícios.
 renderWorkoutButtons();
 
@@ -7417,7 +7416,7 @@ function replaceExercise(i){
         ${groupMarkup}
       </div>
       <footer class="replace-modal-footer">
-        <span>${catalog.length} opções no catálogo</span>
+        <span>${catalog.length} ${catalog.length===1?'opção':'opções'} no catálogo</span>
         <button type="button" class="replace-cancel" onclick="closeReplaceModal()">Cancelar</button>
       </footer>
     </section>
@@ -8074,7 +8073,7 @@ function openExerciseVariation(name){
   summary.style.display=isNew?'none':'';
   summary.innerHTML=existing.map((ex,index)=>`
     <div class="variation-existing-item">
-      <p class="variation-existing-title">${existing.length>1?`Versão cadastrada ${index+1}`:'Requisitos já cadastrados'}</p>
+      <p class="variation-existing-title">${existing.length>1?`Versão cadastrada ${index+1}`:'Atributos já cadastrados'}</p>
       <div class="variation-existing-grid">
         <div class="variation-existing-field"><b>Grupo muscular</b><span>${esc(normalizeVariationValue(ex.muscle))}</span></div>
         <div class="variation-existing-field"><b>Equipamento</b><span>${esc(normalizeVariationValue(ex.equipment))}</span></div>
@@ -8159,7 +8158,7 @@ function requestCatalogDelete(type,details){
   pendingCatalogDelete={type,...details};
   const name=String(details.label??details.value??details.name??'').trim();
   document.getElementById('catalogDeleteConfirmMessage').textContent=
-    `Quer realmente excluir "${name}" do cadastro de informações?`;
+    `Deseja excluir "${name}" do cadastro?`;
   document.getElementById('catalogDeleteConfirm').hidden=false;
 }
 function closeCatalogDeleteDialog(){
@@ -8211,7 +8210,7 @@ function saveCatalogDependencyChanges(){
   const replacements=new Map(rows.map(row=>[row.dataset.dependencySignature,row.value]));
   const proposed=ex=>replacements.has(exerciseVariationSignature(ex))?{...ex,[pending.category]:replacements.get(exerciseVariationSignature(ex))}:ex;
   if(!validateCatalogTransform(proposed))return;
-  recordUndo(`${catalogLabels[pending.category]} substituído e excluído do cadastro`);
+  recordUndo(`${catalogLabels[pending.category]} ${['execution','grip'].includes(pending.category)?'substituída e excluída':'substituído e excluído'} do cadastro`);
   [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{
     const replacement=replacements.get(exerciseVariationSignature(ex));
     if(replacement) ex[pending.category]=replacement;
@@ -8225,7 +8224,7 @@ function performDeleteCatalogValue(category,value,skipUndo=false){
   const normalized=comparisonKey(value);
   if(!normalized) return;
   if(hasWorkoutInProgress()&&Object.values(state.workouts).flat().some(e=>comparisonKey(e[category])===normalized)){ruleBusy();return;}
-  if(!skipUndo) recordUndo(`${catalogLabels[category]} excluído do cadastro`);
+  if(!skipUndo) recordUndo(`${catalogLabels[category]} ${['execution','grip'].includes(category)?'excluída':'excluído'} do cadastro`);
   state.catalogs=state.catalogs||{};
   state.catalogs[category]=(state.catalogs[category]||[]).filter(item=>comparisonKey(item)!==normalized);
   [...Object.values(state.workouts||{}).flat(),...(state.exerciseCatalog||[])].forEach(ex=>{
@@ -8254,12 +8253,12 @@ function saveCatalogEdit(){
   const duplicate=getCatalogValues(category,false).some(v=>comparisonKey(v)===comparisonKey(newValue)&&comparisonKey(v)!==comparisonKey(oldValue));
   if(duplicate){showCatalogNotice('Opção já cadastrada',`Já existe uma opção com esse nome em ${catalogLabels[category]}.`);return;}
   if(!validateCatalogTransform(ex=>comparisonKey(ex[category])===comparisonKey(oldValue)?{...ex,[category]:newValue}:ex))return;
-  recordUndo(`${catalogLabels[category]} renomeado`);
+  recordUndo(`${catalogLabels[category]} ${['execution','grip'].includes(category)?'renomeada':'renomeado'}`);
   state.catalogs[category]=(state.catalogs[category]||[]).map(v=>comparisonKey(v)===comparisonKey(oldValue)?newValue:v);
   [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{if(comparisonKey(ex?.[category])===comparisonKey(oldValue))ex[category]=newValue;});
   if(category==='equipment'&&state.equipmentPrepositions){const oldKey=Object.keys(state.equipmentPrepositions).find(k=>comparisonKey(k)===comparisonKey(oldValue));if(oldKey){state.equipmentPrepositions[newValue]=state.equipmentPrepositions[oldKey];delete state.equipmentPrepositions[oldKey];}}
   closeCatalogEdit();if(!save())return;renderAllCatalogLists();refreshAllStyledSelects();render();
-  document.getElementById('catalogFeedback').textContent=`${catalogLabels[category]} atualizado para "${newValue}".`;
+  document.getElementById('catalogFeedback').textContent=`${catalogLabels[category]} ${['execution','grip'].includes(category)?'atualizada':'atualizado'} para "${newValue}".`;
 }
 let pendingExerciseRename=null;
 function openExerciseCatalogEdit(indexValue){
@@ -8356,7 +8355,7 @@ function finishAddCatalogValue(category,value){
   state.catalogs[category].push(value);
   if(!save())return;
   if(input) input.value='';
-  document.getElementById('catalogFeedback').textContent=`${catalogLabels[category]} "${value}" cadastrado com sucesso.`;
+  document.getElementById('catalogFeedback').textContent=`${catalogLabels[category]} "${value}" ${category==='execution'||category==='grip'?'cadastrada':'cadastrado'} com sucesso.`;
   renderCatalogList(category);
   refreshAllStyledSelects();
   renderAllCatalogLists();
@@ -8390,7 +8389,7 @@ function libraryMissing(ex){
  if(!master.some(x=>exerciseVariationSignature(x)===exerciseVariationSignature(ex))&&!missing.length)missing.push('exercise');
  return missing;
 }
-function libraryExerciseWarning(ex,i){const m=libraryMissing(ex);if(!m.length)return '';return `<div class="library-warning">${m.includes('exercise')?'Exercício excluído do catálogo':m.map(k=>esc(catalogLabels[k]||k)+' excluído: '+esc(ex[k])).join(' · ')} <button class="btn" ${hasWorkoutInProgress()?'disabled':''} onclick="${m.includes('exercise')?'replaceExercise':'editExercise'}(${i})">${m.includes('exercise')?'Substituir exercício':'Substituir atributo'}</button></div>`;}
+function libraryExerciseWarning(ex,i){const m=libraryMissing(ex);if(!m.length)return '';return `<div class="library-warning">${m.includes('exercise')?'Exercício excluído do catálogo':m.map(k=>esc(catalogLabels[k]||k)+(['execution','grip'].includes(k)?' excluída: ':' excluído: ')+esc(ex[k])).join(' · ')} <button class="btn" ${hasWorkoutInProgress()?'disabled':''} onclick="${m.includes('exercise')?'replaceExercise':'editExercise'}(${i})">${m.includes('exercise')?'Substituir exercício':'Substituir atributo'}</button></div>`;}
 function libraryDate(){return new Date().toLocaleDateString('pt-BR');}
 function libraryDayNumber(value){const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value||'');if(!m)return NaN;const d=new Date(Date.UTC(+m[3],+m[2]-1,+m[1]));return d.getUTCDate()===+m[1]&&d.getUTCMonth()===+m[2]-1&&d.getUTCFullYear()===+m[3]?d.getTime()/86400000:NaN;}
 function libraryEnsurePeriods(t,current){if(!Array.isArray(t.periods)){t.periods=[{start:t.created,end:current?null:t.archived}];}if(!t.periods.length||t.periods.some((p,i)=>!p||!Number.isFinite(libraryDayNumber(p.start))||(p.end==null?(!current||i!==t.periods.length-1):(!Number.isFinite(libraryDayNumber(p.end))||libraryDayNumber(p.end)<libraryDayNumber(p.start)))))throw Error('Períodos de utilização inválidos');if(current&&t.periods[t.periods.length-1].end!=null)throw Error('Período atual inválido');}
@@ -8439,7 +8438,7 @@ function concludeBuild(confirmed=false){if(!state.buildMode||workoutStorageReadB
 function libraryIcon(type){const paths={rename:'<path d="m4 16 4 4 12-12-4-4L4 16v4h4"/>',view:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',delete:'<path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"/>',activate:'<path d="M3 12a9 9 0 1 1 3 7M3 5v7h7"/>'};return `<svg class="library-icon" viewBox="0 0 24 24" aria-hidden="true">${paths[type]}</svg>`;}
 let libraryTab="current";
 function setLibraryTab(tab){libraryTab=tab;renderTrainingLibrary();}
-function renderTrainingLibrary(){const l=state.trainingLibrary,locked=libraryLocked(),dis=locked?'disabled':'';const card=(t,current)=>`<div class="library-card ${current?'library-current':''}"><small class="library-status">${current?(state.buildMode?'TREINO EM CONSTRUÇÃO':'TREINO ATUAL'):'ARQUIVADO'}</small><strong>${esc(t.name)}</strong><small>Criado em ${esc(t.created)}</small>${current?'':`<small>Arquivado em ${esc(t.archived)}</small>`}${current&&state.buildMode?`<small>${Object.values(state.workouts).flat().length} exercício(s) cadastrado(s)</small>`:libraryPeriodsHtml(t,current)}<div class="library-actions"><button class="btn" onclick="renameLibrary(${Number(t.id)})">${libraryIcon('rename')}Renomear</button><button class="btn" onclick="viewLibrary(${Number(t.id)})">${libraryIcon('view')}Visualizar</button>${current?'':`<button class="btn library-delete" ${dis} onclick="requestLibrary('delete',${Number(t.id)})">${libraryIcon('delete')}Excluir</button>`}</div>${current?'':`<button class="btn library-activate" ${dis} onclick="requestLibrary('activate',${Number(t.id)})">${libraryIcon('activate')}<span class="workout-label">DEFINIR COMO TREINO ATUAL</span></button>`}</div>`;
+function renderTrainingLibrary(){const l=state.trainingLibrary,locked=libraryLocked(),dis=locked?'disabled':'';const card=(t,current)=>`<div class="library-card ${current?'library-current':''}"><small class="library-status">${current?(state.buildMode?'TREINO EM CONSTRUÇÃO':'TREINO ATUAL'):'ARQUIVADO'}</small><strong>${esc(t.name)}</strong><small>Criado em ${esc(t.created)}</small>${current?'':`<small>Arquivado em ${esc(t.archived)}</small>`}${current&&state.buildMode?`<small>${Object.values(state.workouts).flat().length} ${Object.values(state.workouts).flat().length===1?'exercício cadastrado':'exercícios cadastrados'}</small>`:libraryPeriodsHtml(t,current)}<div class="library-actions"><button class="btn" onclick="renameLibrary(${Number(t.id)})">${libraryIcon('rename')}Renomear</button><button class="btn" onclick="viewLibrary(${Number(t.id)})">${libraryIcon('view')}Visualizar</button>${current?'':`<button class="btn library-delete" ${dis} onclick="requestLibrary('delete',${Number(t.id)})">${libraryIcon('delete')}Excluir</button>`}</div>${current?'':`<button class="btn library-activate" ${dis} onclick="requestLibrary('activate',${Number(t.id)})">${libraryIcon('activate')}<span class="workout-label">DEFINIR COMO TREINO ATUAL</span></button>`}</div>`;
  for(const [id,tab] of [['libraryCurrentTab','current'],['libraryHistoryTab','history']]){const b=document.getElementById(id);b.setAttribute('aria-pressed',String(libraryTab===tab));}
  const warning=locked&&!state.buildMode&&!editingWorkout?'<div class="library-card library-warning">TREINO EM ANDAMENTO OU ARMAZENAMENTO BLOQUEADO<br>Finalize o treino atual para criar ou trocar sua ficha de treino.</div>':'';
  const content=libraryTab==='current'?(state.emptyNewLibrary&&!Object.values(state.workouts).some(a=>a.length)&&!state.buildMode?'<p class="summary-page-intro">Nenhum treino cadastrado.</p>':card(l.current,true))+(state.buildMode?`<div class="workout-btn start active build-status library-build-status" role="status"><svg class="build-hammer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 12-8.4 8.4a2 2 0 0 1-2.8-2.8L12 9"/><path d="m18 15 4-4-3-3-2 2-3-3 2-2-3-3-4 4 3 3-1 1 3 3 1-1z"/></svg><span class="workout-label">NOVO TREINO EM CONSTRUÇÃO</span></div>`:editingWorkout?`<div class="workout-btn start active build-status library-build-status" role="status"><svg class="build-hammer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5L9 20l-6 1 1-6L16 3zM13 6l5 5"/></svg><span class="workout-label">EDIÇÃO EM ANDAMENTO</span></div>`:`<div class="library-mode-actions"><button type="button" class="workout-btn start library-build-new library-edit-current" ${dis} onclick="beginWorkoutEditing()"><svg class="build-hammer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5L9 20l-6 1 1-6L16 3zM13 6l5 5"/></svg><span class="workout-label">EDITAR TREINO</span></button><button type="button" class="workout-btn start library-build-new" ${dis} onclick="requestLibrary('new')"><svg class="build-hammer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 12-8.4 8.4a2 2 0 0 1-2.8-2.8L12 9"/><path d="m18 15 4-4-3-3-2 2-3-3 2-2-3-3-4 4 3 3-1 1 3 3 1-1z"/></svg><span class="workout-label">NOVO TREINO</span></button></div>`):([...l.archived].sort((a,b)=>libraryDayNumber(b.archived)-libraryDayNumber(a.archived)).map(t=>card(t,false)).join('')||'<p class="summary-page-intro">Nenhum treino arquivado.</p>');
@@ -8463,7 +8462,7 @@ function closeLibraryRename(){libraryRenameId=null;document.getElementById('libr
 document.getElementById('libraryRenameForm').addEventListener('submit',e=>{e.preventDefault();if(workoutStorageReadBlocked||libraryRenameId===null)return;const name=document.getElementById('libraryRenameInput').value.trim();if(!name)return;const next=structuredClone(state),l=next.trainingLibrary,t=[l.current,...l.archived].find(x=>x.id===libraryRenameId);if(!t)return;t.name=name;if(commitLibrary(next))closeLibraryRename();});
 function viewLibrary(id){libraryViewId=id;document.getElementById('libraryView').hidden=false;renderLibraryView(0);}
 function closeLibraryView(){libraryViewId=null;document.getElementById('libraryView').hidden=true;}
-function renderLibraryView(index){const l=state.trainingLibrary,t=[l.current,...l.archived].find(x=>x.id===libraryViewId);if(!t){closeLibraryView();return;}const workouts=t.id===l.current.id?state.workouts:t.snapshot.workouts;document.getElementById('libraryViewName').textContent=t.name;document.getElementById('libraryViewDate').textContent='Criado em '+t.created;document.getElementById('libraryViewDays').innerHTML=days.map((d,i)=>`<button class="btn ${i===index?'primary':''}" onclick="renderLibraryView(${i})" aria-pressed="${i===index}">${esc(d.slice(0,3))}</button>`).join('');document.getElementById('libraryViewDay').textContent=days[index];const list=workouts[days[index]]||[];document.getElementById('libraryViewList').scrollTop=0;document.getElementById('libraryViewList').innerHTML=list.map((ex,i)=>`<div class="library-view-row"><strong>${i+1}. ${esc(ex.name||'Exercício')}</strong><small>${esc(ex.muscle||'')} · ${Number(ex.sets)||1} séries${ex.equipment?' · '+esc(ex.equipment):''}</small></div>`).join('')||'<p>Nenhum exercício cadastrado neste dia.</p>';}
+function renderLibraryView(index){const l=state.trainingLibrary,t=[l.current,...l.archived].find(x=>x.id===libraryViewId);if(!t){closeLibraryView();return;}const workouts=t.id===l.current.id?state.workouts:t.snapshot.workouts;document.getElementById('libraryViewName').textContent=t.name;document.getElementById('libraryViewDate').textContent='Criado em '+t.created;document.getElementById('libraryViewDays').innerHTML=days.map((d,i)=>`<button class="btn ${i===index?'primary':''}" onclick="renderLibraryView(${i})" aria-pressed="${i===index}">${esc(d.slice(0,3))}</button>`).join('');document.getElementById('libraryViewDay').textContent=days[index];const list=workouts[days[index]]||[];document.getElementById('libraryViewList').scrollTop=0;document.getElementById('libraryViewList').innerHTML=list.map((ex,i)=>`<div class="library-view-row"><strong>${i+1}. ${esc(ex.name||'Exercício')}</strong><small>${esc(ex.muscle||'')} · ${Number(ex.sets)||1} ${(Number(ex.sets)||1)===1?'série':'séries'}${ex.equipment?' · '+esc(ex.equipment):''}</small></div>`).join('')||'<p>Nenhum exercício cadastrado neste dia.</p>';}
 for(const [id,close] of [['libraryRename',closeLibraryRename],['libraryView',closeLibraryView]])document.getElementById(id).addEventListener('click',e=>{if(e.target.id===id)close();});
 
 // ========================================
@@ -9118,13 +9117,13 @@ function renderWeeklyEvolution(){
       const items=w.records.flatMap((r,sessionIndex)=>[...(w.records.length>1?[`<div class="weekly-series-session">${esc(r.day)} · Treino ${sessionIndex+1}</div>`]:[]),...r.loads.map((load,j)=>seriesBlock(j,r.done[j]===true,load,r.aerobic))]);
       for(const p of w.planned){const max=w.records.filter(r=>r.day===p.day).reduce((m,r)=>Math.max(m,r.loads.length),0);if(max<p.sets&&w.records.length>1)items.push(`<div class="weekly-series-session">${esc(p.day)} · Séries previstas</div>`);for(let j=max;j<p.sets;j++)items.push(seriesBlock(j,false,'',aerobic));}
       const hasMissing=w.records.some(r=>r.done.some(v=>v!==true))||w.planned.some(p=>w.records.filter(r=>r.day===p.day).reduce((m,r)=>Math.max(m,r.loads.length),0)<p.sets);
-      const status=!w.records.length?(w.planned.length?(w.current?'Exercício pendente nesta semana.':'Exercício não realizado nesta semana.'):(w.known?'Exercício não previsto nesta semana.':'Sem registro de planejamento desta semana.')):hasMissing?(w.current?'Há séries pendentes.':'Há séries não realizadas.'):'Todas as séries registradas foram concluídas.';
+      const status=!w.records.length?(w.planned.length?(w.current?'Exercício pendente nesta semana.':'Exercício não realizado nesta semana.'):(w.known?'Exercício não previsto nesta semana.':'Sem registro do planejamento desta semana.')):hasMissing?(w.current?'Há séries pendentes.':'Há séries não realizadas.'):'Todas as séries registradas foram concluídas.';
       return `<article class="weekly-week-card${w.current?' weekly-current':''}"><div class="weekly-week-heading"><strong>${w.current?'Semana atual':'Semana '+i} · ${esc(w.label)}</strong></div>${items.length?`<div class="weekly-series">${items.join('')}</div>`:''}<p class="weekly-week-status">${esc(status)}</p></article>`;
     }).join('');
   }else{
     const chartWeeks=[...weeks].reverse(); // Da semana mais antiga à mais recente, para leitura temporal do gráfico.
     const available=chartWeeks.map((w,i)=>({...w,i})).filter(w=>w.average!==null);
-    if(!available.length){return '<div class="summary-empty-state">Ainda não há '+(aerobic?'tempos':'cargas numéricas')+' concluídos nas últimas cinco semanas para gerar o gráfico.</div>';}
+    if(!available.length){return '<div class="summary-empty-state">Ainda não há '+(aerobic?'tempos concluídos':'cargas numéricas concluídas')+' nas últimas cinco semanas para gerar o gráfico.</div>';}
     const width=680,height=270,left=65,right=30,top=28,bottom=58;
     const vals=available.map(w=>w.average), min=Math.min(...vals),max=Math.max(...vals),pad=Math.max((max-min)*.15,1),low=Math.max(0,min-pad),high=max+pad;
     const x=i=>left+i*(width-left-right)/4,y=v=>top+(high-v)/(high-low)*(height-top-bottom);
@@ -9329,7 +9328,7 @@ function summaryLoadsMarkup(){
     .filter(Boolean)
     .sort((a,b)=>new Date(a.finishedAt).getTime()-new Date(b.finishedAt).getTime())
     .slice(-3);
-  const historyMarkup=recentWorkouts.length?`<section class="summary-history-table-wrap"><h3>Últimos ${recentWorkouts.length} ${recentWorkouts.length===1?'treino finalizado':'treinos finalizados'}</h3><div class="summary-history-list">${[...recentWorkouts].reverse().map((workout,index)=>{
+  const historyMarkup=recentWorkouts.length?`<section class="summary-history-table-wrap"><h3>${recentWorkouts.length===1?'Último treino finalizado':`Últimos ${recentWorkouts.length} treinos finalizados`}</h3><div class="summary-history-list">${[...recentWorkouts].reverse().map((workout,index)=>{
     const date=new Date(workout.finishedAt).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
     const chips=(workout.exercise.loads||[]).map((load,setIndex)=>({load,setIndex})).filter(item=>Array.isArray(workout.exercise.completedSets)?workout.exercise.completedSets[item.setIndex]===true:true).map(({load,setIndex})=>`<span>${setIndex+1}: ${esc(summaryLoadValue(load,aerobic))}</span>`).join('');
     return `<article class="summary-history-session"><div class="summary-history-session-heading"><strong>${esc(workout.day)} · ${esc(date)}</strong><b>Média: ${esc(aerobic?formatDurationLabel(workout.average):summaryLoadValue(workout.average))}</b></div><div class="summary-load-chips">${chips}</div></article>`;
@@ -10229,9 +10228,9 @@ main { padding-bottom: 4px !important; }
  function number(v){return /^\d+(?:[,.]\d+)?$/.test(v.trim())?Number(v.trim().replace(',','.')):NaN;}
  function age(v){const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v);if(!m)return null;const d=+m[1],mo=+m[2],y=+m[3],now=new Date(),birth=new Date(y,mo-1,d);if(y<1900||birth>now||birth.getFullYear()!==y||birth.getMonth()!==mo-1||birth.getDate()!==d)return null;return now.getFullYear()-y-(now.getMonth()+1<mo||(now.getMonth()+1===mo&&now.getDate()<d)?1:0);}
  function update(){const a=age(el('profileBirth').value),h=number(el('profileHeight').value),w=number(el('profileWeight').value),b=h>0&&w>0?w/(h*h):NaN;const valid=Number.isFinite(b)&&b>0;const i=!valid||a===null||a<18?-1:b<18.5?0:b<25?1:b<30?2:b<35?3:b<40?4:5;
- el('profileAge').textContent=a===null?'—':a+' anos';el('profileImc').textContent=valid?b.toFixed(1).replace('.',','):'—';
+ el('profileAge').textContent=a===null?'—':a+(a===1?' ano':' anos');el('profileImc').textContent=valid?b.toFixed(1).replace('.',','):'—';
  const rows=Array.from(document.querySelectorAll('#profileReference tbody tr'));rows.forEach((r,j)=>r.classList.toggle('profile-current',i===j));
- el('profileClass').textContent=!valid?'Aguardando altura e peso':a===null?'Informe a data de nascimento':a<18?'Classificação de adultos não aplicável':rows[i].cells[1].textContent;
+ el('profileClass').textContent=!valid?'Aguardando altura e peso':a===null?'Informe a data de nascimento':a<18?'Classificação não aplicável a menores de 18 anos.':rows[i].cells[1].textContent;
  const ok=!!el('profileName').value.trim()&&a!==null&&valid;el('profileSave').disabled=!ok;return ok;}
  el('profileBirth').addEventListener('input',e=>{const s=e.target.value.replace(/\D/g,'').slice(0,8);e.target.value=s.length>4?s.slice(0,2)+'/'+s.slice(2,4)+'/'+s.slice(4):s.length>2?s.slice(0,2)+'/'+s.slice(2):s;});
  form.addEventListener('input',update);
@@ -10409,7 +10408,7 @@ button{font-family:inherit;}
 <script>
 function legacySyncEditDayButton(){const loc=document.getElementById('addLocation');loc.hidden=editIndex!==null;const adding=restrictedBuildAdd();document.getElementById('addLocationLabel').textContent=adding?'Adicionar ao treino de':'Localização na ficha atual';document.getElementById('addLocationValue').textContent=adding?(fDay.value||buildAddDay):(fNameSelect.value===''?'Nenhum exercício selecionado':(findExerciseWorkoutDay(exercisePickerVariants[Number(fNameSelect.value)])==='-'?'Fora do treino':findExerciseWorkoutDay(exercisePickerVariants[Number(fNameSelect.value)])));document.getElementById('addLocationChange').hidden=!adding;const b=document.getElementById('editDayOverviewBtn');b.hidden=editIndex===null;b.disabled=!!catalogEditing||!structuralEditAllowed();b.textContent=(fDay.value==='-'?'Fora do treino':fDay.value||'-')+(b.disabled?'':' · Alterar ›');}
 function closeEditDayOverview(){document.getElementById('editDayOverview').hidden=true;}
-function openEditDayOverview(){if(catalogEditing||(editIndex===null&&!restrictedBuildAdd())||!structuralEditAllowed())return;const panel=document.getElementById('editDayOverview');document.getElementById('editDayOverviewInfo').innerHTML='<strong>'+esc(fName.value)+'</strong><small>Dia atual: '+esc(day)+'</small>';document.getElementById('editDayOverviewList').innerHTML=(restrictedBuildAdd()?days:[...days,'-']).map(d=>{const list=state.workouts[d]||[];return `<div class="edit-day-card"><label><input type="radio" name="editDayDestination" value="${esc(d)}" ${d===fDay.value?'checked':''} onchange="updateEditDayProjection()"><strong>${d==='-'?'Sem dia vinculado':esc(d)}${d===day?' · ATUAL':''}</strong></label><small>${list.length} exercícios</small><details ${d===day?'open':''}><summary>Consultar exercícios</summary>${list.length?'<ol>'+list.map(e=>'<li>'+esc(e.name)+'</li>').join('')+'</ol>':'<small>Nenhum exercício cadastrado.</small>'}</details></div>`}).join('');panel.hidden=false;panel.scrollTop=0;updateEditDayProjection();}
+function openEditDayOverview(){if(catalogEditing||(editIndex===null&&!restrictedBuildAdd())||!structuralEditAllowed())return;const panel=document.getElementById('editDayOverview');document.getElementById('editDayOverviewInfo').innerHTML='<strong>'+esc(fName.value)+'</strong><small>Dia atual: '+esc(day)+'</small>';document.getElementById('editDayOverviewList').innerHTML=(restrictedBuildAdd()?days:[...days,'-']).map(d=>{const list=state.workouts[d]||[];return `<div class="edit-day-card"><label><input type="radio" name="editDayDestination" value="${esc(d)}" ${d===fDay.value?'checked':''} onchange="updateEditDayProjection()"><strong>${d==='-'?'Sem dia vinculado':esc(d)}${d===day?' · ATUAL':''}</strong></label><small>${list.length} ${list.length===1?'exercício':'exercícios'}</small><details ${d===day?'open':''}><summary>Consultar exercícios</summary>${list.length?'<ol>'+list.map(e=>'<li>'+esc(e.name)+'</li>').join('')+'</ol>':'<small>Nenhum exercício cadastrado.</small>'}</details></div>`}).join('');panel.hidden=false;panel.scrollTop=0;updateEditDayProjection();}
 function updateEditDayProjection(){document.getElementById('editDayProjection').hidden=true;}
 function confirmEditDayOverview(){if(!structuralEditAllowed())return;const d=document.querySelector('input[name=editDayDestination]:checked')?.value;if(d==='-'||days.includes(d)){fDay.value=d;refreshStyledSelect(fDay);syncEditDayButton();}closeEditDayOverview();}
 </script>
