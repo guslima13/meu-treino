@@ -14,6 +14,8 @@
 <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192-v2.png">
 
 <style>
+/* Base visual */
+
 :root{
 --bg:#0c0d0d;
 --panel:#171919;
@@ -4328,8 +4330,9 @@ main{padding-bottom:12px!important}
 /* Folga inferior para listas de atributos abertas no cadastro. */
 #duplicateExerciseDialog .duplicate-variation-dialog:has(.styled-select-menu:not([hidden])) { padding-bottom: 40px; }
 #duplicateExerciseDialog .duplicate-variation-dialog:has(#variationGrip ~ .styled-select-menu:not([hidden])) { padding-bottom: 64px; }
-</style>
-<style>
+
+/* Base visual */
+
 
 /* CORREÇÃO DEFINITIVA: seta do Progresso controlada pelo mesmo SVG dinâmico
    usado em "Expandir/Recolher todos os exercícios". */
@@ -4356,8 +4359,9 @@ main{padding-bottom:12px!important}
   stroke-linejoin: round !important;
 }
 
-</style>
-<style>
+
+/* Base visual */
+
 
 /* Android/WebView: seta do Progresso sempre aponta para baixo quando fechado.
    Ao expandir, gira 180 graus para cima com base no estado real do painel. */
@@ -4405,9 +4409,9 @@ main{padding-bottom:12px!important}
 /* A confirmação de troca direta deve ficar acima da janela de substituição. */
 #duplicateActiveExerciseConfirm{z-index:12000}
 
-</style>
 
-<style>
+/* Base visual */
+
 /* Alvos de toque discretos para as setas de expandir/recolher. */
 .exercise-collapse-row{
   min-height:36px!important;
@@ -4492,10 +4496,9 @@ main{padding-bottom:12px!important}
   .exercise-collapse-row{min-height:36px!important}
   .exercise-list-toolbar{height:36px!important;min-height:36px!important}
 }
-</style>
 
+/* index-current-request-adjustments */
 
-<style id="index-current-request-adjustments">
 /* Indicador ativo volta a ser uma bolinha pulsante, sem halter. */
 .workout-btn.start.active .workout-indicator{
   width:13px!important;height:13px!important;flex:0 0 13px!important;
@@ -4532,10 +4535,9 @@ main{padding-bottom:12px!important}
 .exercise-collapse-row .exercise-collapse-btn{position:relative;z-index:7}
 
 /* A seta global existe somente no primeiro card, conforme posição atual na lista. */
-</style>
 
+/* index-followup-adjustments */
 
-<style id="index-followup-adjustments">
 /* Distância uniforme entre símbolo e texto nos quatro estados dos dois botões. */
 .top-dashboard .workout-btn,
 .bottom-dashboard .workout-btn,
@@ -4607,10 +4609,9 @@ main{padding-bottom:12px!important}
   stroke:currentColor!important;
   stroke-width:2.5!important;
 }
-</style>
 
+/* index-spacing-and-font-followup */
 
-<style id="index-spacing-and-font-followup">
 /* Mantém acima do primeiro exercício o mesmo respiro visual usado
    entre o último card e o painel inferior de finalização. */
 #exerciseList > .exercise:first-child{
@@ -4628,17 +4629,15 @@ main{padding-bottom:12px!important}
     font-size:clamp(13px,3.4vw,15px)!important;
   }
 }
-</style>
 
+/* index-final-spacing-adjustment */
 
-<style id="index-final-spacing-adjustment">
 /* Espaço entre os indicadores concluídos e o botão Iniciar,
    igual ao respiro aplicado antes do painel inferior. */
 .top-dashboard{margin-top:9px!important}
-</style>
 
+/* index-progress-to-start-spacing */
 
-<style id="index-progress-to-start-spacing">
 /* Igualar o respiro entre os indicadores de progresso e o botão Iniciar
    ao espaço visual entre Finalizar e os controles Adicionar/Cadastro. */
 .progress-summary{
@@ -4662,10 +4661,9 @@ main{padding-bottom:24px!important}
 .workout-btn.start:disabled:not(.active){background:#252a29;color:#77817b;border-color:#343b38;cursor:not-allowed;opacity:.8}
 @media(max-width:600px){main{padding-bottom:18px!important}.summary-page h1{margin-bottom:10px}.summary-history-session-heading{align-items:flex-start;flex-direction:column;gap:4px}}
 
-</style>
 
+/* requested-icon-refinements-20261111 */
 
-<style id="requested-icon-refinements-20261111">
 /* Preserve the original start symbol at full visibility when another day blocks starting. */
 .workout-btn.start:disabled:not(.active) .workout-indicator{opacity:1!important}
 .workout-btn.start:disabled:not(.active) .workout-indicator svg{opacity:1!important;display:block!important}
@@ -4685,12 +4683,9 @@ main{padding-bottom:24px!important}
 /* Slightly enlarge only the menu glyph; the button, wrapper and their alignment stay unchanged. */
 .header-menu-trigger svg{width:26px!important;height:26px!important}
 .sticky-workout-bar .header-menu-trigger svg{width:30px!important;height:30px!important}
-</style>
 
+/* active-workout-pulse-enhancement */
 
-
-
-<style id="active-workout-pulse-enhancement">
 /* Pulsação ligeiramente mais evidente somente durante o treino ativo. */
 @keyframes activeWorkoutPulseEnhanced {
   0%, 100% { transform:scale(1); filter:drop-shadow(0 0 2px #d7ff0060); opacity:1; }
@@ -4701,9 +4696,9 @@ main{padding-bottom:24px!important}
   transform-origin:center center;
   box-shadow:0 0 0 2px #d7ff0025,0 0 3px #d7ff0055!important;
 }
-</style>
 
-<style>
+/* Base visual */
+
 .weekly-evolution-page[hidden]{display:none!important}
 .weekly-evolution-page{position:fixed;inset:0;z-index:110;overflow:auto;padding-bottom:28px}
 .weekly-evolution-page .eyebrow{color:var(--accent,#d7ff00)!important;font-size:10px;letter-spacing:.09em}
@@ -4724,9 +4719,9 @@ main{padding-bottom:24px!important}
 .weekly-chart-legend{font-size:12px;color:#b7c3ba;margin:10px 0 0}
 body.weekly-evolution-open{overflow:hidden}
 @media(max-width:600px){.weekly-evolution-page{padding-bottom:20px}.weekly-week-heading{align-items:flex-start;flex-direction:column;gap:3px}}
-</style>
 
-<style id="final-action-icons-approved-20261112">
+/* final-action-icons-approved-20261112 */
+
 /* Somente aparência: mantém o fluxo e o armazenamento originais. */
 .bottom-dashboard .finish-control #cancelWorkoutBtn,
 .bottom-dashboard .finish-control #resetBtn {
@@ -4754,8 +4749,9 @@ body.weekly-evolution-open{overflow:hidden}
   .bottom-dashboard .finish-control #cancelWorkoutBtn,
   .bottom-dashboard .finish-control #resetBtn{right:17px!important}
 }
-</style>
-<style id="workout-quick-actions-styles">
+
+/* workout-quick-actions-styles */
+
 /* Painel adicional: preserva os botões principais originais. */
 /* Espaçamento vertical uniforme, com ou sem painel de ações. */
 .bottom-dashboard{gap:12px!important;row-gap:12px!important;margin-top:12px!important;}
@@ -4786,35 +4782,42 @@ body.weekly-evolution-open{overflow:hidden}
 }
 /* Efeito visual de bloqueio no nome da tela Editar. */
 #modal.edit-mode #fName:disabled{opacity:.48!important;filter:grayscale(.55)!important;cursor:not-allowed!important;background:#222924!important;border-color:#3d483e!important;color:#9ba69b!important;-webkit-text-fill-color:#9ba69b!important}
-</style>
-<style>
+
+/* Base visual */
+
 .building-workout #startWorkoutBtn,.building-workout #finishWorkoutBtn,.building-workout #workoutQuickActions{display:none!important}#buildControls[hidden],#buildFinishBtn[hidden]{display:none!important}.build-status{cursor:default!important;pointer-events:none}.library-build-status{display:flex;flex-direction:row!important;flex-wrap:nowrap;align-items:center;justify-content:center;min-height:48px;gap:10px!important;border-radius:11px}.library-build-status .workout-label{font-size:clamp(13px,3.4vw,15px)} .build-add-card{width:100%;height:44px;border:1px dashed #8a9e59;border-radius:9px;background:#141714;color:#d7ff00;font-size:30px;line-height:1;cursor:pointer;margin:8px 0}#dataBackupMenu{z-index:9999} .building-workout .set-done-btn{pointer-events:none;opacity:.5}
-</style>
-<style> .exercise[data-reorder="true"] {user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab;touch-action:pan-y;} .exercise[data-reorder="true"].long-press-armed{cursor:grabbing;} </style>
-<style id="bottom-action-alignment">
+
+/* Base visual */
+ .exercise[data-reorder="true"] {user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab;touch-action:pan-y;} .exercise[data-reorder="true"].long-press-armed{cursor:grabbing;} 
+/* bottom-action-alignment */
+
 .bottom-dashboard .toolbar:not([hidden]){border-top:1px solid rgba(255,255,255,.10)!important;padding-top:12px!important;margin-top:0!important;}
 .bottom-dashboard .toolbar .icon-action{align-items:center!important;justify-content:center!important;text-align:center!important;padding-inline:7px!important;}
 .bottom-dashboard .toolbar .icon-action-label{font-size:13px!important;text-align:center!important;line-height:1.2!important;}
 .bottom-dashboard .toolbar .catalog-action-icon{display:flex;align-items:center;justify-content:center;width:18px;height:18px;flex:0 0 18px;font-size:18px;font-weight:800;line-height:1;color:inherit;}
 @media(max-width:600px){.bottom-dashboard .toolbar .icon-action-label{font-size:clamp(10px,3.25vw,12px)!important;}.bottom-dashboard .toolbar .catalog-action-icon{width:17px;height:17px;flex-basis:17px;}}
-</style>
-<style>
+
+/* Base visual */
+
 .summary-overview-card{flex-direction:row;flex-wrap:nowrap;min-height:34px!important;padding:5px 3px!important;gap:4px!important;white-space:nowrap;align-items:center;justify-content:center}
 .summary-overview-card strong{font-size:clamp(11px,3.2vw,18px);line-height:1.15;flex-shrink:0}
 .summary-overview-card span{font-size:clamp(7px,2vw,11px);line-height:1.15;white-space:nowrap}
 @media(max-width:360px){.summary-overview-cards{gap:4px}.summary-overview-card{gap:2px!important;padding-inline:2px!important}.summary-overview-card span{font-size:7px}}
-</style>
-<style id="bottom-action-final-sizing">
+
+/* bottom-action-final-sizing */
+
 .bottom-dashboard .toolbar .icon-action{gap:8px!important;align-items:center!important;justify-content:center!important;}
 .bottom-dashboard .toolbar .icon-action svg,.bottom-dashboard .toolbar .catalog-action-icon{width:20px!important;height:20px!important;flex:0 0 20px!important;}
 .bottom-dashboard .toolbar .catalog-action-icon{font-size:20px!important;line-height:1!important;}
 .bottom-dashboard .toolbar .icon-action-label{font-size:14px!important;line-height:1.15!important;width:auto!important;text-align:center!important;}
 @media(max-width:600px){.bottom-dashboard .toolbar .icon-action svg,.bottom-dashboard .toolbar .catalog-action-icon{width:19px!important;height:19px!important;flex-basis:19px!important;}.bottom-dashboard .toolbar .catalog-action-icon{font-size:19px!important;}.bottom-dashboard .toolbar .icon-action-label{font-size:clamp(11px,3.25vw,13px)!important;}}
-</style>
-<style id="exercise-title-unification">
+
+/* exercise-title-unification */
+
 #modal .dialog #modalTitle,#duplicateExerciseDialog.create-exercise-mode #duplicateExerciseTitle{font-size:20px!important;font-weight:800!important;line-height:24px!important;letter-spacing:0!important;text-align:left!important;margin:0 0 16px!important;padding:0!important}
 #duplicateExerciseDialog.create-exercise-mode .duplicate-variation-dialog{padding-top:16px!important;padding-left:16px!important;padding-right:16px!important;width:100%!important;max-width:420px!important;box-sizing:border-box!important}
 #duplicateExerciseDialog.create-exercise-mode .variation-intro{margin-top:0!important}
+
 </style>
 </head>
 
@@ -5271,7 +5274,7 @@ body.weekly-evolution-open{overflow:hidden}
 <label>Quantidade de séries</label>
 <div class="sets-count-control">
 <button type="button" id="decreaseSetsBtn" aria-label="Diminuir quantidade de séries">−</button>
-<input id="fSets" type="number" min="1" max="20" required>
+<input id="fSets" type="number" min="1" max="5" step="1" required>
 <button type="button" id="increaseSetsBtn" aria-label="Aumentar quantidade de séries">+</button>
 </div>
 </div>
@@ -6451,7 +6454,7 @@ ${i===0?`<button type="button" class="exercise-collapse-btn exercise-collapse-al
 
 
 
-<div class="sets-table" style="--set-columns:${Math.min(5,+e.sets||1)}">
+<div class="sets-table${+e.sets>5?' legacy-extra-sets':''}" style="--set-columns:${Math.min(5,+e.sets||1)}">
 
 <div class="sets-head">
 <span>Série</span>
@@ -6852,7 +6855,7 @@ function formatTimeValue(value){
 function renderLoadFields(loads,sets,aerobic=isAerobicExercise({muscle:fMuscle.value})){
   const container=document.getElementById('loadsBySet');
   if(!container) return;
-  const count=Math.max(1,Math.min(20,Number(sets)||1));
+  const count=Math.max(1,Math.min(5,Number(sets)||1));
   const abdominal=isAbdominalExercise({muscle:fMuscle.value});
   const label=document.getElementById('loadsLabel');
   if(label) label.textContent=aerobic?'Tempo de cada série':'Carga de cada série';
@@ -7167,7 +7170,7 @@ refreshAllStyledSelects();
 fSets.value=e.sets||4;
 
 document.getElementById('decreaseSetsBtn').disabled=(+fSets.value)<=1;
-document.getElementById('increaseSetsBtn').disabled=(+fSets.value)>=20;
+document.getElementById('increaseSetsBtn').disabled=(+fSets.value)>=5;
 
 fNote.value=e.note||'';
 if(fDay){ const weekdayOrder=['-','Segunda','Terça','Quarta','Quinta','Sexta','Sábado']; Array.from(fDay.options).sort((a,b)=>weekdayOrder.indexOf(a.value)-weekdayOrder.indexOf(b.value)).forEach(option=>fDay.appendChild(option)); fDay.value=i===null?(buildAddDay||'-'):day; fDay.closest('.field').hidden=false; fDay.disabled=hasWorkoutInProgress(); if(fDay.disabled && i===null) fDay.value='-'; refreshStyledSelect(fDay); }
@@ -7230,7 +7233,7 @@ function handleExerciseNameInput(selectedVariant=null){
   }
 
   document.getElementById('decreaseSetsBtn').disabled=(+fSets.value)<=1;
-  document.getElementById('increaseSetsBtn').disabled=(+fSets.value)>=20;
+  document.getElementById('increaseSetsBtn').disabled=(+fSets.value)>=5;
 }
 
 fMuscle.addEventListener('change',()=>{
@@ -7310,7 +7313,7 @@ grip:fGrip.value.trim()||'-',
 
 sets:Math.max(
 1,
-Math.min(20,+fSets.value)
+Math.min(5,+fSets.value)
 ),
 
 note:fNote.value.trim(),
@@ -8438,7 +8441,7 @@ function openExerciseCatalogEdit(indexValue){
 }
 function saveSharedCatalogExercise(){
   const old=catalogEditing;if(!old)return;
-  const e={...old,name:fName.value.trim(),muscle:fMuscle.value.trim(),equipment:fEquipmentEdit.value||'-',execution:fExecution.value||'-',grip:fGrip.value||'-',sets:Math.max(1,Math.min(20,+fSets.value)),loads:readLoadFields(),note:fNote.value.trim()};
+  const e={...old,name:fName.value.trim(),muscle:fMuscle.value.trim(),equipment:fEquipmentEdit.value||'-',execution:fExecution.value||'-',grip:fGrip.value||'-',sets:Math.max(1,Math.min(5,+fSets.value)),loads:readLoadFields(),note:fNote.value.trim()};
   if(hasWorkoutInProgress())for(const k of ['name','muscle','equipment','execution','grip'])e[k]=old[k];
   if(!e.name)return;
   const sig=exerciseVariationSignature(old);
@@ -8905,21 +8908,22 @@ cancelBtn.onclick=closeModal;
 exerciseForm.onsubmit=saveExercise;
 function updateSetCount(nextValue){
   const currentLoads=readLoadFields();
-  const next=Math.max(1,Math.min(20,Number(nextValue)||1));
+  const next=Math.max(1,Math.min(5,Math.trunc(Number(nextValue)||1)));
   fSets.value=next;
   // Mantém as cargas das séries que continuam existindo.
   // As novas séries recebem campos vazios.
   renderLoadFields(currentLoads,next);
   document.getElementById('decreaseSetsBtn').disabled=next<=1;
-  document.getElementById('increaseSetsBtn').disabled=next>=20;
+  document.getElementById('increaseSetsBtn').disabled=next>=5;
 }
 
 fSets.addEventListener('input',()=>{
   const current=readLoadFields();
-  const next=Math.max(1,Math.min(20,Number(fSets.value)||1));
+  const next=Math.max(1,Math.min(5,Math.trunc(Number(fSets.value)||1)));
+  if(fSets.value!=='') fSets.value=next;
   renderLoadFields(current,next);
   document.getElementById('decreaseSetsBtn').disabled=next<=1;
-  document.getElementById('increaseSetsBtn').disabled=next>=20;
+  document.getElementById('increaseSetsBtn').disabled=next>=5;
 });
 
 document.getElementById('decreaseSetsBtn').onclick=()=>{
@@ -9067,17 +9071,7 @@ function refreshStyledSelect(select){
       item.setAttribute('aria-selected',String(select.selectedIndex===index));
       item.disabled=option.disabled;
       if(option.disabled) item.setAttribute('aria-disabled','true');
-      let held=false;
-      if(select.id==='fDay'){
-        let timer=null,x=0,y=0;
-        const cancel=()=>{clearTimeout(timer);timer=null;};
-        item.addEventListener('pointerdown',e=>{held=false;x=e.clientX;y=e.clientY;cancel();timer=setTimeout(()=>{held=true;const wasOpen=item.nextElementSibling?.classList.contains('day-hold-preview');menu.querySelectorAll('.day-hold-preview').forEach(n=>n.remove());if(wasOpen)return;const preview=document.createElement('div');preview.className='day-hold-preview';const list=state.workouts[option.value]||[];preview.textContent=list.length?list.map((ex,i)=>(i+1)+'. '+ex.name).join('\n'):'Nenhum exercício cadastrado';item.after(preview);},400);});
-        item.addEventListener('pointermove',e=>{if(Math.hypot(e.clientX-x,e.clientY-y)>10)cancel();});
-        for(const event of ['pointerup','pointercancel','pointerleave'])item.addEventListener(event,cancel);
-        item.addEventListener('contextmenu',e=>e.preventDefault());
-      }
       item.addEventListener('click',()=>{
-        if(held){held=false;return;}
         if(option.disabled || select.disabled) return;
         // Restore the portaled menu before refreshing its select or firing listeners.
         closeStyledSelectMenu(menu);
@@ -9765,7 +9759,9 @@ if ('serviceWorker' in navigator) {
 
 
 
-<style id="combined-progress-summary-final">
+<style>
+/* combined-progress-summary-final */
+
 /* Bloco único: indicadores lado a lado e controle de expandir/recolher à direita. */
 .progress-summary{
   display:flex!important;
@@ -9801,7 +9797,7 @@ if ('serviceWorker' in navigator) {
 }
 .progress-summary .stat>span{display:flex!important;flex-wrap:wrap!important;align-items:baseline!important;gap:3px 5px!important;min-width:0!important}
 .progress-summary .stat b{font-size:clamp(13px,2vw,17px)!important;line-height:1.1!important}
-.progress-summary .stat small{font-size:clamp(9px,1.25vw,11px)!important;line-height:1.15!important;text-align:left!important}
+.progress-summary .stat small{font-size:clamp(10px,calc(1.25vw + 1px),12px)!important;line-height:1.15!important;text-align:left!important}
 .progress-summary .summary-stat-icon{width:17px!important;height:17px!important;flex:0 0 17px!important}
 .progress-summary #progressOverviewToggle{
   position:static!important;
@@ -9829,7 +9825,7 @@ if ('serviceWorker' in navigator) {
   .progress-summary .stat{gap:4px!important}
   .progress-summary .summary-stat-icon{width:15px!important;height:15px!important;flex-basis:15px!important}
   .progress-summary .stat b{font-size:12px!important}
-  .progress-summary .stat small{font-size:8px!important}
+  .progress-summary .stat small{font-size:9px!important}
   .progress-summary #progressOverviewToggle{flex-basis:24px!important;width:24px!important;min-width:24px!important}
 }
 /* Separador discreto entre os dois indicadores, sem deslocar o bloco ao expandir. */
@@ -9853,9 +9849,9 @@ if ('serviceWorker' in navigator) {
 .progress-summary #progressOverviewToggle[aria-expanded="false"] svg{
   transform:rotate(0deg)!important;
 }
-</style>
 
-<style id="progress-summary-layout-correction">
+/* progress-summary-layout-correction */
+
 /* O cabeçalho dos indicadores permanece estático; o painel abre abaixo dele. */
 #progressOverview{
   display:flex!important;
@@ -9924,10 +9920,9 @@ if ('serviceWorker' in navigator) {
   #progressOverview .progress-summary-divider{margin:0 1px!important}
   #progressOverview .progress-summary #progressOverviewToggle{flex-basis:25px!important;width:25px!important;min-width:25px!important}
 }
-</style>
 
+/* progress-summary-order-final-fix */
 
-<style id="progress-summary-order-final-fix">
 /* Ordem real do cabeçalho: séries | exercícios | seta no extremo direito. */
 #progressOverview .progress-summary .stat-sets{
   order:1!important;
@@ -9967,10 +9962,9 @@ if ('serviceWorker' in navigator) {
 #progressOverview .progress-summary #progressOverviewToggle[aria-expanded="false"] svg{
   transform:rotate(0deg)!important;
 }
-</style>
 
+/* progress-summary-spacing-and-centering-fix */
 
-<style id="progress-summary-spacing-and-centering-fix">
 /* Respiro consistente entre o resumo e o botão de iniciar treino. */
 #progressOverview{
   margin-bottom:18px!important;
@@ -10036,10 +10030,9 @@ if ('serviceWorker' in navigator) {
   #progressOverview > .progress-summary > .stat{padding:3px 2px!important}
   #progressOverview > .progress-summary > .stat > span{gap:3px!important}
 }
-</style>
 
+/* progress-to-start-spacing-match */
 
-<style id="progress-to-start-spacing-match">
 /* Distância equivalente ao respiro visual entre o botão Iniciar e o primeiro card:
    considera os intervalos vazios ao redor da barra de ferramentas dos exercícios. */
 #progressOverview{
@@ -10051,10 +10044,9 @@ if ('serviceWorker' in navigator) {
 @media(max-width:600px){
   #progressOverview{margin-bottom:26px!important}
 }
-</style>
 
+/* progress-to-start-spacing-equalized */
 
-<style id="progress-to-start-spacing-equalized">
 /* Mesmo espaçamento do botão Iniciar até o primeiro card de exercício. */
 #progressOverview{
   margin-bottom:12px!important;
@@ -10062,10 +10054,9 @@ if ('serviceWorker' in navigator) {
 #progressOverview + .top-dashboard{
   margin-top:0!important;
 }
-</style>
 
+/* exact-drag-handle-button-alignment */
 
-<style id="exact-drag-handle-button-alignment">
 .exercise.is-collapsed .exercise-drag-handle{
   display:inline-flex!important;
   align-items:center!important;
@@ -10082,10 +10073,9 @@ if ('serviceWorker' in navigator) {
   height:15px!important;
   margin:0!important;
 }
-</style>
 
+/* stable-drag-handle-geometry */
 
-<style id="stable-drag-handle-geometry">
 .exercise.is-collapsed .exercise-drag-handle,
 .exercise.is-collapsed .exercise-drag-handle:active,
 .exercise.is-collapsed .exercise-drag-handle:focus,
@@ -10119,10 +10109,9 @@ if ('serviceWorker' in navigator) {
   margin:0!important;
   transform:none!important;
 }
-</style>
 
+/* exercise-drag-scroll-fix-20261112 */
 
-<style id="exercise-drag-scroll-fix-20261112">
 /* Permite rolagem vertical iniciada sobre a alça. O arrasto continua
    exigindo pressão longa; não altera dimensões nem o aspecto do botão. */
 .exercise-drag-handle,
@@ -10131,8 +10120,9 @@ if ('serviceWorker' in navigator) {
 .exercise.is-collapsed .exercise-drag-handle.long-press-armed {
   touch-action:pan-y!important;
 }
-</style>
-<style id="drag-handle-stable-after-tap">
+
+/* drag-handle-stable-after-tap */
+
 .exercise.is-collapsed .exercise-drag-handle,
 .exercise.is-collapsed .exercise-drag-handle:hover,
 .exercise.is-collapsed .exercise-drag-handle:active,
@@ -10163,6 +10153,7 @@ if ('serviceWorker' in navigator) {
   margin:0!important;
   transform:none!important;
 }
+
 </style>
 
 
@@ -10388,11 +10379,14 @@ if ('serviceWorker' in navigator) {
 </script>
 <!-- Ajuste final de rodapé: declarado por último para prevalecer sobre estilos anteriores. -->
 <style>
+/* Base visual */
+
 /* Somente a área de respiro abaixo de Adicionar/Cadastro. */
 main { padding-bottom: 4px !important; }
 @media (max-width: 600px) { main { padding-bottom: 2px !important; } }
-</style>
-<style>
+
+/* Base visual */
+
 #myProfilePage .profile-shell{max-width:520px;margin:auto}
 #myProfilePage .profile-panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:12px}
 #myProfilePage .field{margin:0}
@@ -10409,6 +10403,7 @@ main { padding-bottom: 4px !important; }
 #myProfilePage .profile-save{width:100%;min-height:48px;margin-top:16px}
 #myProfilePage .profile-save:disabled{background:var(--panel2);border-color:var(--line);color:var(--muted);cursor:not-allowed}
 #myProfilePage .profile-error{color:var(--danger);font-size:13px}
+
 </style>
 <script>
 (function(){
@@ -10429,7 +10424,9 @@ main { padding-bottom: 4px !important; }
  form.addEventListener('submit',e=>{e.preventDefault();if(!update())return;try{const data={};fields.forEach(id=>data[id]=el(id).value.trim());const serialized=JSON.stringify(data);localStorage.setItem(key,serialized);if(localStorage.getItem(key)!==serialized)throw Error('Falha na gravação');updateGreeting();closeMyProfile();}catch(e){el('profileError').textContent='Não foi possível salvar o perfil. Tente novamente.';}});
 })();
 </script>
-<style id="official-collapse-controls-layout">
+<style>
+/* official-collapse-controls-layout */
+
 #exerciseList .exercise .exercise-collapse-row{
   transform:translateY(-6px)!important;
   margin-top:8px!important;
@@ -10439,17 +10436,18 @@ main { padding-bottom: 4px !important; }
   z-index:7;
 }
 #exerciseList .exercise.is-collapsed .exercise-collapse-row{margin-bottom:0!important}
-</style>
-<style id="official-add-card-spacing">
+
+/* official-add-card-spacing */
+
 /* Um único intervalo de 12px, sem somar margens dos elementos vizinhos. */
 #exerciseList:has(> .build-add-card){display:flex;flex-direction:column;gap:12px!important;margin:0!important;padding:0!important;}
 #exerciseList:has(> .build-add-card) > .exercise{margin:0!important;}
 #exerciseList > .build-add-card{display:block;flex:none;margin:0!important;}
 .top-dashboard:has(+ #exerciseList > .build-add-card){margin-bottom:12px!important;}
 main:has(#exerciseList > .build-add-card) .bottom-dashboard{margin-top:12px!important;}
-</style>
 
-<style>
+/* Base visual */
+
 /* Padronizacao dos subtitulos superiores em todas as paginas. */
 .summary-page-topline .eyebrow,
 .catalog-page-topline .eyebrow,
@@ -10460,9 +10458,9 @@ main:has(#exerciseList > .build-add-card) .bottom-dashboard{margin-top:12px!impo
   color:#d7ff00!important;
   text-transform:uppercase!important;
 }
-</style>
 
-<style id="button-family-typography">
+/* button-family-typography */
+
 /* Padronização por família: preserva dimensões, cores e estados. */
 button{font-family:inherit;}
 .top-dashboard .workout-btn,.bottom-dashboard .workout-btn,
@@ -10479,8 +10477,9 @@ button{font-family:inherit;}
 .exercise .iconbtn svg{width:19px!important;height:19px!important;stroke-width:1.8!important;}
 @media(max-width:600px){.bottom-dashboard .toolbar .icon-action-label{font-size:clamp(11px,3.25vw,13px)!important;}}
 @media(max-width:360px){.bottom-dashboard #buildFinishBtn .workout-label{font-size:13px!important;}}
-</style>
-<style>
+
+/* Base visual */
+
 /* Menu flutuante por categorias e halo do aviso de hoje. */
 .hero .header-menu{top:calc(100% + 8px)!important;border:1px solid #48564b!important;border-radius:17px!important;background:#222923!important;padding:12px!important;width:max-content;min-width:224px;max-width:calc(100vw - 28px);max-height:calc(100dvh - 100px);overflow-y:auto;box-shadow:0 14px 36px #0009!important;box-sizing:border-box}
 .hero .header-menu:before{display:none!important}
@@ -10499,8 +10498,9 @@ button{font-family:inherit;}
 .daynav .daybtn.today-notice::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;animation:todayNoticeHalo 2.6s ease-in-out infinite}
 @keyframes todayNoticeHalo{0%,100%{box-shadow:0 0 0 1px #d7ff0033,0 0 4px #d7ff0022}50%{box-shadow:0 0 0 3px #d7ff0066,0 0 13px #d7ff0077}}
 @media(prefers-reduced-motion:reduce){.daynav .daybtn.today-notice,.daynav .daybtn.today-notice::after{animation:none!important}.daynav .daybtn.today-notice::after{box-shadow:0 0 0 2px #d7ff0066}}
-</style>
-<style id="build-family-refinement">
+
+/* build-family-refinement */
+
 .summary-overview-card{height:42px!important;min-height:42px!important}
 .summary-overview-card strong{font-size:clamp(12px,3.6vw,20px)}
 .summary-overview-card span{font-size:clamp(7px,2.15vw,12px)}
@@ -10515,8 +10515,9 @@ button{font-family:inherit;}
 @media(max-width:600px){.library-build-new,.library-build-status{height:51px!important}}
 @media(max-width:360px){#buildControls .workout-label,#buildFinishBtn .workout-label,.library-build-status .workout-label,.library-build-new .workout-label{font-size:13px!important}}
 @media(prefers-reduced-motion:reduce){.build-status .build-hammer{animation:none!important}}
-</style>
-<style>
+
+/* Base visual */
+
 .hero .header-menu{top:100%!important;border-top-right-radius:0!important;background:#222923!important}
 .hero .header-menu-trigger.menu-open{background:#222923!important;border:1px solid #48564b!important;border-bottom-color:transparent!important;border-radius:10px 10px 0 0!important;position:relative;z-index:1001}
 .hero .header-menu-trigger.menu-open::after{content:"";position:absolute;bottom:-2px;left:0;right:0;height:3px;background:#222923;pointer-events:none}
@@ -10529,7 +10530,9 @@ button{font-family:inherit;}
 @keyframes todayMobilePulse{0%,100%{opacity:.15}50%{opacity:1}}
 .build-status .build-hammer{animation:hammerMobilePulse 2.6s ease-in-out infinite!important;will-change:opacity;transform:translateZ(0)}
 @keyframes hammerMobilePulse{0%,100%{opacity:1}50%{opacity:.25}}
-</style><style>
+
+/* Base visual */
+
 .sticky-workout-bar .header-menu-wrap{transform:translate(15px,-3px)}
 .library-card .library-activate{width:100%;height:55px!important;min-height:0!important;padding:7px 14px!important;gap:8px!important;border-radius:11px!important;font-size:15px!important;font-weight:900!important;letter-spacing:.025em!important;line-height:1.2!important;align-items:center;justify-content:center;white-space:normal;text-align:center}
 .library-card .library-activate .library-icon{width:19px;height:19px;flex:0 0 19px}
@@ -10537,6 +10540,7 @@ button{font-family:inherit;}
 @media(max-width:360px){.library-card .library-activate{font-size:13px!important}}
 #exerciseList .exercise-collapse-row:empty{display:none!important}
 #exerciseList .exercise[data-reorder="true"]{touch-action:manipulation!important}
+
 </style>
 <script>
 (()=>{
@@ -10550,8 +10554,12 @@ button{font-family:inherit;}
  window.addEventListener('pointerup',e=>{const p=press;press=null;if(!p||e.pointerId!==p.id)return;const now=performance.now();if(now-p.t>=350||free(e)!==p.card||!p.card.isConnected){last=null;return;}if(last&&last.card===p.card&&now-last.t<=350&&Math.hypot(e.clientX-last.x,e.clientY-last.y)<=35){last=null;const index=Number(p.card.dataset.exerciseIndex);if(!Number.isInteger(index))return;const collapsed=!p.card.classList.contains('is-collapsed');p.card.classList.toggle('is-collapsed',collapsed);exerciseCollapseOverrides.set(`${day}_${index}`,collapsed);updateExerciseListToggle();alignExerciseDragHandles();}else last={card:p.card,t:now,x:e.clientX,y:e.clientY};},{passive:true});
 })();
 </script><style>
+/* Base visual */
+
 #exerciseList .exercise .exercise-head-controls,#exerciseList .exercise .exercise-collapse-row,#exerciseList .exercise .actions{transition:none!important}
-</style><style id="workout-button-visual-unification">
+
+/* workout-button-visual-unification */
+
 /* Shared frame only: preserve state-specific border colors, backgrounds and text. */
 .workout-btn, .library-card .library-activate {
   border-width:1px!important;
@@ -10559,17 +10567,20 @@ button{font-family:inherit;}
   border-radius:11px!important;
   box-shadow:inset 0 1px 0 #ffffff0d,0 2px 5px #0003!important;
 }
-</style>
-<style id="library-main-button-type">
+
+/* library-main-button-type */
+
 .top-dashboard .workout-btn,.bottom-dashboard .workout-btn,#trainingLibrary .library-build-new,#trainingLibrary .library-build-status,#trainingLibrary .library-card .library-activate,
 .top-dashboard .workout-btn .workout-label,.bottom-dashboard .workout-btn .workout-label,#trainingLibrary .library-build-new .workout-label,#trainingLibrary .library-build-status .workout-label,#trainingLibrary .library-card .library-activate .workout-label{font-family:inherit!important;font-size:15px!important;font-weight:900!important;letter-spacing:.025em!important;line-height:1.2!important;text-transform:uppercase!important;text-align:center!important;}
 @media(max-width:360px){.top-dashboard .workout-btn .workout-label,.bottom-dashboard .workout-btn .workout-label,#trainingLibrary .library-build-new .workout-label,#trainingLibrary .library-build-status .workout-label,#trainingLibrary .library-card .library-activate .workout-label{font-size:13px!important;}}
-</style>
-<style>
+
+/* Base visual */
+
 #exerciseList .exercise:not(.is-collapsed) .actions{display:grid!important;grid-template-columns:30px!important;grid-template-rows:repeat(3,30px)!important;grid-auto-rows:30px!important;gap:5px!important;width:30px!important;align-content:start!important;justify-self:end!important;min-height:100px!important}
 #exerciseList .exercise .actions .iconbtn{width:30px!important;height:30px!important;min-width:30px!important}
 .edit-section-label{display:none}.existing-exercise .edit-section-label{display:block;color:#d7ff00;font-size:11px;font-weight:800;letter-spacing:.05em;border-top:1px solid #354139;padding-top:12px;margin:10px 0 4px}.existing-exercise #fDay+.styled-select,.existing-exercise .styled-select:has(#fDay){display:none!important}.existing-exercise #editDayOverviewBtn{width:100%;text-align:left;min-height:42px;color:#d7ff00}.existing-exercise #editDayOverviewBtn:disabled{color:var(--muted)}
 #editDayOverview{z-index:10020!important;overflow:auto;background:#0c0d0d}#editDayOverview .summary-page-shell{padding-bottom:24px}.edit-day-card{background:#181c1a;border:1px solid #36433b;border-radius:12px;padding:12px;margin:8px 0}.edit-day-card:has(input:checked){border-color:#d7ff00}.edit-day-card summary{cursor:pointer;color:#d7ff00;font-size:12px;margin-top:8px}.edit-day-card label{display:flex;align-items:center;gap:9px;color:inherit}.edit-day-card input{accent-color:#d7ff00;width:18px;height:18px}.edit-day-card small{display:block;color:var(--muted);margin:5px 0}.edit-day-card li{font-size:13px;margin:5px 0}.edit-day-footer{display:flex;justify-content:space-between;gap:10px;margin-top:15px}
+
 </style>
 <section id="editDayOverview" class="summary-page" hidden><div class="summary-page-shell"><div class="summary-page-topline"><span class="eyebrow">ORGANIZAÇÃO SEMANAL</span><button class="btn" onclick="closeEditDayOverview()">Voltar</button></div><h1>Alterar dia do exercício</h1><div id="editDayOverviewInfo" class="edit-day-card"></div><div id="editDayOverviewList"></div><div id="editDayProjection" class="edit-day-card" hidden></div><div class="edit-day-footer"><button class="btn" onclick="closeEditDayOverview()">Cancelar</button><button class="btn primary" onclick="confirmEditDayOverview()">Selecionar dia</button></div></div></section>
 <script>
@@ -10580,6 +10591,8 @@ function updateEditDayProjection(){document.getElementById('editDayProjection').
 function confirmEditDayOverview(){if(!structuralEditAllowed())return;const d=document.querySelector('input[name=editDayDestination]:checked')?.value;if(d==='-'||days.includes(d)){fDay.value=d;refreshStyledSelect(fDay);syncEditDayButton();}closeEditDayOverview();}
 </script>
 <style>
+/* Base visual */
+
 #modal:not(.existing-exercise) .edit-section-label{display:block;color:#d7ff00;font-size:11px;font-weight:800;letter-spacing:.05em;border-top:1px solid #354139;padding-top:12px;margin:10px 0 4px}
 #modal:not(.existing-exercise) .edit-organization>.field:has(#fDay){display:block!important}
 #modal:not(.existing-exercise) .edit-organization{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
@@ -10587,7 +10600,11 @@ function confirmEditDayOverview(){if(!structuralEditAllowed())return;const d=doc
 #addLocation:not([hidden]){display:grid;grid-template-columns:1fr auto;gap:4px 10px;background:#222d1c;border:1px solid #405332;border-radius:10px;padding:12px;margin:8px 0}
 #addLocation small{grid-column:1;color:#a4afa9}#addLocation strong{grid-column:1;color:#d7ff00;font-size:14px}#addLocationChange{grid-column:2;grid-row:1/3;color:#d7ff00}#addLocationChange[hidden]{display:none!important}
 .existing-exercise .add-attributes{display:none!important}.add-picker-heading{border-top:1px solid #354139;margin-top:5px}
-</style><style>#modal.modal.open{z-index:10010!important}.edit-day-card input{position:absolute;opacity:0;width:1px;height:1px}.edit-day-card label{cursor:pointer}.edit-day-card:has(input:checked){background:#252e19}.edit-day-card:has(input:checked) label{color:#d7ff00}#modal .add-attributes{display:block!important}</style><style>
+
+/* Base visual */
+#modal.modal.open{z-index:10010!important}.edit-day-card input{position:absolute;opacity:0;width:1px;height:1px}.edit-day-card label{cursor:pointer}.edit-day-card:has(input:checked){background:#252e19}.edit-day-card:has(input:checked) label{color:#d7ff00}#modal .add-attributes{display:block!important}
+/* Base visual */
+
 #modal .edit-section-label{display:none!important}
 #modal .edit-section-label:not(.add-attributes){display:block!important;height:1px!important;font-size:0!important;line-height:0!important;padding:0!important;margin:12px 0!important;border:0!important;background:#354139!important;overflow:hidden}
 #modal .edit-organization{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
@@ -10598,6 +10615,7 @@ function confirmEditDayOverview(){if(!structuralEditAllowed())return;const d=doc
 #duplicateExerciseDialog .duplicate-variation-dialog{max-height:calc(100dvh - 12px);padding-bottom:36px}
 .day-hold-preview{white-space:pre-line;font-size:12px;line-height:1.55;color:#c4cec7;background:#101614;border:1px solid #405332;border-radius:7px;padding:8px;margin:3px 5px;pointer-events:none}
 #modal .styled-select-option{touch-action:pan-y;user-select:none;-webkit-touch-callout:none}
+
 </style><script>
 function syncEditDayButton(){
  document.getElementById('addLocation').hidden=true;document.getElementById('editDayOverviewBtn').hidden=true;
@@ -10612,13 +10630,16 @@ function openVariationMenu(root,trigger,menu){
  Object.assign(menu.style,{position:'fixed',left:r.left+'px',width:r.width+'px',zIndex:'20000',maxHeight:Math.max(70,Math.min(420,Math.max(above,below)))+'px'});
  menu.hidden=false;const h=menu.getBoundingClientRect().height;menu.style.top=(below>=h||below>=above?r.bottom+gap:Math.max(8,r.top-gap-h))+'px';
 }
-</script><style id="add-series-day-layout">
+</script><style>
+/* add-series-day-layout */
+
 #modal:not(.existing-exercise) .edit-organization .sets-count-control{gap:clamp(3px,1.3vw,8px);width:100%}
 #modal:not(.existing-exercise) .edit-organization .sets-count-control button{width:clamp(30px,10vw,42px);flex-basis:clamp(30px,10vw,42px)}
 #modal:not(.existing-exercise) .edit-organization .styled-select:has(#fDay){display:block!important;width:100%;min-width:0}
 #modal:not(.existing-exercise) .edit-organization .styled-select:has(#fDay) .styled-select-trigger{width:100%;min-width:0}
-</style>
-<style id="exercise-uniform-spacing">
+
+/* exercise-uniform-spacing */
+
 /* Shared layout for add, card edit and catalog edit. */
 #modal .dialog,#modal.add-page-mode .dialog{box-sizing:border-box;padding:16px!important}
 #modal .dialog h2,#modal.add-page-mode .dialog h2{margin:0 0 16px!important;font-size:22px;line-height:1.2}
@@ -10640,8 +10661,9 @@ function openVariationMenu(root,trigger,menu){
 #modal #exerciseForm .modalactions{margin:2px 0 0!important;gap:10px;align-items:center;justify-content:space-between;flex-wrap:nowrap}
 #modal #exerciseForm .modalactions .btn{min-height:40px;height:40px;display:flex;align-items:center;justify-content:center;padding:0 12px;white-space:nowrap}
 #modal #exerciseForm [hidden]{display:none!important}
-</style>
-<style id="exercise-precise-alignment">
+
+/* exercise-precise-alignment */
+
 #modal.modal.open {padding:10px!important}
 #modal .exercise-page-shell {width:100%;max-width:420px;margin-inline:auto}
 #modal .dialog {width:100%!important;max-width:420px!important;margin-inline:auto!important;box-sizing:border-box!important}
@@ -10661,14 +10683,16 @@ function openVariationMenu(root,trigger,menu){
 #modal #exerciseForm .load-stepper button {height:auto!important;min-height:0!important;margin:0!important;font-size:13px!important;line-height:1!important}
 #modal #exerciseForm .modalactions .btn {font-family:inherit!important;font-size:13px!important;font-weight:700!important;line-height:16px!important;text-align:center!important;margin:0!important}
 #modal #exerciseForm [hidden] {display:none!important}
-</style>
-<style id="exercise-day-grid-fix">
+
+/* exercise-day-grid-fix */
+
 #modal #exerciseForm .edit-organization > .field:has(#fDay),
 #modal #exerciseForm .edit-organization > .field:has(#fSets){display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:15px 42px!important;row-gap:6px!important;align-content:start!important;align-items:start!important;margin:0!important;padding:0!important;min-width:0!important}
 #modal #exerciseForm .edit-organization .styled-select:has(#fDay),#modal #exerciseForm .edit-organization .sets-count-control{height:42px!important;min-height:42px!important;max-height:42px!important;margin:0!important;padding:0!important;box-sizing:border-box!important;align-self:start!important}
 #modal #exerciseForm .edit-organization .styled-select:has(#fDay) .styled-select-trigger{height:42px!important;min-height:42px!important;max-height:42px!important;width:100%!important;margin:0!important;box-sizing:border-box!important;align-items:center!important}
-</style>
-<style id="exercise-final-layout-audit">
+
+/* exercise-final-layout-audit */
+
 #modal.edit-mode.modal.open,#modal.add-page-mode.modal.open{padding:10px!important;box-sizing:border-box!important}
 #modal.edit-mode .exercise-page-shell,#modal.add-page-mode .exercise-page-shell{width:100%!important;max-width:420px!important;min-width:0!important}
 #modal.edit-mode .dialog,#modal.add-page-mode .dialog{width:100%!important;max-width:420px!important;padding:16px!important;box-sizing:border-box!important;overflow-y:auto!important;max-height:calc(100dvh - 20px)!important}
@@ -10683,8 +10707,9 @@ function openVariationMenu(root,trigger,menu){
 #modal #exerciseForm .load-stepper button{box-sizing:border-box!important;width:100%!important;min-width:0!important}
 #modal #exerciseForm .modalactions{padding:0!important;width:100%!important;box-sizing:border-box!important}
 #modal #exerciseForm [hidden]{display:none!important}
-</style>
-<style id="uniform-notice-dialogs">
+
+/* uniform-notice-dialogs */
+
 /* Shared notice geometry; content-heavy work dialogs retain their own layout. */
 .confirm-backdrop:not(#libraryView):not(#dataBackupMenu):not(#duplicateExerciseDialog):not(#catalogDependencyDialog):not(#catalogEditDialog):not(#equipmentPrepositionDialog):not(#libraryRename) {padding:16px;box-sizing:border-box}
 .confirm-backdrop:not(#libraryView):not(#dataBackupMenu):not(#duplicateExerciseDialog):not(#catalogDependencyDialog):not(#catalogEditDialog):not(#equipmentPrepositionDialog):not(#libraryRename) > .confirm-dialog {box-sizing:border-box;width:100%;max-width:420px;min-width:0;padding:16px;margin:0;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;text-align:left}
@@ -10696,8 +10721,9 @@ function openVariationMenu(root,trigger,menu){
 #historyReviewPrompt .confirm-dialog{max-width:420px}
 #historyReviewPrompt .history-periods p{font-size:14px;line-height:21px;margin:0}
 #historyReviewPrompt .history-periods p+p{margin-top:8px}
-</style>
-<style id="variation-layout-unified">
+
+/* variation-layout-unified */
+
 #duplicateExerciseDialog:not(.create-exercise-mode){padding:10px;box-sizing:border-box}
 #duplicateExerciseDialog:not(.create-exercise-mode) .duplicate-variation-dialog{width:100%;max-width:420px;box-sizing:border-box;padding:16px;max-height:calc(100dvh - 20px);overflow-y:auto}
 #duplicateExerciseDialog:not(.create-exercise-mode) #duplicateExerciseTitle{font-family:inherit;font-size:20px;line-height:24px;font-weight:800;letter-spacing:0;text-align:left;margin:0 0 16px;padding:0}
@@ -10719,8 +10745,9 @@ function openVariationMenu(root,trigger,menu){
 #duplicateExerciseDialog .field:has(#variationGrip){margin-bottom:0}
 #duplicateExerciseDialog .confirm-actions{margin:16px 0 0;gap:8px;justify-content:flex-end;align-items:center}
 #duplicateExerciseDialog .confirm-actions .btn{min-height:40px;font-size:13px;line-height:16px;padding:0 12px;display:flex;align-items:center;justify-content:center}
-</style>
-<style id="dependency-layout-unified">
+
+/* dependency-layout-unified */
+
 #catalogDependencyDialog{padding:10px!important;box-sizing:border-box}
 #catalogDependencyDialog > .confirm-dialog{display:flex;flex-direction:column;width:100%!important;max-width:420px!important;min-width:0;box-sizing:border-box;padding:16px!important;margin:0!important;max-height:calc(100dvh - 20px)!important;overflow:auto!important;gap:0!important}
 #catalogDependencyDialog #catalogDependencyTitle{flex:none;font-family:inherit;font-size:20px!important;line-height:24px!important;font-weight:800!important;letter-spacing:0;text-align:left;margin:0 0 16px!important;padding:0!important}
@@ -10734,14 +10761,16 @@ function openVariationMenu(root,trigger,menu){
 #catalogDependencyDialog .styled-select-arrow{margin:0 0 0 auto;align-self:center}
 #catalogDependencyDialog .confirm-actions{flex:none;margin:16px 0 0!important;padding:0!important;gap:8px;align-items:stretch;justify-content:flex-end}
 #catalogDependencyDialog .confirm-actions .btn{min-height:40px;font-size:13px!important;line-height:16px!important;padding:8px 12px!important;margin:0;display:flex;align-items:center;justify-content:center}
-</style>
-<style>
+
+/* Base visual */
+
 .library-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;margin:12px 0;}
 .library-tabs .btn,.library-tabs .btn[aria-pressed="true"]{box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-width:0;min-height:39px;height:39px;padding:0 3px!important;background:transparent!important;border:0!important;border-bottom:3px solid #303a33!important;border-radius:0!important;box-shadow:none!important;color:#a0aaa3!important;white-space:normal;}
 .library-tabs .btn[aria-pressed="true"]{color:#d7ff00!important;border-bottom-color:#d7ff00!important;}
 .library-tabs .btn:focus-visible{outline:2px solid #d7ff00;outline-offset:2px;}
-</style>
-<style id="summary-minimal-unified">
+
+/* summary-minimal-unified */
+
 #summaryPage .summary-overview-cards{gap:0!important;margin:16px 0!important;align-items:center}
 #summaryPage .summary-overview-card{background:none!important;border:0!important;border-radius:0!important;flex-direction:column!important;height:auto!important;min-height:48px!important;padding:0 4px!important;gap:6px!important;white-space:normal!important;box-sizing:border-box}
 #summaryPage .summary-overview-card+ .summary-overview-card{border-left:1px solid #354039!important}
@@ -10756,14 +10785,14 @@ function openVariationMenu(root,trigger,menu){
 #summaryPage .summary-day-heading{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0!important;padding:0!important}
 #summaryPage .summary-day-heading::-webkit-details-marker{display:none}
 #summaryPage .summary-day-heading h3{font-size:14px;line-height:20px;margin:0 0 4px}
-#summaryPage .summary-day-heading span{font-size:12px;line-height:16px;color:var(--muted);white-space:normal}
+#summaryPage .summary-day-heading span{font-size:11px;line-height:16px;color:#d7ff00;white-space:normal}
 #summaryPage .summary-day-heading svg{color:#d7ff00;flex:none}
 #summaryPage details[open] .summary-day-heading svg{transform:rotate(180deg)}
 #summaryPage details[open] .summary-exercise-list,#summaryPage details[open] .summary-empty-day{margin-top:12px}
 #summaryPage .summary-day-heading:focus-visible,#summaryTabs .summary-tab:focus-visible{outline:2px solid #d7ff00;outline-offset:2px}
-</style>
 
-<style id="compact-summary-evolution-final">
+/* compact-summary-evolution-final */
+
 #summaryPage .summary-overview-cards{margin:10px 0 12px!important;gap:0!important;grid-template-columns:repeat(3,minmax(0,1fr))}
 #summaryPage .summary-overview-card{min-height:0!important;height:auto!important;gap:2px!important;position:relative;padding:0 4px!important}
 #summaryPage .summary-overview-card+.summary-overview-card{border-left:0!important}
@@ -10788,10 +10817,13 @@ function openVariationMenu(root,trigger,menu){
 .evolution-info .summary-page-footnote{margin:0 0 8px;font-size:12px;line-height:18px}
 #duplicateExerciseDialog:not(.create-exercise-mode) .variation-intro{margin-bottom:14px!important}
 #duplicateExerciseDialog:not(.create-exercise-mode) .variation-existing-summary{margin-top:0!important}
-</style>
-<style id="final-minimal-mobile">
+
+/* final-minimal-mobile */
+
 .library-tabs .btn{text-transform:none!important}
 #myProfilePage .profile-panel{background:transparent!important;border:0!important;padding:0!important;gap:14px!important}
+#myProfileForm{margin:0!important;padding:0!important;}
+#myProfilePage .profile-panel>.field:first-child,#myProfilePage .profile-panel>.field:first-child>label{margin:0!important;padding:0!important;}
 #myProfilePage .profile-age{background:none!important;padding:0!important;border:0!important}
 #myProfilePage .profile-imc{background:none!important;border:0!important;border-top:1px solid #303a33!important;border-bottom:1px solid #303a33!important;border-radius:0!important;padding:16px 0!important;gap:8px!important}
 #myProfilePage .field input{height:42px!important;min-height:42px!important}
@@ -10827,10 +10859,11 @@ function openVariationMenu(root,trigger,menu){
 #exerciseList .exercise .set-number{font-size:11px!important;line-height:15px!important;color:var(--muted)!important;height:auto!important;white-space:nowrap}
 #exerciseList .exercise .saved-load-value{box-sizing:border-box!important;width:100%!important;min-height:36px!important;height:auto!important;display:flex!important;align-items:center!important;justify-content:center!important;border:1px solid #394940!important;border-radius:8px!important;font-size:13px!important;overflow-wrap:anywhere;text-align:center!important}
 #exerciseList .exercise:not(.exercise-running) .saved-load-value::before{content:none}
-#exerciseList .exercise .set-done-btn{width:28px!important;min-width:28px!important;height:28px!important;min-height:28px!important;border-radius:6px!important}
+#exerciseList .exercise .set-done-btn{width:38px!important;min-width:38px!important;height:32px!important;min-height:32px!important;border-radius:6px!important}
 #exerciseList .exercise:not(.is-collapsed) .actions{position:static!important;grid-column:1!important;display:flex!important;flex-direction:row!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important;width:100%!important;min-height:0!important;height:auto!important;padding:0!important;margin:0!important;transform:none!important;visibility:visible!important}
-</style>
-<style id="card-controls-restored">
+
+/* card-controls-restored */
+
 #exerciseList .exercise .exercise-collapse-row:not(:empty){margin:4px 0 10px!important;}
 #exerciseList .exercise:not(.is-collapsed) .actions{display:flex!important;position:static!important;translate:none!important;transform:none!important;flex-direction:row!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important;width:100%!important;min-height:0!important;height:auto!important;margin:0 0 10px!important;padding:0!important;visibility:visible!important;overflow:visible!important;}
 #exerciseList .exercise .actions .iconbtn{display:grid!important;place-items:center!important;position:static!important;translate:none!important;transform:none!important;width:32px!important;min-width:32px!important;height:32px!important;flex:0 0 32px!important;visibility:visible!important;margin:0!important;}
@@ -10838,8 +10871,9 @@ function openVariationMenu(root,trigger,menu){
 #exerciseList .exercise .set-done-btn{font-size:11px!important;line-height:1!important;font-weight:800!important;display:grid!important;place-items:center!important;color:#dce4dd!important;}
 #exerciseList .exercise .set-done-btn:disabled:not(.done){color:#a0aaa3!important;opacity:.55!important;}
 #exerciseList .exercise .set-done-btn.done:not(:disabled){color:#101810!important;}
-</style>
-<style id="compact-card-approved">
+
+/* compact-card-approved */
+
 #exerciseList .exercise .exhead{position:relative!important;display:grid!important;grid-template-columns:minmax(0,1fr) 48px!important;column-gap:8px!important;align-items:start!important;min-height:0!important;}
 #exerciseList .exercise .exhead>div:first-child{padding-right:0!important;min-width:0!important;grid-column:1!important;grid-row:1!important;}
 #exerciseList .exercise .exercise-head-controls{position:static!important;grid-column:2!important;grid-row:1!important;width:48px!important;height:auto!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:10px!important;pointer-events:none!important;}
@@ -10851,8 +10885,9 @@ function openVariationMenu(root,trigger,menu){
 @media(min-width:350px){#exerciseList .exercise:not(.is-collapsed) .exhead{grid-template-columns:minmax(0,1fr) 48px!important;}#exerciseList .exercise:not(.is-collapsed) .exhead .actions{grid-column:1!important;grid-row:1!important;align-self:end!important;}#exerciseList .exercise:not(.is-collapsed) .exercise-meta{padding-right:112px!important;overflow-wrap:anywhere!important;}}
 #exerciseList .exercise.is-collapsed .exercise-sets-area{display:none!important;}
 #exerciseList .exercise .sets-table{padding-top:8px!important;}
-</style>
-<style id="centered-card-toolbar">
+
+/* centered-card-toolbar */
+
 #exerciseList .exercise .exhead{row-gap:6px!important;grid-template-rows:auto auto!important;}
 #exerciseList .exercise .exercise-meta{padding-right:0!important;}
 #exerciseList .exercise .exhead>.exercise-collapse-all-btn{grid-column:1/-1!important;grid-row:2!important;justify-self:center!important;align-self:center!important;position:static!important;width:36px!important;min-width:36px!important;height:23px!important;min-height:23px!important;margin:0!important;padding:0!important;transform:none!important;translate:none!important;z-index:2;}
@@ -10860,8 +10895,9 @@ function openVariationMenu(root,trigger,menu){
 #exerciseList .exercise .exercise-head-controls{grid-row:1!important;}
 #exerciseList .exercise .sets-table{padding-top:8px!important;}
 @media(max-width:310px){#exerciseList .exercise:not(.is-collapsed) .exhead>.exercise-collapse-all-btn{justify-self:start!important;}}
-</style>
-<style id="compact-stable-toolbar-final">
+
+/* compact-stable-toolbar-final */
+
 #exerciseList .exercise{gap:5px!important;}
 #exerciseList .exercise .exhead{grid-template-rows:auto!important;row-gap:0!important;}
 #exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn){grid-template-rows:auto 23px!important;row-gap:2px!important;}
@@ -10872,8 +10908,9 @@ function openVariationMenu(root,trigger,menu){
 #exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn) .exercise-meta{padding-right:0!important;}
 #exerciseList .exercise .sets-table{padding-top:6px!important;margin-top:0!important;}
 @media(max-width:330px){#exerciseList .exercise .exhead:not(:has(>.exercise-collapse-all-btn))>.actions{grid-row:2!important;}#exerciseList .exercise .exhead:not(:has(>.exercise-collapse-all-btn)) .exercise-meta{padding-right:0!important;}#exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn){grid-template-rows:auto 32px!important;}#exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn)>.actions{transform:none!important;}#exerciseList .exercise .exhead>.exercise-collapse-all-btn{justify-self:start!important;}}
-</style>
-<style id="uniform-card-dimensions">
+
+/* uniform-card-dimensions */
+
 #exerciseList .exercise{box-sizing:border-box!important;width:100%!important;max-width:100%!important;height:142px!important;min-height:142px!important;max-height:142px!important;padding:12px!important;grid-template-rows:116px!important;gap:0!important;overflow:hidden!important;}
 #exerciseList .exercise:not(.is-collapsed){height:252px!important;min-height:252px!important;max-height:252px!important;grid-template-rows:116px 110px!important;}
 #exerciseList .exercise .exhead{box-sizing:border-box!important;height:116px!important;min-height:116px!important;max-height:116px!important;grid-template-rows:116px!important;row-gap:0!important;position:relative!important;}
@@ -10885,12 +10922,14 @@ function openVariationMenu(root,trigger,menu){
 #exerciseList .exercise .exercise-sets-area{box-sizing:border-box!important;height:110px!important;min-height:110px!important;max-height:110px!important;padding:6px 0 0!important;overflow:hidden!important;}
 #exerciseList .exercise .sets-table{box-sizing:border-box!important;height:104px!important;min-height:104px!important;max-height:104px!important;padding:8px 0 4px!important;margin:0!important;overflow-y:auto!important;overflow-x:hidden!important;align-content:start!important;grid-auto-rows:91px!important;scrollbar-width:thin;}
 @media(max-width:350px){#exerciseList .exercise .exhead>.exercise-collapse-all-btn{left:40%!important;}#exerciseList .exercise:not(.is-collapsed) .exercise-meta{max-width:calc(100% - 65px)!important;}}
-</style>
-<style id="drag-uniform-card-fix">
+
+/* drag-uniform-card-fix */
+
 #exerciseList > .exercise.exercise-drag-source {position:absolute!important; width:0!important; min-width:0!important; max-width:0!important; height:0!important; min-height:0!important; max-height:0!important; padding:0!important; margin:0!important; border:0!important; overflow:hidden!important; visibility:hidden!important; pointer-events:none!important;}
 #exerciseList > .exercise-drag-placeholder {margin:0!important; min-height:0!important; flex-shrink:0; max-width:100%;}
-</style>
-<style id="approved-week-progress-dropdown-catalog">
+
+/* approved-week-progress-dropdown-catalog */
+
 .daynav .day-item .daybtn{box-sizing:border-box!important;height:36px!important;min-height:36px!important;padding:0 2px!important;font-size:13px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:3px!important;}
 .daynav .daybtn:not(.today-notice){border-bottom-width:3px!important;}
 .daynav .daybtn.completed:not(.today-notice){color:#d7ff00!important;-webkit-text-fill-color:#d7ff00!important;border-bottom-color:#688a38!important;}
@@ -10904,8 +10943,9 @@ function openVariationMenu(root,trigger,menu){
 #progressOverview > .progress-summary > .progress-summary-divider{height:22px!important;min-height:22px!important;}
 #infoCatalogModal .catalog-entry>div:not(.catalog-list)>.catalog-list-toggle{padding-right:10px!important;}
 .styled-select-menu[data-portal="true"]{right:auto;box-sizing:border-box;}
-</style>
-<style id="whole-app-family-audit">
+
+/* whole-app-family-audit */
+
 /* Shared visual tokens; intentionally preserve distinct action/status families. */
 :root{--ui-field-height:42px;--ui-field-radius:9px;--ui-label-size:12px;--ui-label-line:15px;--ui-dialog-padding:16px;--ui-field-gap:6px;--ui-section-gap:14px;--ui-divider:#303a33;}
 #infoCatalogModal #infoCatalogTitle,#backupMenuConfirm .summary-page-shell>h1,#myProfilePage h1,#summaryPage h1,#weeklyEvolutionPage h1{font-size:clamp(23px,6.4vw,27px)!important;line-height:1.15!important;font-weight:800!important;letter-spacing:0!important;margin:4px 0 12px!important;text-align:left!important;overflow-wrap:break-word;}
@@ -10921,14 +10961,25 @@ function openVariationMenu(root,trigger,menu){
 #exerciseList .exercise .exercise-sets-area{padding-top:8px!important;}
 #exerciseList .exercise .sets-table{height:102px!important;min-height:102px!important;max-height:102px!important;padding-top:8px!important;}
 #exerciseList .exercise .set-done-btn{line-height:1!important;}
-</style>
-<style id="weekday-emerald-approved">
+
+/* weekday-emerald-approved */
+
 .daynav .day-item .daybtn{height:42px!important;min-height:42px!important;font-size:14px!important;gap:2px!important;}
 .daynav .day-item .daybtn:not(.today-notice) .daybtn-label{font-size:14px!important;color:inherit!important;-webkit-text-fill-color:currentColor!important;}
 .daynav .day-item .daybtn.completed:not(.today-notice){color:#45d68b!important;-webkit-text-fill-color:#45d68b!important;border-bottom-color:#45d68b!important;}
 .daynav .day-item .daybtn.completed.active:not(.today-notice){border-bottom-color:#d7ff00!important;}
 .daynav .day-item .daybtn .day-completed-check{color:#45d68b!important;-webkit-text-fill-color:#45d68b!important;font-size:13px!important;line-height:1!important;}
 .daynav .day-item .daybtn.today-notice .daybtn-label{font-size:clamp(9px,2.8vw,12px)!important;}
+
+</style>
+
+<style>
+/* Uma linha de séries, sem rolagem vertical. */
+#exerciseList .exercise .sets-table{grid-template-rows:minmax(0,1fr)!important;grid-auto-flow:column!important;grid-auto-rows:auto!important;overflow:hidden!important;scrollbar-width:none!important;align-content:stretch!important;gap:4px!important;padding:6px 0 2px!important;}
+#exerciseList .exercise .sets-table::-webkit-scrollbar{display:none!important;}
+#exerciseList .exercise .set-row{min-height:0!important;min-width:0!important;gap:4px!important;}
+#exerciseList .exercise .saved-load-value{min-width:0!important;font-size:clamp(10px,3vw,13px)!important;line-height:1.15!important;}
+#exerciseList .exercise .sets-table.legacy-extra-sets{grid-template-columns:none!important;grid-auto-columns:calc((100% - 16px)/5)!important;overflow-x:auto!important;overflow-y:hidden!important;}
 </style>
 </body>
 </html>
