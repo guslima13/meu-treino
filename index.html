@@ -10785,7 +10785,7 @@ function openVariationMenu(root,trigger,menu){
 #summaryPage .summary-day-heading{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0!important;padding:0!important}
 #summaryPage .summary-day-heading::-webkit-details-marker{display:none}
 #summaryPage .summary-day-heading h3{font-size:14px;line-height:20px;margin:0 0 4px}
-#summaryPage .summary-day-heading span{font-size:11px;line-height:16px;color:#d7ff00;white-space:normal}
+#summaryPage .summary-day-heading span{font-size:10px;line-height:16px;color:#d7ff00;white-space:normal}
 #summaryPage .summary-day-heading svg{color:#d7ff00;flex:none}
 #summaryPage details[open] .summary-day-heading svg{transform:rotate(180deg)}
 #summaryPage details[open] .summary-exercise-list,#summaryPage details[open] .summary-empty-day{margin-top:12px}
@@ -10976,10 +10976,15 @@ function openVariationMenu(root,trigger,menu){
 <style>
 /* Uma linha de séries, sem rolagem vertical. */
 #exerciseList .exercise .sets-table{grid-template-rows:minmax(0,1fr)!important;grid-auto-flow:column!important;grid-auto-rows:auto!important;overflow:hidden!important;scrollbar-width:none!important;align-content:stretch!important;gap:4px!important;padding:6px 0 2px!important;}
+#exerciseList .exercise .set-row > .set-done-btn{margin-top:4px!important;flex-shrink:0!important;}
 #exerciseList .exercise .sets-table::-webkit-scrollbar{display:none!important;}
 #exerciseList .exercise .set-row{min-height:0!important;min-width:0!important;gap:4px!important;}
-#exerciseList .exercise .saved-load-value{min-width:0!important;font-size:clamp(10px,3vw,13px)!important;line-height:1.15!important;}
+#exerciseList .exercise .saved-load-value{min-width:0!important;font-size:clamp(11px,calc(3vw + 1px),14px)!important;line-height:1.15!important;}
 #exerciseList .exercise .sets-table.legacy-extra-sets{grid-template-columns:none!important;grid-auto-columns:calc((100% - 16px)/5)!important;overflow-x:auto!important;overflow-y:hidden!important;}
+</style>
+<style>
+/* Seta geral: posição superior central, independente do estado do card. */
+#exerciseList .exercise .exhead>.exercise-collapse-all-btn{top:0!important;bottom:auto!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;z-index:3!important;}
 </style>
 </body>
 </html>
