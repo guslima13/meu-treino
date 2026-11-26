@@ -4972,8 +4972,8 @@ body.weekly-evolution-open{overflow:hidden}
 
 <div class="confirm-backdrop" id="duplicateExerciseDialog" hidden>
   <section class="confirm-dialog duplicate-variation-dialog" role="dialog" aria-modal="true" aria-labelledby="duplicateExerciseTitle">
-    <h2 id="duplicateExerciseTitle">Criar variação do exercício</h2>
-    <p class="variation-intro">Este exercício já está cadastrado com os requisitos abaixo. Para adicionar outra versão com o mesmo nome, escolha pelo menos uma opção diferente das versões existentes.</p>
+    <h2 id="duplicateExerciseTitle">CRIAR VARIAÇÃO DO EXERCÍCIO</h2>
+    <p class="variation-intro">Para criar uma variação deste exercício, altere pelo menos um atributo em relação às versões já cadastradas.</p>
     <div id="variationExistingSummary" class="variation-existing-summary" aria-live="polite"></div>
     <div class="field"><label for="variationMuscle">Grupo muscular</label><select id="variationMuscle"></select></div>
     <div class="field"><label for="variationEquipment">Equipamento</label><select id="variationEquipment"></select></div>
@@ -5079,7 +5079,7 @@ body.weekly-evolution-open{overflow:hidden}
 </div>
 <div class="confirm-backdrop" id="catalogDependencyDialog" hidden>
   <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogDependencyTitle" style="width:min(560px,100%);max-height:calc(100dvh - 24px);overflow:auto">
-    <h2 id="catalogDependencyTitle">Substituir opção nos exercícios</h2>
+    <h2 id="catalogDependencyTitle">SUBSTITUIR OPÇÃO NOS EXERCÍCIOS</h2>
     <p id="catalogDependencyMessage"></p>
     <div class="catalog-dependency-list" id="catalogDependencyList"></div>
     <div class="confirm-actions"><button type="button" class="btn" id="cancelCatalogDependencyBtn">Cancelar</button><button type="button" class="btn primary" id="saveCatalogDependencyBtn">Atualizar e excluir</button></div>
@@ -5095,7 +5095,7 @@ body.weekly-evolution-open{overflow:hidden}
       <label for="newExercise">Exercício</label>
       <div>
         <input id="newExercise" type="text" placeholder="Novo exercício">
-        <button type="button" class="btn primary" data-exercise-add>Adicionar</button>
+        <button type="button" class="btn primary" data-exercise-add aria-label="Adicionar" title="Adicionar">+</button>
         <button type="button" class="btn catalog-list-toggle" data-exercise-catalog-toggle aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button>
       </div>
       <div class="catalog-list exercise-catalog-list" id="exerciseCatalogList" hidden>
@@ -5106,10 +5106,10 @@ body.weekly-evolution-open{overflow:hidden}
         <div id="exerciseCatalogResults"></div>
       </div>
     </div>
-    <div class="catalog-entry"><label for="newMuscle">Grupo muscular</label><div><input id="newMuscle" type="text" placeholder="Novo grupo muscular"><button type="button" class="btn primary" data-catalog-add="muscle">Adicionar</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="muscle" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-muscle" hidden></div></div>
-    <div class="catalog-entry"><label for="newEquipment">Equipamento</label><div><input id="newEquipment" type="text" placeholder="Novo equipamento"><button type="button" class="btn primary" data-catalog-add="equipment">Adicionar</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="equipment" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-equipment" hidden></div></div>
-    <div class="catalog-entry"><label for="newExecution">Execução</label><div><input id="newExecution" type="text" placeholder="Nova execução"><button type="button" class="btn primary" data-catalog-add="execution">Adicionar</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="execution" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-execution" hidden></div></div>
-    <div class="catalog-entry"><label for="newGrip">Pegada</label><div><input id="newGrip" type="text" placeholder="Nova pegada"><button type="button" class="btn primary" data-catalog-add="grip">Adicionar</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="grip" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-grip" hidden></div></div>
+    <div class="catalog-entry"><label for="newMuscle">Grupo muscular</label><div><input id="newMuscle" type="text" placeholder="Novo grupo muscular"><button type="button" class="btn primary" data-catalog-add="muscle" aria-label="Adicionar" title="Adicionar">+</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="muscle" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-muscle" hidden></div></div>
+    <div class="catalog-entry"><label for="newEquipment">Equipamento</label><div><input id="newEquipment" type="text" placeholder="Novo equipamento"><button type="button" class="btn primary" data-catalog-add="equipment" aria-label="Adicionar" title="Adicionar">+</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="equipment" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-equipment" hidden></div></div>
+    <div class="catalog-entry"><label for="newExecution">Execução</label><div><input id="newExecution" type="text" placeholder="Nova execução"><button type="button" class="btn primary" data-catalog-add="execution" aria-label="Adicionar" title="Adicionar">+</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="execution" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-execution" hidden></div></div>
+    <div class="catalog-entry"><label for="newGrip">Pegada</label><div><input id="newGrip" type="text" placeholder="Nova pegada"><button type="button" class="btn primary" data-catalog-add="grip" aria-label="Adicionar" title="Adicionar">+</button><button type="button" class="btn catalog-list-toggle" data-catalog-list="grip" aria-expanded="false">Ver lista <span aria-hidden="true">⌄</span></button></div><div class="catalog-list" id="catalogList-grip" hidden></div></div>
     <p class="catalog-feedback" id="catalogFeedback" aria-live="polite"></p>
     </div>
   </div>
@@ -5183,15 +5183,8 @@ body.weekly-evolution-open{overflow:hidden}
     </div>
     <h1>RESUMO DO TREINO</h1>
     <div class="summary-overview-cards" id="summaryOverviewCards"></div>
-    <nav class="summary-tabs" id="summaryTabs" aria-label="Filtros do resumo">
-      <button type="button" class="summary-tab active" data-summary-filter="days" aria-pressed="true">Dias da semana</button>
-      <button type="button" class="summary-tab" data-summary-filter="muscle" aria-pressed="false">Exercícios por músculo</button>
-      <button type="button" class="summary-tab" data-summary-filter="muscleSets" aria-pressed="false">Séries por músculo</button>
-      <button type="button" class="summary-tab" data-summary-filter="equipment" aria-pressed="false">Equipamentos</button>
-      <button type="button" class="summary-tab" data-summary-filter="execution" aria-pressed="false">Execuções</button>
-      <button type="button" class="summary-tab" data-summary-filter="grip" aria-pressed="false">Pegadas</button>
-    </nav>
-    <div class="summary-scroll-indicator" id="summaryScrollIndicator" aria-hidden="true"><span id="summaryScrollThumb"></span></div>
+    <div id="summaryTabs" class="summary-filter-picker"><select id="summaryFilterSelect" aria-label="Visualização do resumo"><option value="days">Dias da semana</option><option value="muscle">Exercícios por músculo</option><option value="muscleSets">Séries por músculo</option><option value="equipment">Equipamentos</option><option value="execution">Execuções</option><option value="grip">Pegadas</option></select></div>
+    <div class="summary-scroll-indicator" id="summaryScrollIndicator" aria-hidden="true" hidden><span id="summaryScrollThumb"></span></div>
     <div id="summaryContent" class="summary-content" aria-live="polite"></div>
   </div>
 </section>
@@ -5209,7 +5202,7 @@ body.weekly-evolution-open{overflow:hidden}
       <button type="button" class="summary-tab" id="weeklyChartTab" onclick="weeklyView='chart';renderWeeklyEvolution()">Gráfico de evolução</button>
     </nav>
     <div id="weeklyEvolutionContent" class="summary-content" aria-live="polite"></div>
-    <p class="summary-page-footnote">A média considera somente séries concluídas com carga numérica. Séries pendentes aparecem como “—”. Registros anteriores à instalação desta versão podem não conter todos os detalhes.</p>
+    <details class="evolution-info"><summary><span aria-hidden="true" class="evolution-info-icon">ⓘ</span>Sobre os registros de evolução<span class="evolution-info-arrow" aria-hidden="true"></span></summary><p class="summary-page-footnote">A média considera somente séries concluídas com carga numérica. Séries pendentes aparecem como “—”. Registros anteriores à instalação desta versão podem não conter todos os detalhes.</p></details>
   </div>
 </section>
 
@@ -6179,7 +6172,7 @@ function alignExerciseDragHandles(){
     // Usa a propriedade translate para não alterar dimensões, fluxo, padding,
     // gaps ou o transform vertical já existente.
     const actions=card.querySelector('.actions');
-    if(actions && getComputedStyle(actions).display!=='none'){
+    if(actions && !card.closest('#exerciseList') && getComputedStyle(actions).display!=='none'){
       actions.style.removeProperty('translate');
       const actionsRect=actions.getBoundingClientRect();
       const actionsCenterX=actionsRect.left + actionsRect.width/2;
@@ -6279,7 +6272,7 @@ days.map(d=>{
   const showTodayNotice=d===todayWeekday && !todayNoticeSuppressed && !todayAlreadyDismissed && workoutStatus!=='finished' && !isDayWorkoutCompleted(d) && (state.workouts[d]||[]).length>0;
   const dayText=showTodayNotice?'É  HOJE!':d.slice(0,3).toUpperCase();
   return `<div class="day-item ${d===day?'active':''} ${completed?'completed':''} ${finished?'finished':''} ${inProgress?'workout-in-progress':''}" data-day-item="${d}">
-    <button type="button" class="daybtn ${d===day?'active':''} ${completed?'completed':''} ${inProgress?'workout-in-progress':''} ${showTodayNotice?'today-notice':''}" data-day="${d}" aria-pressed="${d===day}" ${showTodayNotice?`aria-label="${d}, É  HOJE!"`:''}><span class="daybtn-label">${dayText}</span></button>
+    <button type="button" class="daybtn ${d===day?'active':''} ${completed?'completed':''} ${inProgress?'workout-in-progress':''} ${showTodayNotice?'today-notice':''}" data-day="${d}" aria-pressed="${d===day}" ${showTodayNotice?`aria-label="${d}, É  HOJE!"`:''}><span class="daybtn-label">${dayText}</span>${completed?'<span class="day-completed-check" aria-label="Treino concluído">✓</span>':''}</button>
   </div>`;
 }).join('');
 
@@ -6431,7 +6424,13 @@ title="Equipamento: ${esc(e.equipment)} · Pegada: ${esc(e.grip)} · Execução:
 </div>
 
 </div>
+<div class="actions">
 
+<button type="button" class="iconbtn" onclick="editExercise(${i})" title="Editar" aria-label="Editar">✎</button>
+<button type="button" class="iconbtn replace-exercise-icon" onclick="replaceExercise(${i})" ${!structuralEditAllowed()?'disabled aria-disabled="true"':''} title="Substituir exercício" aria-label="Substituir exercício"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9a4 4 0 0 0-4 4v2"/><path d="m4 10 3 3 3-3"/><path d="M4 17h9a4 4 0 0 0 4-4v-2"/><path d="m20 14-3-3-3 3"/></svg></button>
+<button type="button" class="iconbtn" onclick="deleteExercise(${i})" ${!structuralEditAllowed()?'disabled aria-disabled="true"':''} title="Excluir exercício" aria-label="Excluir exercício"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button>
+
+</div>
 
 <div class="exercise-head-controls">
 <button
@@ -6442,16 +6441,17 @@ title="${Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Boolean)?
 aria-label="${Array.from({length:+e.sets||1},(_,j)=>checks[j]===true).every(Boolean)?'Desmarcar exercício':'Concluir todas as séries do exercício'}">
 <svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5 9.2 18 20 6"/></svg>
 </button>
+
 </div>
+${i===0?`<button type="button" class="exercise-collapse-btn exercise-collapse-all-btn" onclick="toggleAllExerciseDetails()" aria-expanded="${!allExercisesCollapsed}" aria-label="${allExercisesCollapsed?'Expandir todos os exercícios deste treino':'Recolher todos os exercícios deste treino'}" title="${allExercisesCollapsed?'Expandir todos os exercícios deste treino':'Recolher todos os exercícios deste treino'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${allExercisesCollapsed?'M6 6l6 5 6-5 M6 13l6 5 6-5':'M6 11l6-5 6 5 M6 18l6-5 6 5'}"/></svg></button>`:''}
 
 </div>
 
 <div class="exercise-sets-area">
-  <div class="exercise-collapse-row">
-    ${i===0?`<button type="button" class="exercise-collapse-btn exercise-collapse-all-btn" onclick="toggleAllExerciseDetails()" aria-expanded="${!allExercisesCollapsed}" aria-label="${allExercisesCollapsed?'Expandir todos os exercícios deste treino':'Recolher todos os exercícios deste treino'}" title="${allExercisesCollapsed?'Expandir todos os exercícios deste treino':'Recolher todos os exercícios deste treino'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${allExercisesCollapsed?'M6 6l6 5 6-5 M6 13l6 5 6-5':'M6 11l6-5 6 5 M6 18l6-5 6 5'}"/></svg></button>`:''}
-  </div>
 
-<div class="sets-table">
+
+
+<div class="sets-table" style="--set-columns:${Math.min(5,+e.sets||1)}">
 
 <div class="sets-head">
 <span>Série</span>
@@ -6466,11 +6466,11 @@ ${Array.from(
 <div class="set-row ${checks[j]?'completed':''}">
 
 <span class="set-number">
-${j+1}
+Série ${j+1}
 </span>
 
 <div class="saved-load-value" aria-label="${isAerobicExercise(e)?'Tempo':'Carga'} salva da série ${j+1}">
-${esc(isAerobicExercise(e)?formatTimeValue((e.loads||[])[j]):String((e.loads||[])[j]??'')) || '—'}
+${esc(isAerobicExercise(e)?formatTimeValue((e.loads||[])[j]):String((e.loads||[])[j]??'')) || '—'}${!isAerobicExercise(e)&&String((e.loads||[])[j]??'').trim()!==''&&Number.isFinite(Number(String((e.loads||[])[j]).replace(',','.')))?' kg':''}
 </div>
 
 <button
@@ -6494,13 +6494,7 @@ ${checks[j]?`<svg class="check-mark" viewBox="0 0 24 24" aria-hidden="true"><pat
 
 </div>
 
-<div class="actions">
 
-<button type="button" class="iconbtn" onclick="editExercise(${i})" title="Editar" aria-label="Editar">✎</button>
-<button type="button" class="iconbtn replace-exercise-icon" onclick="replaceExercise(${i})" ${!structuralEditAllowed()?'disabled aria-disabled="true"':''} title="Substituir exercício" aria-label="Substituir exercício"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9a4 4 0 0 0-4 4v2"/><path d="m4 10 3 3 3-3"/><path d="M4 17h9a4 4 0 0 0 4-4v-2"/><path d="m20 14-3-3-3 3"/></svg></button>
-<button type="button" class="iconbtn" onclick="deleteExercise(${i})" ${!structuralEditAllowed()?'disabled aria-disabled="true"':''} title="Excluir exercício" aria-label="Excluir exercício">×</button>
-
-</div>
 
 
 </article>
@@ -7265,6 +7259,7 @@ fNameSelect.addEventListener('change',()=>{
 });
 
 function closeModal(){
+ document.querySelectorAll('.styled-select-menu[data-portal="true"]').forEach(closeStyledSelectMenu);
  document.getElementById("editDayOverview").hidden=true;
   buildAddDay=null;catalogEditing=null;
 
@@ -7879,7 +7874,7 @@ function bindExerciseDrag(){
     const cards=[...drag.listElement.querySelectorAll(':scope > .exercise:not(.exercise-drag-source)')];
     const next=cards.find(card=>{
       const r=card.getBoundingClientRect();
-      return event.clientY<r.top+r.height/2;
+      return event.clientY-drag.offsetY+drag.floating.getBoundingClientRect().height/2<r.top+r.height/2;
     });
     if(next) drag.listElement.insertBefore(drag.placeholder,next);
     else drag.listElement.insertBefore(drag.placeholder,drag.listElement.querySelector('.build-add-card'));
@@ -8242,9 +8237,9 @@ function openExerciseVariation(name){
   pendingExerciseVariationName=existing[0]?.name||name;
   const current=existing[existing.length-1]||{};
   const isNew=existing.length===0 && !pendingExerciseRename?.newName;
-  document.getElementById('duplicateExerciseTitle').textContent=isNew?'CRIAR EXERCÍCIO':'Criar variação do exercício';
+  document.getElementById('duplicateExerciseTitle').textContent=isNew?'CRIAR EXERCÍCIO':'CRIAR VARIAÇÃO DO EXERCÍCIO';
   document.getElementById('duplicateExerciseDialog').classList.toggle('create-exercise-mode',isNew);
-  document.querySelector('#duplicateExerciseDialog .variation-intro').textContent=isNew?'Este exercício ainda não está cadastrado. Selecione os atributos abaixo para criar um novo exercício.':'Este exercício já está cadastrado com os requisitos abaixo. Para adicionar outra versão com o mesmo nome, escolha pelo menos uma opção diferente das versões existentes.';
+  document.querySelector('#duplicateExerciseDialog .variation-intro').textContent=isNew?'Este exercício ainda não está cadastrado. Selecione os atributos abaixo para criar um novo exercício.':'Para criar uma variação deste exercício, altere pelo menos um atributo em relação às versões já cadastradas.';
   document.getElementById('saveVariationBtn').textContent=isNew?'Criar exercício':'Criar variação';
   const config=[
     ['variationMuscle','muscle'],
@@ -8370,9 +8365,7 @@ function deleteCatalogValue(category,value){
 }
 function openCatalogDependencyDialog(category,value,dependencies){
   pendingCatalogDependency={category,value,dependencies};
-  const noun=dependencies.length===1?'O exercício abaixo possui':'Os exercícios abaixo possuem';
-  const instruction=dependencies.length===1?'essa opção ativa em seu cadastro.':'essa opção ativa em seus cadastros.';
-  document.getElementById('catalogDependencyMessage').textContent=`Antes de excluir, confira: ${noun} ${instruction} Faça ${dependencies.length===1?'a substituição':'as substituições'} abaixo para continuar.`;
+  document.getElementById('catalogDependencyMessage').textContent=dependencies.length===1?'O exercício abaixo utiliza esta opção. Selecione uma substituição antes de excluí-la.':'Os exercícios abaixo utilizam esta opção. Selecione uma substituição para cada exercício antes de excluí-la.';
   const options=getCatalogValues(category,false).filter(v=>comparisonKey(v)!==comparisonKey(value));
   const list=document.getElementById('catalogDependencyList');
   list.innerHTML=options.length?dependencies.map(([sig,ex],i)=>`<div class="catalog-dependency-row"><label for="catalogDependency_${i}">${esc(ex.name||'Exercício')}</label><select id="catalogDependency_${i}" data-dependency-signature="${esc(sig)}">${options.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select></div>`).join(''):'<div class="catalog-empty">Não há outras opções cadastradas para substituir. Cadastre uma nova opção antes de excluir esta.</div>';
@@ -8840,10 +8833,8 @@ document.getElementById('ackStorageReadErrorBtn').onclick=()=>{document.getEleme
 document.getElementById('infoCatalogBtn').onclick=openInfoCatalog;
 document.getElementById('summaryBtn')?.addEventListener('click',openSummaryPage);
 document.getElementById('summaryBackBtn').onclick=closeSummaryPage;
-document.getElementById('summaryTabs').addEventListener('click',event=>{
-  const button=event.target.closest('[data-summary-filter]');
-  if(!button) return;
-  activeSummaryFilter=button.dataset.summaryFilter;
+document.getElementById('summaryFilterSelect').addEventListener('change',event=>{
+  activeSummaryFilter=event.target.value;
   renderSummaryPage();
   persistUiState();
 });
@@ -9125,6 +9116,13 @@ function refreshStyledSelect(select){
 
 // Menus da janela de substituição são exibidos em uma camada no body,
 // evitando que os contêineres roláveis do modal cortem as opções no celular.
+function openFloatingDayMenu(root,trigger,menu){
+ const r=trigger.getBoundingClientRect(), gap=5, vh=window.innerHeight;
+ menu._styledSelectRoot=root; menu.dataset.portal='true'; document.body.appendChild(menu);
+ Object.assign(menu.style,{position:'fixed',left:r.left+'px',width:r.width+'px',zIndex:'20000',maxHeight:Math.max(70,vh-20)+'px'});
+ menu.hidden=false; const h=menu.getBoundingClientRect().height;
+ menu.style.top=Math.max(10,Math.min(r.bottom+gap,vh-h-10))+'px';
+}
 function closeStyledSelectMenu(menu){
   if(!menu) return;
   menu.hidden=true;
@@ -9186,6 +9184,7 @@ function setupStyledSelects(){
       if(willOpen){
         refreshStyledSelect(select);
         if(select.closest('#duplicateExerciseDialog')) openVariationMenu(root,trigger,menu);
+        else if(select.id==='fDay') openFloatingDayMenu(root,trigger,menu);
         else if(select.closest('#catalogDependencyList')) openDependencySelectMenu(select,root,trigger,menu);
         else menu.hidden=false;
       } else closeStyledSelectMenu(menu);
@@ -9195,9 +9194,9 @@ function setupStyledSelects(){
       if(select.disabled) return;
       if(event.key==='ArrowDown' || event.key==='Enter' || event.key===' '){
         event.preventDefault();
-        menu.hidden=false;
-        trigger.setAttribute('aria-expanded','true');
         refreshStyledSelect(select);
+        if(select.id==='fDay') openFloatingDayMenu(root,trigger,menu); else menu.hidden=false;
+        trigger.setAttribute('aria-expanded','true');
         menu.querySelector('.styled-select-option')?.focus();
       }
     });
@@ -9224,7 +9223,7 @@ window.addEventListener('resize',()=>{
     const root=menu._styledSelectRoot;
     const select=root?.querySelector('select');
     const trigger=root?.querySelector('.styled-select-trigger');
-    if(select && trigger) openDependencySelectMenu(select,root,trigger,menu);
+    if(select && trigger) {if(select.id==='fDay') openFloatingDayMenu(root,trigger,menu); else openDependencySelectMenu(select,root,trigger,menu);}
   });
 });
 window.addEventListener('scroll',()=>{
@@ -9299,7 +9298,7 @@ function renderWeeklyEvolution(){
   document.getElementById('weeklyNumbersTab').classList.toggle('active',weeklyView==='numbers');
   document.getElementById('weeklyChartTab').classList.toggle('active',weeklyView==='chart');
   if(!selectedEntries.length){
-    document.getElementById('weeklyEvolutionContent').innerHTML='<div class="summary-empty-state">Selecione um exercício para visualizar sua evolução semanal.</div>';
+    document.getElementById('weeklyEvolutionContent').innerHTML='<div class="evolution-initial"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18M6 15l5-5 4 4 6-7"/></svg><span>Selecione um exercício para consultar sua evolução.</span></div>';
     if(typeof setupStyledSelects==='function')setupStyledSelects();
     return;
   }
@@ -9432,18 +9431,17 @@ function summaryMetricCards(activeEntries){
   const total=activeEntries.length;
   const activeDays=days.filter(dayName=>(state.workouts[dayName]||[]).length>0).length;
   const totalSets=activeEntries.reduce((sum,item)=>sum+(Number(item.exercise.sets)||1),0);
-  return `<div class="summary-overview-card"><strong>${total}</strong><span>exercícios ativos</span></div>
-    <div class="summary-overview-card"><strong>${activeDays}/6</strong><span>dias com treino</span></div>
-    <div class="summary-overview-card"><strong>${totalSets}</strong><span>séries planejadas</span></div>`;
+  return `<div class="summary-overview-card"><strong>${totalSets}</strong><span>Séries planejadas</span></div>
+    <div class="summary-overview-card"><strong>${total}</strong><span>Exercícios ativos</span></div>
+    <div class="summary-overview-card"><strong>${activeDays}/${days.length}</strong><span>Dias com treino</span></div>`;
 }
 
 function summaryDayMarkup(){
-  return `<div class="summary-section-heading"><div><h2>Distribuição por dia</h2></div></div>
-  <div class="summary-day-list">${days.map(dayName=>{
+  return `<div class="summary-day-list">${days.map(dayName=>{
     const list=state.workouts[dayName]||[];
-    return `<article class="summary-day-card"><div class="summary-day-heading"><h3>${esc(dayName)}</h3><span>${list.length} ${list.length===1?'exercício':'exercícios'}</span></div>
+    return `<details class="summary-day-card"><summary class="summary-day-heading"><div><h3>${esc(dayName)}</h3><span>${list.length} ${list.length===1?'exercício':'exercícios'} · ${list.reduce((sum,ex)=>sum+(Number(ex.sets)||1),0)} séries</span></div><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
       ${list.length?`<div class="summary-exercise-list">${list.map(ex=>`<div class="summary-exercise-row"><div><strong>${esc(ex.name||'Exercício')}</strong><small>${esc(ex.muscle||'Grupo muscular não informado')} · ${Number(ex.sets)||1} ${(Number(ex.sets)||1)===1?'série':'séries'}</small></div><span>${esc(ex.equipment||'-')}</span></div>`).join('')}</div>`:`<p class="summary-empty-day">Nenhum exercício ativo neste dia.</p>`}
-    </article>`;
+    </details>`;
   }).join('')}</div>`;
 }
 
@@ -9454,10 +9452,9 @@ function summaryDistributionMarkup(field,title,description){
     counts.set(label,(counts.get(label)||0)+1);
   }));
   const rows=[...counts.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'pt-BR'));
-  if(!rows.length) return `<div class="summary-section-heading"><div><h2>${title}</h2></div></div><div class="summary-empty-state">Ainda não há exercícios ativos para analisar.</div>`;
+  if(!rows.length) return `<div class="summary-empty-state">Ainda não há exercícios ativos para analisar.</div>`;
   const max=Math.max(...rows.map(item=>item[1]),1);
-  return `<div class="summary-section-heading"><div><h2>${title}</h2></div><span class="summary-result-total">${rows.reduce((sum,item)=>sum+item[1],0)} no total</span></div>
-    <div class="summary-distribution-list">${rows.map(([label,count])=>`<div class="summary-distribution-row"><div class="summary-distribution-label"><strong>${esc(label)}</strong><b>${count}</b></div><div class="summary-bar-track"><i style="width:${(count/max*100).toFixed(1)}%"></i></div></div>`).join('')}</div>`;
+  return `<div class="summary-distribution-list">${rows.map(([label,count])=>`<div class="summary-distribution-row"><div class="summary-distribution-label"><strong>${esc(label)}</strong><b>${count}</b></div><div class="summary-bar-track"><i style="width:${(count/max*100).toFixed(1)}%"></i></div></div>`).join('')}</div>`;
 }
 
 function summaryMuscleSetsMarkup(){
@@ -9471,11 +9468,10 @@ function summaryMuscleSetsMarkup(){
     totals.set(label,current);
   }));
   const rows=[...totals.entries()].sort((a,b)=>b[1].sets-a[1].sets||a[0].localeCompare(b[0],'pt-BR'));
-  if(!rows.length) return `<div class="summary-section-heading"><div><h2>Séries por grupo muscular</h2></div></div><div class="summary-empty-state">Ainda não há exercícios ativos para analisar.</div>`;
+  if(!rows.length) return `<div class="summary-empty-state">Ainda não há exercícios ativos para analisar.</div>`;
   const max=Math.max(...rows.map(([,value])=>value.sets),1);
   const total=rows.reduce((sum,[,value])=>sum+value.sets,0);
-  return `<div class="summary-section-heading"><div><h2>Séries por grupo muscular</h2></div><span class="summary-result-total">${total} séries no total</span></div>
-    <div class="summary-distribution-list">${rows.map(([label,value])=>`<div class="summary-distribution-row"><div class="summary-distribution-label"><strong>${esc(label)} <small style="color:var(--muted);font-size:10px;font-weight:500">· ${value.exercises} ${value.exercises===1?'exercício':'exercícios'}</small></strong><b>${value.sets} ${value.sets===1?'série':'séries'}</b></div><div class="summary-bar-track"><i style="width:${(value.sets/max*100).toFixed(1)}%"></i></div></div>`).join('')}</div>`;
+  return `<div class="summary-distribution-list">${rows.map(([label,value])=>`<div class="summary-distribution-row"><div class="summary-distribution-label"><strong>${esc(label)} <small style="color:var(--muted);font-size:10px;font-weight:500">· ${value.exercises} ${value.exercises===1?'exercício':'exercícios'}</small></strong><b>${value.sets} ${value.sets===1?'série':'séries'}</b></div><div class="summary-bar-track"><i style="width:${(value.sets/max*100).toFixed(1)}%"></i></div></div>`).join('')}</div>`;
 }
 
 function summaryLoadValue(value){
@@ -9558,11 +9554,9 @@ function renderSummaryPage(){
   if(!page || page.hidden) return;
   const activeEntries=days.flatMap(dayName=>(state.workouts[dayName]||[]).map(ex=>({day:dayName,exercise:ex})));
   document.getElementById('summaryOverviewCards').innerHTML=summaryMetricCards(activeEntries);
-  document.querySelectorAll('[data-summary-filter]').forEach(button=>{
-    const active=button.dataset.summaryFilter===activeSummaryFilter;
-    button.classList.toggle('active',active);
-    button.setAttribute('aria-pressed',String(active));
-  });
+  const filterSelect=document.getElementById('summaryFilterSelect');
+  filterSelect.value=activeSummaryFilter;
+  if(filterSelect.closest('.styled-select')) refreshStyledSelect(filterSelect);
   const content=document.getElementById('summaryContent');
   if(activeSummaryFilter==='days') content.innerHTML=summaryDayMarkup();
   else if(activeSummaryFilter==='muscle') content.innerHTML=summaryDistributionMarkup('muscle','Exercícios por grupo muscular','Quantidade de exercícios ativos em cada grupo muscular.');
@@ -10194,6 +10188,7 @@ if ('serviceWorker' in navigator) {
 
   function alignExercise(exercise) {
     if (!exercise) return;
+    if (exercise.closest('#exerciseList')) { exercise.dataset.loadIconsTopAligned='true'; return; }
     if (exercise.classList.contains('is-collapsed')) { delete exercise.dataset.loadIconsTopAligned; return; }
 
     const table = exercise.querySelector('.exercise-sets-area .sets-table');
@@ -10688,6 +10683,252 @@ function openVariationMenu(root,trigger,menu){
 #modal #exerciseForm .load-stepper button{box-sizing:border-box!important;width:100%!important;min-width:0!important}
 #modal #exerciseForm .modalactions{padding:0!important;width:100%!important;box-sizing:border-box!important}
 #modal #exerciseForm [hidden]{display:none!important}
+</style>
+<style id="uniform-notice-dialogs">
+/* Shared notice geometry; content-heavy work dialogs retain their own layout. */
+.confirm-backdrop:not(#libraryView):not(#dataBackupMenu):not(#duplicateExerciseDialog):not(#catalogDependencyDialog):not(#catalogEditDialog):not(#equipmentPrepositionDialog):not(#libraryRename) {padding:16px;box-sizing:border-box}
+.confirm-backdrop:not(#libraryView):not(#dataBackupMenu):not(#duplicateExerciseDialog):not(#catalogDependencyDialog):not(#catalogEditDialog):not(#equipmentPrepositionDialog):not(#libraryRename) > .confirm-dialog {box-sizing:border-box;width:100%;max-width:420px;min-width:0;padding:16px;margin:0;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;text-align:left}
+.confirm-backdrop:not(#libraryView):not(#dataBackupMenu) > .confirm-dialog > h2 {font-family:inherit;font-size:18px;font-weight:800;line-height:24px;letter-spacing:0;text-align:left;padding:0;margin:0 0 12px;overflow-wrap:anywhere}
+.confirm-backdrop:not(#libraryView):not(#dataBackupMenu) > .confirm-dialog > p {font-family:inherit;font-size:14px;line-height:21px;font-weight:400;letter-spacing:0;text-align:left;padding:0;margin:0;overflow-wrap:anywhere}
+.confirm-backdrop:not(#libraryView):not(#dataBackupMenu) > .confirm-dialog > p + p {margin-top:10px}
+.confirm-backdrop:not(#libraryView) .confirm-actions {display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:stretch;gap:8px;margin:16px 0 0;padding:0;width:100%;box-sizing:border-box}
+.confirm-backdrop .confirm-actions > .btn {box-sizing:border-box;min-height:40px;height:auto;min-width:88px;max-width:100%;padding:10px 12px;margin:0;display:flex;align-items:center;justify-content:center;white-space:normal;overflow-wrap:anywhere;text-align:center!important;font-size:13px!important;font-weight:700!important;line-height:18px!important}
+#historyReviewPrompt .confirm-dialog{max-width:420px}
+#historyReviewPrompt .history-periods p{font-size:14px;line-height:21px;margin:0}
+#historyReviewPrompt .history-periods p+p{margin-top:8px}
+</style>
+<style id="variation-layout-unified">
+#duplicateExerciseDialog:not(.create-exercise-mode){padding:10px;box-sizing:border-box}
+#duplicateExerciseDialog:not(.create-exercise-mode) .duplicate-variation-dialog{width:100%;max-width:420px;box-sizing:border-box;padding:16px;max-height:calc(100dvh - 20px);overflow-y:auto}
+#duplicateExerciseDialog:not(.create-exercise-mode) #duplicateExerciseTitle{font-family:inherit;font-size:20px;line-height:24px;font-weight:800;letter-spacing:0;text-align:left;margin:0 0 16px;padding:0}
+#duplicateExerciseDialog:not(.create-exercise-mode) .variation-intro{font-size:14px;line-height:21px;margin:0 0 14px;padding:0}
+#duplicateExerciseDialog .variation-existing-summary{gap:10px;margin:0 0 14px}
+#duplicateExerciseDialog .variation-existing-summary[hidden]{display:none!important}
+#duplicateExerciseDialog .variation-existing-item{box-sizing:border-box;padding:12px}
+#duplicateExerciseDialog .variation-existing-title{font-size:12px;line-height:15px;font-weight:800;margin:0 0 10px;padding:0}
+#duplicateExerciseDialog .variation-existing-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 10px}
+#duplicateExerciseDialog .variation-existing-field{gap:4px}
+#duplicateExerciseDialog .variation-existing-field b{font-size:12px;line-height:15px}
+#duplicateExerciseDialog .variation-existing-field span{font-size:13px;line-height:18px}
+#duplicateExerciseDialog .field{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin:0 0 14px;padding:0;min-width:0}
+#duplicateExerciseDialog .field label{font-size:12px;line-height:15px;font-weight:700;margin:0;padding:0;text-align:left}
+#duplicateExerciseDialog .field .styled-select{width:100%;min-width:0;margin:0;padding:0}
+#duplicateExerciseDialog .field .styled-select-trigger{box-sizing:border-box;width:100%;height:42px;min-height:42px;padding:0 12px;margin:0;display:flex;align-items:center;justify-content:space-between;font-size:14px;line-height:20px}
+#duplicateExerciseDialog .field .styled-select-label{font:inherit;margin:0;padding:0;text-align:left}
+#duplicateExerciseDialog .field .styled-select-arrow{margin:0 0 0 auto;align-self:center}
+#duplicateExerciseDialog .field:has(#variationGrip){margin-bottom:0}
+#duplicateExerciseDialog .confirm-actions{margin:16px 0 0;gap:8px;justify-content:flex-end;align-items:center}
+#duplicateExerciseDialog .confirm-actions .btn{min-height:40px;font-size:13px;line-height:16px;padding:0 12px;display:flex;align-items:center;justify-content:center}
+</style>
+<style id="dependency-layout-unified">
+#catalogDependencyDialog{padding:10px!important;box-sizing:border-box}
+#catalogDependencyDialog > .confirm-dialog{display:flex;flex-direction:column;width:100%!important;max-width:420px!important;min-width:0;box-sizing:border-box;padding:16px!important;margin:0!important;max-height:calc(100dvh - 20px)!important;overflow:auto!important;gap:0!important}
+#catalogDependencyDialog #catalogDependencyTitle{flex:none;font-family:inherit;font-size:20px!important;line-height:24px!important;font-weight:800!important;letter-spacing:0;text-align:left;margin:0 0 16px!important;padding:0!important}
+#catalogDependencyDialog #catalogDependencyMessage{flex:none;font-size:14px!important;line-height:21px!important;margin:0 0 14px!important;padding:0!important;text-align:left}
+#catalogDependencyDialog .catalog-dependency-list{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin:0!important;padding:0!important;max-height:none!important;min-height:0;overflow:auto;flex:0 1 auto;overscroll-behavior:contain}
+#catalogDependencyDialog .catalog-dependency-row{box-sizing:border-box;min-width:0;padding:12px;gap:6px;grid-template-columns:minmax(0,1fr);align-content:start}
+#catalogDependencyDialog .catalog-dependency-row label{font-size:13px;line-height:16px;font-weight:800;margin:0;padding:0;text-align:left;overflow-wrap:anywhere}
+#catalogDependencyDialog .styled-select{width:100%;min-width:0;margin:0!important;padding:0!important}
+#catalogDependencyDialog .styled-select-trigger{box-sizing:border-box;width:100%;height:42px!important;min-height:42px!important;margin:0!important;padding:0 12px!important;display:flex;align-items:center;justify-content:space-between;font-size:14px!important;line-height:20px!important}
+#catalogDependencyDialog .styled-select-label{font:inherit;margin:0;padding:0;text-align:left;min-width:0}
+#catalogDependencyDialog .styled-select-arrow{margin:0 0 0 auto;align-self:center}
+#catalogDependencyDialog .confirm-actions{flex:none;margin:16px 0 0!important;padding:0!important;gap:8px;align-items:stretch;justify-content:flex-end}
+#catalogDependencyDialog .confirm-actions .btn{min-height:40px;font-size:13px!important;line-height:16px!important;padding:8px 12px!important;margin:0;display:flex;align-items:center;justify-content:center}
+</style>
+<style>
+.library-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;margin:12px 0;}
+.library-tabs .btn,.library-tabs .btn[aria-pressed="true"]{box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-width:0;min-height:39px;height:39px;padding:0 3px!important;background:transparent!important;border:0!important;border-bottom:3px solid #303a33!important;border-radius:0!important;box-shadow:none!important;color:#a0aaa3!important;white-space:normal;}
+.library-tabs .btn[aria-pressed="true"]{color:#d7ff00!important;border-bottom-color:#d7ff00!important;}
+.library-tabs .btn:focus-visible{outline:2px solid #d7ff00;outline-offset:2px;}
+</style>
+<style id="summary-minimal-unified">
+#summaryPage .summary-overview-cards{gap:0!important;margin:16px 0!important;align-items:center}
+#summaryPage .summary-overview-card{background:none!important;border:0!important;border-radius:0!important;flex-direction:column!important;height:auto!important;min-height:48px!important;padding:0 4px!important;gap:6px!important;white-space:normal!important;box-sizing:border-box}
+#summaryPage .summary-overview-card+ .summary-overview-card{border-left:1px solid #354039!important}
+#summaryPage .summary-overview-card strong{font-size:22px!important;line-height:26px!important;color:#d7ff00}
+#summaryPage .summary-overview-card span{font-size:11px!important;line-height:15px!important;white-space:normal!important;text-align:center}
+#summaryTabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px!important;overflow:visible!important;border:0!important;border-top:1px solid #303a33!important;border-radius:0!important;background:transparent!important;padding:8px 0 0!important;margin:0 0 14px!important}
+#summaryTabs .summary-tab{box-sizing:border-box;min-width:0!important;width:100%;min-height:39px;height:auto!important;white-space:normal!important;padding:4px 2px!important;display:flex;align-items:center;justify-content:center;background:transparent!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;color:var(--muted)!important;font-size:12px!important;line-height:1.2!important;font-weight:700!important;text-align:center}
+#summaryTabs .summary-tab.active{color:#d7ff00!important;border-bottom-color:#d7ff00!important}
+#summaryScrollIndicator{display:none!important}
+#summaryPage .summary-day-card{padding:12px!important;margin:0!important;box-sizing:border-box}
+#summaryPage .summary-day-list{gap:10px!important}
+#summaryPage .summary-day-heading{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0!important;padding:0!important}
+#summaryPage .summary-day-heading::-webkit-details-marker{display:none}
+#summaryPage .summary-day-heading h3{font-size:14px;line-height:20px;margin:0 0 4px}
+#summaryPage .summary-day-heading span{font-size:12px;line-height:16px;color:var(--muted);white-space:normal}
+#summaryPage .summary-day-heading svg{color:#d7ff00;flex:none}
+#summaryPage details[open] .summary-day-heading svg{transform:rotate(180deg)}
+#summaryPage details[open] .summary-exercise-list,#summaryPage details[open] .summary-empty-day{margin-top:12px}
+#summaryPage .summary-day-heading:focus-visible,#summaryTabs .summary-tab:focus-visible{outline:2px solid #d7ff00;outline-offset:2px}
+</style>
+
+<style id="compact-summary-evolution-final">
+#summaryPage .summary-overview-cards{margin:10px 0 12px!important;gap:0!important;grid-template-columns:repeat(3,minmax(0,1fr))}
+#summaryPage .summary-overview-card{min-height:0!important;height:auto!important;gap:2px!important;position:relative;padding:0 4px!important}
+#summaryPage .summary-overview-card+.summary-overview-card{border-left:0!important}
+#summaryPage .summary-overview-card+.summary-overview-card::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);height:26px;width:1px;background:#303a33}
+#summaryPage .summary-overview-card strong{font-size:16px!important;line-height:20px!important}
+#summaryPage .summary-overview-card span{font-size:10px!important;line-height:14px!important}
+#summaryPage #summaryTabs{display:block!important;border:0!important;padding:0!important;margin:0 0 14px!important}
+#summaryTabs .styled-select,#weeklyEvolutionPage .styled-select:has(#weeklyEvolutionExercise){width:100%;margin:0!important;padding:0!important}
+#summaryTabs .styled-select-trigger,#weeklyEvolutionPage .styled-select:has(#weeklyEvolutionExercise) .styled-select-trigger{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;height:42px;min-height:42px;margin:0!important;padding:0 2px!important;border:0!important;border-bottom:1px solid #354039!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;font-size:14px;line-height:20px;text-align:left}
+#summaryTabs .styled-select-label{color:#f2f2f2}
+#weeklyEvolutionPage .weekly-evolution-tabs{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;margin:12px 0 14px!important;padding:0!important;overflow:visible!important}
+#weeklyEvolutionPage .weekly-evolution-tabs .summary-tab{display:flex;align-items:center;justify-content:center;min-width:0;width:100%;min-height:39px;padding:4px 2px!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;background:transparent!important;color:var(--muted)!important;font-size:12px!important;font-weight:700;line-height:16px;text-align:center;white-space:normal}
+#weeklyEvolutionPage .weekly-evolution-tabs .summary-tab.active{color:#d7ff00!important;border-bottom-color:#d7ff00!important}
+.evolution-initial{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px 12px;color:var(--muted);font-size:14px;line-height:21px;text-align:center}
+.evolution-initial svg{color:#69776e}
+.evolution-info{margin:16px 0 0;border-top:1px solid #303a33;padding:0}
+.evolution-info summary{display:flex;align-items:center;gap:8px;min-height:40px;cursor:pointer;list-style:none;color:#98a59c;font-size:12px;line-height:16px}
+.evolution-info summary::-webkit-details-marker{display:none}
+.evolution-info-icon{font-size:16px;line-height:20px}
+.evolution-info-arrow{margin-left:auto;width:7px;height:7px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg);margin-right:4px}
+.evolution-info[open] .evolution-info-arrow{transform:rotate(225deg)}
+.evolution-info .summary-page-footnote{margin:0 0 8px;font-size:12px;line-height:18px}
+#duplicateExerciseDialog:not(.create-exercise-mode) .variation-intro{margin-bottom:14px!important}
+#duplicateExerciseDialog:not(.create-exercise-mode) .variation-existing-summary{margin-top:0!important}
+</style>
+<style id="final-minimal-mobile">
+.library-tabs .btn{text-transform:none!important}
+#myProfilePage .profile-panel{background:transparent!important;border:0!important;padding:0!important;gap:14px!important}
+#myProfilePage .profile-age{background:none!important;padding:0!important;border:0!important}
+#myProfilePage .profile-imc{background:none!important;border:0!important;border-top:1px solid #303a33!important;border-bottom:1px solid #303a33!important;border-radius:0!important;padding:16px 0!important;gap:8px!important}
+#myProfilePage .field input{height:42px!important;min-height:42px!important}
+#profileReference{background:none!important;border:0!important;padding:0!important}
+#profileReference summary{display:flex;align-items:center;gap:8px;list-style:none;min-height:36px;color:var(--muted);font-weight:500!important}
+#profileReference summary::-webkit-details-marker{display:none}
+#profileReference summary::before{content:'ⓘ';font-size:16px}
+#profileReference summary::after{content:'⌄';margin-left:auto;color:#d7ff00;font-size:18px}
+#profileReference[open] summary::after{content:'⌃'}
+#myProfilePage .profile-save{min-height:44px!important}
+#infoCatalogModal .info-catalog-dialog{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+#infoCatalogModal .catalog-entry{padding:14px 0!important;margin:0!important;border-bottom:1px solid #303a33;gap:6px!important}
+#infoCatalogModal .catalog-entry>div:not(.catalog-list){display:grid!important;grid-template-columns:minmax(0,1fr) 42px!important;gap:8px!important;align-items:center}
+#infoCatalogModal .catalog-entry>div:not(.catalog-list)>input{grid-column:1!important;width:100%!important;min-width:0!important;height:42px!important;margin:0!important}
+#infoCatalogModal .catalog-entry>div:not(.catalog-list)>.primary{grid-column:2!important;width:42px!important;height:42px!important;min-height:42px!important;padding:0!important;font-size:24px!important;color:#d7ff00!important;background:#202d22!important;border:1px solid #394b37!important}
+#infoCatalogModal .catalog-entry>div:not(.catalog-list)>.catalog-list-toggle{grid-column:1/-1!important;width:100%!important;display:flex!important;justify-content:space-between!important;align-items:center!important;background:none!important;border:0!important;padding:4px 0!important;color:var(--muted)!important;min-height:30px!important;box-shadow:none!important}
+#infoCatalogModal .catalog-list-toggle span{color:#d7ff00}
+#progressOverview{background:transparent!important;border:0!important;box-shadow:none!important;padding-inline:0!important}
+.daynav .daybtn:not(.today-notice){background:transparent!important;border:0!important;border-bottom:2px solid #303a33!important;border-radius:0!important;box-shadow:none!important}
+.daynav .daybtn.active:not(.today-notice){border-bottom-color:#d7ff00!important;color:#d7ff00!important}
+#exerciseList .exercise{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important;padding:12px!important;min-height:0!important;border-radius:13px!important;position:relative!important}
+#exerciseList .exercise-main{grid-column:1!important;width:100%!important;min-width:0!important}
+#exerciseList .exercise .exhead{min-height:0!important;margin:0!important;display:flex!important;justify-content:space-between!important;gap:8px!important}
+#exerciseList .exercise .exercise-meta{gap:3px!important;line-height:1.4!important}
+#exerciseList .exercise .exercise-sets-area{width:100%!important;max-width:none!important;transform:none!important;margin:0!important;padding:0!important}
+#exerciseList .exercise .exercise-collapse-row{transform:none!important;margin:4px 0!important;min-height:0!important}
+#exerciseList .exercise .sets-table{display:grid!important;grid-template-columns:repeat(var(--set-columns,4),minmax(0,1fr))!important;gap:8px 5px!important;width:100%!important;max-width:none!important;border:0!important;border-top:1px solid #303a33!important;border-radius:0!important;background:none!important;padding:10px 0 0!important;margin:0!important}
+#exerciseList .exercise.is-collapsed .sets-table,#exerciseList .exercise.is-collapsed .actions{display:none!important}
+#exerciseList .exercise .sets-head{display:none!important}
+#exerciseList .exercise .set-row{display:flex!important;flex-direction:column!important;align-items:center!important;gap:6px!important;min-width:0!important;padding:0!important;margin:0!important;border:0!important;background:none!important}
+#exerciseList .exercise .set-row>*{border-right:0!important;padding:0!important;min-width:0!important}
+#exerciseList .exercise .set-row>*::after{display:none!important}
+#exerciseList .exercise .set-number{font-size:11px!important;line-height:15px!important;color:var(--muted)!important;height:auto!important;white-space:nowrap}
+#exerciseList .exercise .saved-load-value{box-sizing:border-box!important;width:100%!important;min-height:36px!important;height:auto!important;display:flex!important;align-items:center!important;justify-content:center!important;border:1px solid #394940!important;border-radius:8px!important;font-size:13px!important;overflow-wrap:anywhere;text-align:center!important}
+#exerciseList .exercise:not(.exercise-running) .saved-load-value::before{content:none}
+#exerciseList .exercise .set-done-btn{width:28px!important;min-width:28px!important;height:28px!important;min-height:28px!important;border-radius:6px!important}
+#exerciseList .exercise:not(.is-collapsed) .actions{position:static!important;grid-column:1!important;display:flex!important;flex-direction:row!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important;width:100%!important;min-height:0!important;height:auto!important;padding:0!important;margin:0!important;transform:none!important;visibility:visible!important}
+</style>
+<style id="card-controls-restored">
+#exerciseList .exercise .exercise-collapse-row:not(:empty){margin:4px 0 10px!important;}
+#exerciseList .exercise:not(.is-collapsed) .actions{display:flex!important;position:static!important;translate:none!important;transform:none!important;flex-direction:row!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important;width:100%!important;min-height:0!important;height:auto!important;margin:0 0 10px!important;padding:0!important;visibility:visible!important;overflow:visible!important;}
+#exerciseList .exercise .actions .iconbtn{display:grid!important;place-items:center!important;position:static!important;translate:none!important;transform:none!important;width:32px!important;min-width:32px!important;height:32px!important;flex:0 0 32px!important;visibility:visible!important;margin:0!important;}
+#exerciseList .exercise .actions .iconbtn[aria-label="Excluir exercício"]{color:#ef7777!important;}
+#exerciseList .exercise .set-done-btn{font-size:11px!important;line-height:1!important;font-weight:800!important;display:grid!important;place-items:center!important;color:#dce4dd!important;}
+#exerciseList .exercise .set-done-btn:disabled:not(.done){color:#a0aaa3!important;opacity:.55!important;}
+#exerciseList .exercise .set-done-btn.done:not(:disabled){color:#101810!important;}
+</style>
+<style id="compact-card-approved">
+#exerciseList .exercise .exhead{position:relative!important;display:grid!important;grid-template-columns:minmax(0,1fr) 48px!important;column-gap:8px!important;align-items:start!important;min-height:0!important;}
+#exerciseList .exercise .exhead>div:first-child{padding-right:0!important;min-width:0!important;grid-column:1!important;grid-row:1!important;}
+#exerciseList .exercise .exercise-head-controls{position:static!important;grid-column:2!important;grid-row:1!important;width:48px!important;height:auto!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:10px!important;pointer-events:none!important;}
+#exerciseList .exercise .exercise-head-controls .exercise-done-btn{position:static!important;margin:0!important;flex:none!important;pointer-events:auto!important;}
+#exerciseList .exercise .exercise-head-controls .exercise-collapse-all-btn{position:static!important;width:36px!important;min-width:36px!important;height:23px!important;min-height:23px!important;margin:0!important;padding:0!important;transform:none!important;translate:none!important;pointer-events:auto!important;}
+#exerciseList .exercise:not(.is-collapsed) .exhead .actions{grid-column:1/-1!important;grid-row:2!important;justify-self:end!important;width:auto!important;margin:0!important;gap:6px!important;min-height:0!important;}
+#exerciseList .exercise:not(.is-collapsed) .exhead:has(.exercise-meta) > div:first-child{padding-bottom:0!important;}
+#exerciseList .exercise:not(.is-collapsed) .exhead{row-gap:4px!important;}
+@media(min-width:350px){#exerciseList .exercise:not(.is-collapsed) .exhead{grid-template-columns:minmax(0,1fr) 48px!important;}#exerciseList .exercise:not(.is-collapsed) .exhead .actions{grid-column:1!important;grid-row:1!important;align-self:end!important;}#exerciseList .exercise:not(.is-collapsed) .exercise-meta{padding-right:112px!important;overflow-wrap:anywhere!important;}}
+#exerciseList .exercise.is-collapsed .exercise-sets-area{display:none!important;}
+#exerciseList .exercise .sets-table{padding-top:8px!important;}
+</style>
+<style id="centered-card-toolbar">
+#exerciseList .exercise .exhead{row-gap:6px!important;grid-template-rows:auto auto!important;}
+#exerciseList .exercise .exercise-meta{padding-right:0!important;}
+#exerciseList .exercise .exhead>.exercise-collapse-all-btn{grid-column:1/-1!important;grid-row:2!important;justify-self:center!important;align-self:center!important;position:static!important;width:36px!important;min-width:36px!important;height:23px!important;min-height:23px!important;margin:0!important;padding:0!important;transform:none!important;translate:none!important;z-index:2;}
+#exerciseList .exercise:not(.is-collapsed) .exhead .actions{grid-column:1/-1!important;grid-row:2!important;justify-self:end!important;align-self:center!important;width:auto!important;margin:0!important;gap:6px!important;}
+#exerciseList .exercise .exercise-head-controls{grid-row:1!important;}
+#exerciseList .exercise .sets-table{padding-top:8px!important;}
+@media(max-width:310px){#exerciseList .exercise:not(.is-collapsed) .exhead>.exercise-collapse-all-btn{justify-self:start!important;}}
+</style>
+<style id="compact-stable-toolbar-final">
+#exerciseList .exercise{gap:5px!important;}
+#exerciseList .exercise .exhead{grid-template-rows:auto!important;row-gap:0!important;}
+#exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn){grid-template-rows:auto 23px!important;row-gap:2px!important;}
+#exerciseList .exercise .exhead>.exercise-collapse-all-btn{grid-row:2!important;justify-self:center!important;align-self:start!important;transition:none!important;}
+#exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn)>.actions{grid-row:2!important;align-self:end!important;transform:translateY(-5px)!important;}
+#exerciseList .exercise .exhead:not(:has(>.exercise-collapse-all-btn))>.actions{grid-row:1!important;grid-column:1/-1!important;align-self:end!important;justify-self:end!important;}
+#exerciseList .exercise .exhead:not(:has(>.exercise-collapse-all-btn)) .exercise-meta{padding-right:76px!important;overflow-wrap:anywhere!important;}
+#exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn) .exercise-meta{padding-right:0!important;}
+#exerciseList .exercise .sets-table{padding-top:6px!important;margin-top:0!important;}
+@media(max-width:330px){#exerciseList .exercise .exhead:not(:has(>.exercise-collapse-all-btn))>.actions{grid-row:2!important;}#exerciseList .exercise .exhead:not(:has(>.exercise-collapse-all-btn)) .exercise-meta{padding-right:0!important;}#exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn){grid-template-rows:auto 32px!important;}#exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn)>.actions{transform:none!important;}#exerciseList .exercise .exhead>.exercise-collapse-all-btn{justify-self:start!important;}}
+</style>
+<style id="uniform-card-dimensions">
+#exerciseList .exercise{box-sizing:border-box!important;width:100%!important;max-width:100%!important;height:142px!important;min-height:142px!important;max-height:142px!important;padding:12px!important;grid-template-rows:116px!important;gap:0!important;overflow:hidden!important;}
+#exerciseList .exercise:not(.is-collapsed){height:252px!important;min-height:252px!important;max-height:252px!important;grid-template-rows:116px 110px!important;}
+#exerciseList .exercise .exhead{box-sizing:border-box!important;height:116px!important;min-height:116px!important;max-height:116px!important;grid-template-rows:116px!important;row-gap:0!important;position:relative!important;}
+#exerciseList .exercise .exhead>div:first-child{height:116px!important;overflow:auto!important;scrollbar-width:none;}
+#exerciseList .exercise .exercise-meta{padding-right:0!important;max-width:100%!important;}
+#exerciseList .exercise:not(.is-collapsed) .exercise-meta{max-width:calc(100% - 76px)!important;}
+#exerciseList .exercise .exhead>.exercise-collapse-all-btn{position:absolute!important;grid-area:auto!important;inset:auto!important;top:91px!important;left:50%!important;transform:translateX(-50%)!important;translate:none!important;transition:none!important;justify-self:auto!important;align-self:auto!important;}
+#exerciseList .exercise:not(.is-collapsed) .exhead>.actions{position:absolute!important;grid-area:auto!important;right:0!important;bottom:4px!important;top:auto!important;left:auto!important;transform:none!important;translate:none!important;gap:6px!important;width:auto!important;}
+#exerciseList .exercise .exercise-sets-area{box-sizing:border-box!important;height:110px!important;min-height:110px!important;max-height:110px!important;padding:6px 0 0!important;overflow:hidden!important;}
+#exerciseList .exercise .sets-table{box-sizing:border-box!important;height:104px!important;min-height:104px!important;max-height:104px!important;padding:8px 0 4px!important;margin:0!important;overflow-y:auto!important;overflow-x:hidden!important;align-content:start!important;grid-auto-rows:91px!important;scrollbar-width:thin;}
+@media(max-width:350px){#exerciseList .exercise .exhead>.exercise-collapse-all-btn{left:40%!important;}#exerciseList .exercise:not(.is-collapsed) .exercise-meta{max-width:calc(100% - 65px)!important;}}
+</style>
+<style id="drag-uniform-card-fix">
+#exerciseList > .exercise.exercise-drag-source {position:absolute!important; width:0!important; min-width:0!important; max-width:0!important; height:0!important; min-height:0!important; max-height:0!important; padding:0!important; margin:0!important; border:0!important; overflow:hidden!important; visibility:hidden!important; pointer-events:none!important;}
+#exerciseList > .exercise-drag-placeholder {margin:0!important; min-height:0!important; flex-shrink:0; max-width:100%;}
+</style>
+<style id="approved-week-progress-dropdown-catalog">
+.daynav .day-item .daybtn{box-sizing:border-box!important;height:36px!important;min-height:36px!important;padding:0 2px!important;font-size:13px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:3px!important;}
+.daynav .daybtn:not(.today-notice){border-bottom-width:3px!important;}
+.daynav .daybtn.completed:not(.today-notice){color:#d7ff00!important;-webkit-text-fill-color:#d7ff00!important;border-bottom-color:#688a38!important;}
+.daynav .daybtn.completed.active:not(.today-notice){border-bottom-color:#d7ff00!important;}
+.day-completed-check{font-size:11px;line-height:1;color:#d7ff00;}
+.daynav .daybtn.today-notice{background:#d7ff00!important;color:#10120a!important;border-radius:7px!important;}
+.daynav .daybtn.today-notice .daybtn-label{color:#10120a!important;-webkit-text-fill-color:#10120a!important;font-size:clamp(9px,2.8vw,12px)!important;letter-spacing:-.4px!important;}
+#progressOverview > .progress-summary{min-height:42px!important;height:42px!important;padding:4px 8px!important;}
+#progressOverview > .progress-summary > .stat{min-height:0!important;padding:0 2px!important;}
+#progressOverview > .progress-summary .summary-stat-icon{width:12px!important;height:12px!important;flex:0 0 12px!important;}
+#progressOverview > .progress-summary > .progress-summary-divider{height:22px!important;min-height:22px!important;}
+#infoCatalogModal .catalog-entry>div:not(.catalog-list)>.catalog-list-toggle{padding-right:10px!important;}
+.styled-select-menu[data-portal="true"]{right:auto;box-sizing:border-box;}
+</style>
+<style id="whole-app-family-audit">
+/* Shared visual tokens; intentionally preserve distinct action/status families. */
+:root{--ui-field-height:42px;--ui-field-radius:9px;--ui-label-size:12px;--ui-label-line:15px;--ui-dialog-padding:16px;--ui-field-gap:6px;--ui-section-gap:14px;--ui-divider:#303a33;}
+#infoCatalogModal #infoCatalogTitle,#backupMenuConfirm .summary-page-shell>h1,#myProfilePage h1,#summaryPage h1,#weeklyEvolutionPage h1{font-size:clamp(23px,6.4vw,27px)!important;line-height:1.15!important;font-weight:800!important;letter-spacing:0!important;margin:4px 0 12px!important;text-align:left!important;overflow-wrap:break-word;}
+#myProfilePage .field label,#infoCatalogModal .catalog-entry>label,#duplicateExerciseDialog .field label,#catalogEditDialog .field label,#equipmentPrepositionDialog .field label{font-family:inherit!important;font-size:var(--ui-label-size)!important;line-height:var(--ui-label-line)!important;font-weight:700!important;letter-spacing:0!important;text-align:left!important;}
+#myProfilePage .field input,#infoCatalogModal .catalog-entry>div:not(.catalog-list)>input,#catalogEditDialog .field input,#equipmentPrepositionDialog .field input,#duplicateExerciseDialog .field .styled-select-trigger,#catalogDependencyDialog .styled-select-trigger{box-sizing:border-box!important;height:var(--ui-field-height)!important;min-height:var(--ui-field-height)!important;border-radius:var(--ui-field-radius)!important;font-family:inherit!important;font-size:14px!important;line-height:20px!important;padding:0 12px!important;min-width:0!important;}
+#myProfilePage .field{gap:var(--ui-field-gap)!important;}
+#infoCatalogModal .catalog-entry>div:not(.catalog-list)>.primary{border-radius:var(--ui-field-radius)!important;display:grid!important;place-items:center!important;line-height:1!important;}
+#infoCatalogModal .catalog-entry>div:not(.catalog-list)>.catalog-list-toggle{padding-right:10px!important;}
+.summary-back-btn,.catalog-page-topline>.btn{box-sizing:border-box!important;min-height:36px!important;padding:0 12px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:16px!important;}
+.confirm-backdrop:not(#libraryView):not(#dataBackupMenu)>.confirm-dialog>.confirm-actions>.btn,#modal #exerciseForm .modalactions>.btn{min-height:40px!important;font-size:13px!important;line-height:16px!important;font-weight:700!important;box-sizing:border-box!important;border-radius:9px!important;}
+#duplicateExerciseDialog #duplicateExerciseTitle,#catalogDependencyDialog #catalogDependencyTitle,#modal .dialog #modalTitle{font-size:20px!important;line-height:24px!important;font-weight:800!important;}
+#exerciseList .exercise .actions .iconbtn{height:32px!important;width:32px!important;min-width:32px!important;min-height:32px!important;border-radius:8px!important;}
+#exerciseList .exercise .exercise-sets-area{padding-top:8px!important;}
+#exerciseList .exercise .sets-table{height:102px!important;min-height:102px!important;max-height:102px!important;padding-top:8px!important;}
+#exerciseList .exercise .set-done-btn{line-height:1!important;}
+</style>
+<style id="weekday-emerald-approved">
+.daynav .day-item .daybtn{height:42px!important;min-height:42px!important;font-size:14px!important;gap:2px!important;}
+.daynav .day-item .daybtn:not(.today-notice) .daybtn-label{font-size:14px!important;color:inherit!important;-webkit-text-fill-color:currentColor!important;}
+.daynav .day-item .daybtn.completed:not(.today-notice){color:#45d68b!important;-webkit-text-fill-color:#45d68b!important;border-bottom-color:#45d68b!important;}
+.daynav .day-item .daybtn.completed.active:not(.today-notice){border-bottom-color:#d7ff00!important;}
+.daynav .day-item .daybtn .day-completed-check{color:#45d68b!important;-webkit-text-fill-color:#45d68b!important;font-size:13px!important;line-height:1!important;}
+.daynav .day-item .daybtn.today-notice .daybtn-label{font-size:clamp(9px,2.8vw,12px)!important;}
 </style>
 </body>
 </html>
