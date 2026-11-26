@@ -10937,7 +10937,7 @@ function openVariationMenu(root,trigger,menu){
 .day-completed-check{font-size:11px;line-height:1;color:#d7ff00;}
 .daynav .daybtn.today-notice{background:#d7ff00!important;color:#10120a!important;border-radius:7px!important;}
 .daynav .daybtn.today-notice .daybtn-label{color:#10120a!important;-webkit-text-fill-color:#10120a!important;font-size:clamp(9px,2.8vw,12px)!important;letter-spacing:-.4px!important;}
-#progressOverview > .progress-summary{min-height:42px!important;height:42px!important;padding:4px 8px!important;}
+#progressOverview > .progress-summary{min-height:46px!important;height:46px!important;padding:4px 8px!important;}
 #progressOverview > .progress-summary > .stat{min-height:0!important;padding:0 2px!important;}
 #progressOverview > .progress-summary .summary-stat-icon{width:12px!important;height:12px!important;flex:0 0 12px!important;}
 #progressOverview > .progress-summary > .progress-summary-divider{height:22px!important;min-height:22px!important;}
@@ -10983,9 +10983,10 @@ function openVariationMenu(root,trigger,menu){
 #exerciseList .exercise .sets-table.legacy-extra-sets{grid-template-columns:none!important;grid-auto-columns:calc((100% - 16px)/5)!important;overflow-x:auto!important;overflow-y:hidden!important;}
 </style>
 <style>
-/* Seta geral: 3px do limite interno superior, com reserva vertical para o título. */
-#exerciseList .exercise .exhead>.exercise-collapse-all-btn{top:-9px!important;bottom:auto!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;z-index:3!important;}
-#exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn)>div:first-child>.exnum{box-sizing:border-box!important;min-height:22px!important;padding-top:0!important;max-width:calc(50% + 4px)!important;overflow-wrap:anywhere!important;}
+/* Seta geral centralizada sobre a borda superior do primeiro card. */
+#exerciseList .exercise:has(.exercise-collapse-all-btn){position:relative!important;overflow:visible!important;margin-top:18px!important;}
+#exerciseList .exercise .exhead>.exercise-collapse-all-btn{top:-24px!important;bottom:auto!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;z-index:3!important;}
+#exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn)>div:first-child>.exnum{box-sizing:border-box!important;min-height:22px!important;padding-top:0!important;max-width:100%!important;overflow-wrap:anywhere!important;}
 #exerciseList .exercise .exhead:has(>.exercise-collapse-all-btn)>div:first-child>h3{margin-top:2px!important;}
 
 </style>
