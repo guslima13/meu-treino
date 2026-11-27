@@ -5445,7 +5445,7 @@ function recoverInterruptedImport(){try{const raw=localStorage.getItem('smartWor
 function showSaveFailure110(){if(!unsaved110)return;saveWarning110=true;document.getElementById('auditSaveFailure')?.remove();auditDialog('auditSaveFailure','Falha ao salvar','Não foi possível salvar as últimas alterações. Não feche o aplicativo antes de tentar novamente ou exportar um backup com as alterações pendentes.',[['Tentar novamente',()=>retrySave110(),'primary'],['Exportar backup',()=>{auditExportPending();showSaveFailure110();},''],['Descartar alterações',()=>ruleConfirm('Descartar alterações','As alterações pendentes serão descartadas. Os últimos dados salvos serão mantidos.',()=>{unsaved110=null;unsavedUndo110=null;saveWarning110=false;location.reload();},()=>showSaveFailure110()),'danger']]);}
 
 function retrySave110(){if(!unsaved110)return;const candidate=unsaved110;try{if(!persistWorkoutTransaction(candidate)){showSaveFailure110();return;}state=candidate;unsaved110=null;saveWarning110=false;if(unsavedUndo110){showSavedUndo(unsavedUndo110);}unsavedUndo110=null;editingWorkout=!!state.editRollback;day=state.selectedDay||day;renderAllCatalogLists();refreshAllStyledSelects();render();}catch(e){showSaveFailure110();}}
-function showTabConflict(){tabConflict=true;if(document.getElementById('tabConflictDialog'))return;const actions=[];if(unsaved110||durableState&&auditMeaningfulDifference(state,JSON.parse(durableState)))actions.push(['Exportar backup',()=>{auditExportPending();showTabConflict();},'']);actions.push(['Atualizar sessão',()=>location.reload(),'primary']);auditDialog('tabConflictDialog','Sessão simultânea','O aplicativo identificou alterações em outra aba. Para proteger seus dados, esta sessão foi temporariamente bloqueada. Exporte um backup se houver alterações pendentes antes de atualizar.',actions);}
+function showTabConflict(){hideUndo();unsavedUndo110=null;tabConflict=true;if(document.getElementById('tabConflictDialog'))return;const actions=[];if(unsaved110||durableState&&auditMeaningfulDifference(state,JSON.parse(durableState)))actions.push(['Exportar backup',()=>{auditExportPending();showTabConflict();},'']);actions.push(['Atualizar sessão',()=>location.reload(),'primary']);auditDialog('tabConflictDialog','Sessão simultânea','O aplicativo identificou alterações em outra aba. Para proteger seus dados, esta sessão foi temporariamente bloqueada. Exporte um backup se houver alterações pendentes antes de atualizar.',actions);}
 
 function persistWorkoutTransaction(next){if(!isValidWorkoutData(next))throw Error("Dados inválidos");const raw=JSON.stringify(next),previous=localStorage.getItem('smartWorkoutData');if(tabConflict||previous!==observedWorkoutRaw){showTabConflict();return false;}if(previous===raw){durableState=raw;return true;}if(previous!==null){const parsed=JSON.parse(previous);if(!isValidWorkoutData(parsed))throw Error('Dados anteriores inválidos');try{localStorage.setItem('smartWorkoutRecoveryV2',previous);}catch(e){console.warn('Cópia de recuperação indisponível',e);}}localStorage.setItem('smartWorkoutData',raw);if(localStorage.getItem('smartWorkoutData')!==raw){setStorageValue('smartWorkoutData',previous);throw Error('Gravação não confirmada');}durableState=raw;observedWorkoutRaw=raw;try{const now=Date.now();if(!clockUnsafe110()&&now>=clockLastWrite110){localStorage.setItem('meuTreinoLastWriteAt',String(now));clockLastWrite110=now;}}catch(_){}return true;}
 function backupSettingKeys(){return ['smartWorkoutNewExercisePickerSignatures','smartWorkoutUiState_v1','meuTreinoHistoryReviewAtV1'];}
@@ -5503,7 +5503,7 @@ day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 // Histórico de desfazer independente dos dados principais do treino.
 const UNDO_STORAGE_KEY='smartWorkoutUndoHistory';
 // Somente ações ainda elegíveis; remove avisos antigos desativados, sem alterar os dados do treino.
-function isUndoMessageAllowed(message){return ['Exercícios trocados entre treinos','Exercício substituído','Exercício excluído','Exercício excluído do cadastro geral','Progresso do treino reiniciado','Repetições alteradas'].includes(message)||/^(Grupo muscular|Equipamento|Execução|Pegada) (?:excluíd[oa]|substituíd[oa] e excluíd[oa]) do cadastro$/.test(message);}
+function isUndoMessageAllowed(message){return ['Exercícios trocados entre treinos','Exercício substituído','Exercício excluído','Exercício excluído do cadastro geral','Progresso do treino reiniciado'].includes(message)||/^(Grupo muscular|Equipamento|Execução|Pegada) (?:excluíd[oa]|substituíd[oa] e excluíd[oa]) do cadastro$/.test(message);}
 // Desfazer é temporário e nunca é restaurado de outra sessão.
 const undoHistory=[];
 function persistUndoHistory(){try{localStorage.removeItem(UNDO_STORAGE_KEY);}catch(_){}}
@@ -5511,7 +5511,6 @@ persistUndoHistory();
 let undoTimer=null;
 let undoDeadline=0;
 let applyingUndo=false;
-const UNDO_LIMIT=1;
 
 function hideUndo(){
   const toast=document.getElementById('undoToast');
@@ -5520,9 +5519,24 @@ function hideUndo(){
   undoTimer=null;undoDeadline=0;undoHistory.length=0;pendingUndoEntry=null;
 }
 function undoEquivalent(a,b){const normalize=x=>({...x,weeklyChecks:Object.fromEntries(Object.entries(x.weeklyChecks||{}).filter(([k,v])=>Array.isArray(v)&&v.some(Boolean)))});return eq(normalize(a),normalize(b));}
+function undoStateKey(raw){
+ const x=typeof raw==='string'?JSON.parse(raw):structuredClone(raw);
+ delete x.selectedDay;
+ // Navegação pode criar sessões ociosas e marcações vazias sem alterar o treino.
+ for(const [d,v] of Object.entries(x.sessions||{}))if(v.status==='idle'&&!v.startedAt&&!v.finishedAt&&!v.restartCount)delete x.sessions[d];
+ for(const [wk,marks] of Object.entries(x.weeklyChecks||{})){
+   x.weeklyChecks[wk]=Object.fromEntries(Object.entries(marks||{}).filter(([k,v])=>Array.isArray(v)&&v.some(Boolean)));
+   if(!Object.keys(x.weeklyChecks[wk]).length)delete x.weeklyChecks[wk];
+ }
+ return JSON.stringify(x);
+}
+function undoStillCurrent(entry){
+ return !!entry?.after&&entry.stateKey===undoStateKey(state)&&entry.profileRaw===observedProfileRaw&&undoEquivalent(entry.after,undoSnapshot(state));
+}
 function showSavedUndo(entry){
   hideUndo();
-  if(!entry?.after||document.hidden)return;
+  if(!entry?.after||document.hidden||undoEquivalent(entry.before,entry.after))return;
+  entry.stateKey=undoStateKey(durableState||state);entry.profileRaw=observedProfileRaw;
   undoHistory.push(entry);undoDeadline=performance.now()+5000;
   document.getElementById('undoMessage').textContent=entry.message;
   document.getElementById('undoBtn').hidden=false;
@@ -5536,8 +5550,11 @@ function recordUndo(message){
 function undoLastAction(){
  if(!undoHistory.length||pendingUndoEntry)return;
  if(performance.now()>=undoDeadline||document.hidden){hideUndo();return;}
+ if(tabConflict||workoutStorageReadBlocked||storageRollbackPending||unsaved110){hideUndo();return;}
  if(hasWorkoutInProgress()){hideUndo();ruleBusy();return;}
- const entry=undoHistory[0];if(!entry.after)return;
+ const entry=undoHistory[0];if(!undoStillCurrent(entry)){hideUndo();return;}
+ try{if(localStorage.getItem('smartWorkoutData')!==observedWorkoutRaw||localStorage.getItem('smartWorkoutProfileV1')!==observedProfileRaw){hideUndo();showTabConflict();return;}}catch(_){hideUndo();return;}
+
  const next=applyInverseAction(state,entry);if(!next)return;
  applyingUndo=true;const old=state;state=next;if(!save()){state=old;applyingUndo=false;hideUndo();return;}
  applyingUndo=false;hideUndo();renderAllCatalogLists();refreshAllStyledSelects();render();
@@ -5684,7 +5701,7 @@ function save(){
  try{
   if(!persistWorkoutTransaction(state))throw Error('Gravação não confirmada');
   if(pendingUndoEntry){const entry=pendingUndoEntry;entry.after=undoSnapshot(state);showSavedUndo(entry);}
-  else if(!applyingUndo&&undoHistory.length&&!undoEquivalent(undoHistory[0].after,undoSnapshot(state)))hideUndo();
+  else if(!applyingUndo&&undoHistory.length&&!undoStillCurrent(undoHistory[0]))hideUndo();
  }catch(error){
   unsaved110=structuredClone(state);unsavedUndo110=pendingUndoEntry?structuredClone({...pendingUndoEntry,after:undoSnapshot(state)}):null;
   hideUndo();
@@ -5861,13 +5878,11 @@ if(state.buildMode||editingWorkout)return;
     const message=document.getElementById('undoMessage');
     const undoButton=document.getElementById('undoBtn');
     if(toast && message){
+      hideUndo();
       message.textContent=`O treino de ${otherActiveDay} já está em andamento. Finalize ou reinicie esse treino antes de iniciar outro.`;
       if(undoButton) undoButton.hidden=true;
       toast.classList.add('show');
-      setTimeout(()=>{
-        toast.classList.remove('show');
-        if(undoButton) undoButton.hidden=false;
-      },4000);
+      undoTimer=setTimeout(hideUndo,4000);
     }
     return;
   }
@@ -6804,7 +6819,6 @@ if(!/^\d+$/.test(String(v))||Number(v)<=0||!Number.isSafeInteger(Number(v)))retu
 
 const e=state.workouts[day][i];
 if((Array.isArray(e.reps)?e.reps:[e.reps])[j]===v) return;
-recordUndo('Repetições alteradas');
 // Versões anteriores armazenavam a duração em texto (por exemplo, 1h).
 if(!Array.isArray(e.reps))e.reps=e.reps===undefined?[]:[e.reps];
 
@@ -10316,7 +10330,7 @@ main { padding-bottom: 4px !important; }
  form.addEventListener('input',update);el('profileHeight').addEventListener('change',()=>{const h=number(el('profileHeight').value);if(h>=50&&h<=250){el('profileHeight').value=String(h/100).replace('.',',');update();}});
  window.openMyProfile=function(){form.reset();el('profileError').textContent='';try{const data=JSON.parse(localStorage.getItem(key)||'{}');fields.forEach(id=>el(id).value=typeof data[id]==='string'?data[id]:'');}catch(e){el('profileError').textContent='Não foi possível ler o perfil salvo.';}el('profileReference').open=false;page.hidden=false;document.body.classList.add('summary-page-open');page.scrollTop=0;update();auditRememberForm('myProfileForm');};
  window.closeMyProfile=function(){page.hidden=true;document.body.classList.remove('summary-page-open');};
- form.addEventListener('submit',e=>{e.preventDefault();if(tabConflict||localStorage.getItem(key)!==observedProfileRaw){showTabConflict();return;}let h=number(el('profileHeight').value);if(h>=50&&h<=250){h/=100;el('profileHeight').value=String(h).replace('.',',');}if(!update())return;const w=number(el('profileWeight').value);if((h<.5||h>2.5||w<20||w>350)&&!confirm('Confira se a altura e o peso informados estão corretos antes de salvar.'))return;try{const data={};fields.forEach(id=>data[id]=el(id).value.trim());const serialized=JSON.stringify(data),previous=localStorage.getItem(key);try{localStorage.setItem(key,serialized);if(localStorage.getItem(key)!==serialized)throw Error('Falha na gravação');observedProfileRaw=serialized;}catch(error){try{setStorageValue(key,previous);}catch(_){}throw error;}updateGreeting();closeMyProfile();}catch(e){el('profileError').textContent='Não foi possível salvar o perfil. Tente novamente.';}});
+ form.addEventListener('submit',e=>{e.preventDefault();if(tabConflict||localStorage.getItem(key)!==observedProfileRaw){showTabConflict();return;}let h=number(el('profileHeight').value);if(h>=50&&h<=250){h/=100;el('profileHeight').value=String(h).replace('.',',');}if(!update())return;const w=number(el('profileWeight').value);if((h<.5||h>2.5||w<20||w>350)&&!confirm('Confira se a altura e o peso informados estão corretos antes de salvar.'))return;try{const data={};fields.forEach(id=>data[id]=el(id).value.trim());const serialized=JSON.stringify(data),previous=localStorage.getItem(key);try{localStorage.setItem(key,serialized);if(localStorage.getItem(key)!==serialized)throw Error('Falha na gravação');observedProfileRaw=serialized;if(previous!==serialized)hideUndo();}catch(error){try{setStorageValue(key,previous);}catch(_){}throw error;}updateGreeting();closeMyProfile();}catch(e){el('profileError').textContent='Não foi possível salvar o perfil. Tente novamente.';}});
 })();
 </script>
 <style>
@@ -11266,6 +11280,10 @@ window.visualViewport?.addEventListener('scroll',positionAuditLoadToast);
 #exerciseReplaceModal .replace-option:disabled .replace-select-label{color:#aebbb2;background:#272e28;border-color:#526458;}
 #exerciseReplaceModal .replace-option:disabled .replace-location{color:#aebbb2;}
 #undoToast{z-index:11990;}
+/* Confirmações têm prioridade visual; o prazo do aviso continua correndo. */
+body:has(.confirm-backdrop:not([hidden])) #undoToast,
+body:has(#modal.open) #undoToast,
+body:has(#exerciseReplaceModal) #undoToast{visibility:hidden;pointer-events:none!important;}
 </style>
 </body>
 </html>
