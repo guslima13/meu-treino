@@ -11210,42 +11210,20 @@ function showClock110(){if(clockNotice110)return;clockNotice110=true;showCatalog
 @keyframes editIconMobilePulse113{0%,100%{opacity:1}50%{opacity:.25}}
 
 
-/* Refino solicitado: halo do “É HOJE!” com pulsação suave e compatível no celular. */
-.daynav .daybtn.today-notice{
-  position:relative!important;
-  overflow:visible!important;
+/* Pulsação suave somente da luz ao redor das letras do aviso de hoje. */
+.daynav .day-item .daybtn.today-notice .daybtn-label{
+  opacity:1!important;
+  filter:none!important;
+  -webkit-animation:todayLetterHaloPulse 2.6s ease-in-out infinite!important;
+  animation:todayLetterHaloPulse 2.6s ease-in-out infinite!important;
 }
-.daynav .daybtn.today-notice::after{
-  content:"";
-  position:absolute;
-  inset:-1px;
-  border-radius:inherit;
-  pointer-events:none;
-  box-shadow:0 0 0 2px #d7ff0040,0 0 8px #d7ff0035!important;
-  opacity:.42;
-  transform:scale(1);
-  animation:todayHaloSoftPulse 2.8s ease-in-out infinite!important;
-  will-change:opacity,transform,box-shadow;
+@-webkit-keyframes todayLetterHaloPulse{
+  0%,100%{text-shadow:0 0 2px rgba(215,255,0,.30),0 0 4px rgba(215,255,0,.18);}
+  50%{text-shadow:0 0 5px rgba(215,255,0,.85),0 0 11px rgba(215,255,0,.65);}
 }
-@keyframes todayHaloSoftPulse{
-  0%,100%{
-    opacity:.32;
-    transform:scale(1);
-    box-shadow:0 0 0 2px #d7ff0038,0 0 7px #d7ff002c;
-  }
-  50%{
-    opacity:.62;
-    transform:scale(1.03);
-    box-shadow:0 0 0 3px #d7ff0055,0 0 13px #d7ff0046;
-  }
-}
-@media (prefers-reduced-motion: reduce){
-  .daynav .daybtn.today-notice::after{
-    animation:none!important;
-    opacity:.45;
-    transform:none;
-    box-shadow:0 0 0 2px #d7ff0045,0 0 8px #d7ff0035!important;
-  }
+@keyframes todayLetterHaloPulse{
+  0%,100%{text-shadow:0 0 2px rgba(215,255,0,.30),0 0 4px rgba(215,255,0,.18);}
+  50%{text-shadow:0 0 5px rgba(215,255,0,.85),0 0 11px rgba(215,255,0,.65);}
 }
 
 </style>
