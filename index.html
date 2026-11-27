@@ -5444,7 +5444,7 @@ function setStorageValue(k,v){if(v===null)localStorage.removeItem(k);else localS
 function recoverInterruptedImport(){try{const raw=localStorage.getItem('smartWorkoutImportJournalV2');if(!raw)return;const previous=JSON.parse(raw);for(const [k,v] of Object.entries(previous)){if(['smartWorkoutData','smartWorkoutProfileV1',...backupSettingKeys()].includes(k)&&(v===null||typeof v==='string'))setStorageValue(k,v);}localStorage.removeItem('smartWorkoutImportJournalV2');}catch(e){workoutStorageReadBlocked=true;}}
 function showSaveFailure110(){if(!unsaved110)return;saveWarning110=true;document.getElementById('auditSaveFailure')?.remove();auditDialog('auditSaveFailure','Falha ao salvar','Não foi possível salvar as últimas alterações. Não feche o aplicativo antes de tentar novamente ou exportar um backup com as alterações pendentes.',[['Tentar novamente',()=>retrySave110(),'primary'],['Exportar backup',()=>{auditExportPending();showSaveFailure110();},''],['Descartar alterações',()=>ruleConfirm('Descartar alterações','As alterações pendentes serão descartadas. Os últimos dados salvos serão mantidos.',()=>{unsaved110=null;unsavedUndo110=null;saveWarning110=false;location.reload();},()=>showSaveFailure110()),'danger']]);}
 
-function retrySave110(){if(!unsaved110)return;const candidate=unsaved110;try{if(!persistWorkoutTransaction(candidate)){showSaveFailure110();return;}state=candidate;unsaved110=null;saveWarning110=false;if(unsavedUndo110){undoHistory.push(unsavedUndo110);if(undoHistory.length>UNDO_LIMIT)undoHistory.shift();persistUndoHistory();}unsavedUndo110=null;editingWorkout=!!state.editRollback;day=state.selectedDay||day;renderAllCatalogLists();refreshAllStyledSelects();render();}catch(e){showSaveFailure110();}}
+function retrySave110(){if(!unsaved110)return;const candidate=unsaved110;try{if(!persistWorkoutTransaction(candidate)){showSaveFailure110();return;}state=candidate;unsaved110=null;saveWarning110=false;if(unsavedUndo110){showSavedUndo(unsavedUndo110);}unsavedUndo110=null;editingWorkout=!!state.editRollback;day=state.selectedDay||day;renderAllCatalogLists();refreshAllStyledSelects();render();}catch(e){showSaveFailure110();}}
 function showTabConflict(){tabConflict=true;if(document.getElementById('tabConflictDialog'))return;const actions=[];if(unsaved110||durableState&&auditMeaningfulDifference(state,JSON.parse(durableState)))actions.push(['Exportar backup',()=>{auditExportPending();showTabConflict();},'']);actions.push(['Atualizar sessão',()=>location.reload(),'primary']);auditDialog('tabConflictDialog','Sessão simultânea','O aplicativo identificou alterações em outra aba. Para proteger seus dados, esta sessão foi temporariamente bloqueada. Exporte um backup se houver alterações pendentes antes de atualizar.',actions);}
 
 function persistWorkoutTransaction(next){if(!isValidWorkoutData(next))throw Error("Dados inválidos");const raw=JSON.stringify(next),previous=localStorage.getItem('smartWorkoutData');if(tabConflict||previous!==observedWorkoutRaw){showTabConflict();return false;}if(previous===raw){durableState=raw;return true;}if(previous!==null){const parsed=JSON.parse(previous);if(!isValidWorkoutData(parsed))throw Error('Dados anteriores inválidos');try{localStorage.setItem('smartWorkoutRecoveryV2',previous);}catch(e){console.warn('Cópia de recuperação indisponível',e);}}localStorage.setItem('smartWorkoutData',raw);if(localStorage.getItem('smartWorkoutData')!==raw){setStorageValue('smartWorkoutData',previous);throw Error('Gravação não confirmada');}durableState=raw;observedWorkoutRaw=raw;try{const now=Date.now();if(!clockUnsafe110()&&now>=clockLastWrite110){localStorage.setItem('meuTreinoLastWriteAt',String(now));clockLastWrite110=now;}}catch(_){}return true;}
@@ -5502,45 +5502,45 @@ day=days.includes(state.selectedDay)?state.selectedDay:days[0];
 
 // Histórico de desfazer independente dos dados principais do treino.
 const UNDO_STORAGE_KEY='smartWorkoutUndoHistory';
-function loadUndoHistory(){try{const entries=JSON.parse(localStorage.getItem(UNDO_STORAGE_KEY)||'[]');return Array.isArray(entries)?entries.filter(e=>e&&e.before&&e.after&&typeof e.message==='string').slice(-3):[];}catch(_){return [];}}
-const undoHistory=loadUndoHistory();
-function persistUndoHistory(){
-  try{
-    if(undoHistory.length){
-      localStorage.setItem(UNDO_STORAGE_KEY,JSON.stringify(undoHistory));
-    }else{
-      localStorage.removeItem(UNDO_STORAGE_KEY);
-    }
-  }catch(error){
-    console.error('Não foi possível salvar o histórico de desfazer:',error);
-  }
-}
+// Somente ações ainda elegíveis; remove avisos antigos desativados, sem alterar os dados do treino.
+function isUndoMessageAllowed(message){return ['Exercícios trocados entre treinos','Exercício substituído','Exercício excluído','Exercício excluído do cadastro geral','Progresso do treino reiniciado','Repetições alteradas'].includes(message)||/^(Grupo muscular|Equipamento|Execução|Pegada) (?:excluíd[oa]|substituíd[oa] e excluíd[oa]) do cadastro$/.test(message);}
+// Desfazer é temporário e nunca é restaurado de outra sessão.
+const undoHistory=[];
+function persistUndoHistory(){try{localStorage.removeItem(UNDO_STORAGE_KEY);}catch(_){}}
+persistUndoHistory();
 let undoTimer=null;
+let undoDeadline=0;
 let applyingUndo=false;
-const UNDO_LIMIT=3;
+const UNDO_LIMIT=1;
 
 function hideUndo(){
   const toast=document.getElementById('undoToast');
-  if(toast) toast.classList.remove('show');
-  if(undoTimer) clearTimeout(undoTimer);
-  undoTimer=null;
+  if(toast)toast.classList.remove('show');
+  if(undoTimer)clearTimeout(undoTimer);
+  undoTimer=null;undoDeadline=0;undoHistory.length=0;pendingUndoEntry=null;
 }
-
+function undoEquivalent(a,b){const normalize=x=>({...x,weeklyChecks:Object.fromEntries(Object.entries(x.weeklyChecks||{}).filter(([k,v])=>Array.isArray(v)&&v.some(Boolean)))});return eq(normalize(a),normalize(b));}
+function showSavedUndo(entry){
+  hideUndo();
+  if(!entry?.after||document.hidden)return;
+  undoHistory.push(entry);undoDeadline=performance.now()+5000;
+  document.getElementById('undoMessage').textContent=entry.message;
+  document.getElementById('undoBtn').hidden=false;
+  document.getElementById('undoToast').classList.add('show');
+  undoTimer=setTimeout(hideUndo,5000);
+}
 function recordUndo(message){
- if(applyingUndo)return;
- if(pendingUndoEntry){const i=undoHistory.indexOf(pendingUndoEntry);if(i>=0)undoHistory.splice(i,1);}
- pendingUndoEntry={before:undoSnapshot(state),after:null,message};undoHistory.push(pendingUndoEntry);if(undoHistory.length>UNDO_LIMIT)undoHistory.shift();
- document.getElementById('undoMessage').textContent=message+' · '+undoHistory.length+'/3';document.getElementById('undoToast').classList.add('show');if(undoTimer)clearTimeout(undoTimer);undoTimer=setTimeout(hideUndo,5000);
+ if(applyingUndo||!isUndoMessageAllowed(message))return;
+ hideUndo();pendingUndoEntry={before:undoSnapshot(state),after:null,message};
 }
-
 function undoLastAction(){
  if(!undoHistory.length||pendingUndoEntry)return;
- if(hasWorkoutInProgress()){ruleBusy();return;}
- const entry=undoHistory[undoHistory.length-1];if(!entry.after)return;
+ if(performance.now()>=undoDeadline||document.hidden){hideUndo();return;}
+ if(hasWorkoutInProgress()){hideUndo();ruleBusy();return;}
+ const entry=undoHistory[0];if(!entry.after)return;
  const next=applyInverseAction(state,entry);if(!next)return;
- applyingUndo=true;const old=state;state=next;if(!save()){state=old;applyingUndo=false;return;}
- undoHistory.pop();persistUndoHistory();applyingUndo=false;renderAllCatalogLists();refreshAllStyledSelects();render();
- if(undoHistory.length){document.getElementById('undoMessage').textContent='Desfeito. '+undoHistory.length+(undoHistory.length===1?' ação disponível':' ações disponíveis');document.getElementById('undoToast').classList.add('show');if(undoTimer)clearTimeout(undoTimer);undoTimer=setTimeout(hideUndo,5000);}else hideUndo();
+ applyingUndo=true;const old=state;state=next;if(!save()){state=old;applyingUndo=false;hideUndo();return;}
+ applyingUndo=false;hideUndo();renderAllCatalogLists();refreshAllStyledSelects();render();
 }
 
 
@@ -5673,9 +5673,9 @@ function showWorkoutStorageReadWarning(){
 if(workoutStorageReadBlocked) setTimeout(showWorkoutStorageReadWarning,0);
 
 function save(){
- if(workoutStorageReadBlocked){showWorkoutStorageReadWarning();return false;}
- if(storageRollbackPending||tabConflict||unsaved110)return false;
- try{if(localStorage.getItem('smartWorkoutData')!==observedWorkoutRaw){showTabConflict();return false;}}catch(e){unsaved110=structuredClone(state);if(durableState)state=JSON.parse(durableState);setTimeout(showSaveFailure110,0);return false;}
+ if(workoutStorageReadBlocked){hideUndo();showWorkoutStorageReadWarning();return false;}
+ if(storageRollbackPending||tabConflict||unsaved110){hideUndo();return false;}
+ try{if(localStorage.getItem('smartWorkoutData')!==observedWorkoutRaw){hideUndo();showTabConflict();return false;}}catch(e){unsaved110=structuredClone(state);unsavedUndo110=pendingUndoEntry?structuredClone({...pendingUndoEntry,after:undoSnapshot(state)}):null;hideUndo();if(durableState)state=JSON.parse(durableState);setTimeout(showSaveFailure110,0);return false;}
  if(state.emptyNewLibrary&&Object.values(state.workouts).some(a=>a.length))delete state.emptyNewLibrary;
  state.selectedDay=day;state.progressVersion=2;state.appSchema=111;
  if(state.sameDayReturn&&!clockUnsafe110()&&(state.sameDayReturn.date!==localDateKey()||Date.now()>=state.sameDayReturn.expiresAt))delete state.sameDayReturn;
@@ -5683,10 +5683,11 @@ function save(){
  recordWeeklyPlan(state);
  try{
   if(!persistWorkoutTransaction(state))throw Error('Gravação não confirmada');
-  if(pendingUndoEntry){pendingUndoEntry.after=undoSnapshot(state);pendingUndoEntry=null;persistUndoHistory();}
+  if(pendingUndoEntry){const entry=pendingUndoEntry;entry.after=undoSnapshot(state);showSavedUndo(entry);}
+  else if(!applyingUndo&&undoHistory.length&&!undoEquivalent(undoHistory[0].after,undoSnapshot(state)))hideUndo();
  }catch(error){
   unsaved110=structuredClone(state);unsavedUndo110=pendingUndoEntry?structuredClone({...pendingUndoEntry,after:undoSnapshot(state)}):null;
-  if(pendingUndoEntry){const index=undoHistory.indexOf(pendingUndoEntry);if(index>=0)undoHistory.splice(index,1);pendingUndoEntry=null;}
+  hideUndo();
   if(durableState){state=JSON.parse(durableState);day=days.includes(state.selectedDay)?state.selectedDay:day;try{newExercisePickerSignatures.clear();for(const sig of state.newExercisePickerSignatures||[])newExercisePickerSignatures.add(sig);}catch(_){}}
   storageRollbackPending=true;setTimeout(()=>{try{render();renderAllCatalogLists();}finally{storageRollbackPending=false;}showSaveFailure110();},0);return false;
  }
@@ -7341,11 +7342,11 @@ function saveExercise(ev){
  if(!adding&&!structuralEditAllowed()&&['muscle','equipment','execution','grip'].some(k=>comparisonKey(e[k]||'-')!==comparisonKey(old[k]||'-'))){showCatalogNotice('Editar exercício','Conclua o treino e acesse Editar treino para alterar os atributos.');return;}
  if(duplicateVariation(e,old)){variationCollision();return;}
  if(!validFormAttributes(old,e,()=>saveExercise(ev)))return;
- recordUndo(adding?'Exercício adicionado':'Exercício editado');
+ hideUndo();
  if(adding){upsertExerciseCatalog(e,old);state.workouts[buildAddDay].push(structuredClone(e));}
  else{
   const sourceDay=day,idx=editIndex,targetDay=structuralEditAllowed()?fDay.value:day;
-  if(targetDay!==sourceDay&&targetDay!=='-'&&(state.workouts[targetDay]||[]).some(other=>sameExercise(other,old))){pendingUndoEntry=null;undoHistory.pop();showCatalogNotice('Exercício já vinculado','Este exercício já está em um dia da ficha atual.');return;}
+  if(targetDay!==sourceDay&&targetDay!=='-'&&(state.workouts[targetDay]||[]).some(other=>sameExercise(other,old))){showCatalogNotice('Exercício já vinculado','Este exercício já está em um dia da ficha atual.');return;}
   const currentMarks=(currentWeekData()[day+'_'+idx]||[]).slice();
   state.workouts[sourceDay][idx]=e;upsertExerciseCatalog(e,old);resizeRuleChecks(sourceDay,idx,e.sets);for(const d of days)(state.workouts[d]||[]).forEach((other,i)=>{if(other!==e&&sameExercise(other,old)){for(const k of ['id','name','muscle','equipment','execution','grip'])other[k]=e[k];}});
   if(targetDay!==sourceDay&&(targetDay==='-'||days.includes(targetDay))){state.workouts[sourceDay].splice(idx,1);shiftChecksAfterDelete(idx);if(targetDay!=='-'){const target=state.workouts[targetDay];const n=target.length;target.push(e);delete weekData()[targetDay+'_'+n];}}
@@ -7374,6 +7375,7 @@ function shiftChecksAfterInsert(i){
 
 function duplicateExercise(i){showCatalogNotice('Exercício já vinculado','Este exercício já está em um dia da ficha atual. Cadastre uma variação para adicionar outra versão.');}
 
+function replacementDays(ex){return days.filter(d=>(state.workouts[d]||[]).some(e=>sameExercise(e,ex)));}
 function replaceExercise(i){
   if(!structuralEditAllowed()) return;
   // Substituições ficam bloqueadas enquanto qualquer treino estiver aberto, inclusive pausado.
@@ -7390,10 +7392,7 @@ function replaceExercise(i){
     const nameKey=exerciseVariationSignature(ex);
     if(name && !catalogByName.has(nameKey)) catalogByName.set(nameKey,JSON.parse(JSON.stringify(ex)));
   });
-  const currentKey=exerciseVariationSignature(current);
-  let catalog=[...catalogByName.entries()]
-    .filter(([nameKey])=>nameKey!==currentKey)
-    .map(([,ex])=>ex);
+  let catalog=[...catalogByName.values()];
   const initialLabels=getExerciseDisplayNames(catalog);
   catalog=catalog.map((ex,index)=>({ex,label:initialLabels[index]}))
     .sort((a,b)=>a.label.localeCompare(b.label,'pt-BR'))
@@ -7418,6 +7417,7 @@ function replaceExercise(i){
   });
 
   const replacementLabels=getExerciseDisplayNames(catalog);
+  const replacementLocations=catalog.map(replacementDays);
   const groupMarkup=Object.entries(groups)
     .sort((a,b)=>a[0].localeCompare(b[0],'pt-BR'))
     .map(([muscle,items])=>`
@@ -7429,7 +7429,7 @@ function replaceExercise(i){
         </summary>
         <div class="replace-options">
           ${items.length ? items.map(({ex,index})=>`
-            <button type="button" class="replace-option" onclick="chooseReplacement(${index})">
+            <button type="button" class="replace-option" ${replacementLocations[index].includes(day)?'disabled aria-disabled="true"':''} onclick="chooseReplacement(${index})">
               <span class="replace-option-title">${esc(replacementLabels[index]||ex.name||'Exercício sem nome')}</span>
               <span class="replace-option-details">
                 <span class="replace-attribute"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6.5 6.5 11 11M4 8l4-4M16 20l4-4M2 6l4-4M18 22l4-4M3 7l4 4M13 17l4 4M7 3l4 4M17 13l4 4"/></svg><span class="replace-attribute-copy"><b>Equipamento</b><span class="replace-attribute-value">${esc(String(ex.equipment || '—'))}</span></span></span>
@@ -7437,7 +7437,10 @@ function replaceExercise(i){
                 <span class="replace-attribute"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18"/></svg><span class="replace-attribute-copy"><b>Execução</b><span class="replace-attribute-value">${esc(String(ex.execution || '—'))}</span></span></span>
                 <span class="replace-attribute"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 16l9 5 9-5"/></svg><span class="replace-attribute-copy"><b>Séries</b><span class="replace-attribute-value">${esc(String(ex.sets || '—'))}</span></span></span>
               </span>
-              <span class="replace-select-label">Selecionar</span>
+              <span class="replace-option-footer">
+                <span class="replace-location ${replacementLocations[index].length?'is-linked':''}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><span>${esc(replacementLocations[index].length?replacementLocations[index].map(weekdayFull).join(' · '):'Fora do treino')}</span></span>
+                <span class="replace-select-label">Selecionar</span>
+              </span>
             </button>
           `).join('') : '<p class="replace-hint">Nenhum exercício cadastrado neste grupo muscular.</p>'}
         </div>
@@ -7491,6 +7494,7 @@ function confirmDirectExerciseSwap(){
   closeDuplicateExerciseConfirm();
   if(!pending) return;
   const {targetDay,targetIndex,sourceDay,sourceIndex}=pending;
+  if(targetDay===sourceDay)return;
   const target=state.workouts[targetDay]?.[targetIndex];
   const source=state.workouts[sourceDay]?.[sourceIndex];
   if(!target || !source) return;
@@ -7517,6 +7521,7 @@ function confirmDirectExerciseSwap(){
 }
 
 function openDuplicateExerciseConfirm(selected,sourceDay,sourceIndex,targetIndex){
+  if(sourceDay===day)return;
   closeDuplicateExerciseConfirm();
   pendingDirectExerciseSwap={targetDay:day,targetIndex,sourceDay,sourceIndex};
   const modal=document.createElement('div');
@@ -7548,12 +7553,12 @@ function chooseReplacement(index){
 
   // Só considera duplicado quando nome e características da variação coincidem.
   // Ex.: mesmo nome com Barra W e Barra Reta representa exercícios diferentes.
-  const selectedSignature=exerciseVariationSignature(selected);
+  if(replacementDays(selected).includes(day))return;
   let existing=null;
   for(const workoutDay of days){
     const found=(state.workouts[workoutDay]||[]).findIndex((exercise,exerciseIndex)=>
       !(workoutDay===day && exerciseIndex===i) &&
-      exerciseVariationSignature(exercise)===selectedSignature
+      sameExercise(exercise,selected)
     );
     if(found>=0){existing={day:workoutDay,index:found};break;}
   }
@@ -7612,7 +7617,7 @@ function moveExerciseToPosition(fromIndex,toIndex){
      fromIndex<0||fromIndex>=list.length||toIndex<0||toIndex>=list.length||
      fromIndex===toIndex) return;
 
-  recordUndo('Ordem dos exercícios alterada');
+  hideUndo();
 
   // Move as marcações junto com o exercício correspondente.
   const checks=currentWeekData();
@@ -7860,7 +7865,7 @@ function moveExerciseToDay(targetDay){
   const exercise=source[index];
   if(!exercise) return;
   if(days.some(d=>d!==day&&(state.workouts[d]||[]).some(e=>sameExercise(e,exercise)))){showCatalogNotice('Exercício já vinculado','Este exercício já está em um dia da ficha atual.');return;}
-  recordUndo('Exercício movido para outro dia');
+  hideUndo();
   const checks=(currentWeekData()[day+'_'+index]||[]).slice();
   source.splice(index,1);
   shiftChecksAfterDelete(index);
@@ -8161,7 +8166,7 @@ function saveExerciseVariation(){
     const original=pendingExerciseRename.original;
     const sameAsOther=existing.some(ex=>exerciseVariationSignature(ex)!==pendingExerciseRename.signature && ['muscle','equipment','execution','grip'].every(k=>variationValueKey(ex?.[k])===variationValueKey(variation[k])));
     if(sameAsOther){showCatalogNotice('Atributos já cadastrados','Escolha pelo menos um atributo diferente da outra versão para validar a alteração do nome.');return;}
-    recordUndo('Exercício renomeado e atributos atualizados');
+    hideUndo();
     const oldSig=pendingExerciseRename.signature;
     [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{if(exerciseVariationSignature(ex)===oldSig)Object.assign(ex,{name:pendingExerciseRename.newName,muscle:variation.muscle,equipment:variation.equipment,execution:variation.execution,grip:variation.grip});});
     pendingExerciseRename=null;closeExerciseVariation();save();renderAllCatalogLists();refreshAllStyledSelects();render();
@@ -8177,7 +8182,7 @@ function saveExerciseVariation(){
     return;
   }
   state.exerciseCatalog=Array.isArray(state.exerciseCatalog)?state.exerciseCatalog:[];
-  recordUndo("Exercício cadastrado");
+  hideUndo();
   variation.id=identityForNew(variation,state);
   state.exerciseCatalog.push(variation);
   markNewExerciseForPicker(variation);
@@ -8315,7 +8320,7 @@ function saveCatalogEdit(confirmed=false){
   if(duplicate){showCatalogNotice('Opção já cadastrada',`Já existe uma opção com esse nome em ${catalogLabels[category]}.`);return;}
   if(!validateCatalogTransform(ex=>comparisonKey(ex[category])===comparisonKey(oldValue)?{...ex,[category]:newValue}:ex))return;
   if(!confirmed&&oldValue!==newValue){ruleConfirm('Renomear opção',`Alterar “${oldValue}” para “${newValue}”. A alteração será aplicada ao Cadastro geral, às fichas atuais e arquivadas e aos registros históricos. Utilize para corrigir ou padronizar nomenclaturas.`,()=>saveCatalogEdit(true));return;}
-  recordUndo(`${catalogLabels[category]} ${['execution','grip'].includes(category)?'renomeada':'renomeado'}`);if(pendingUndoEntry)pendingUndoEntry.rename110={category,oldValue,newValue};
+  hideUndo();
   state.catalogs[category]=(state.catalogs[category]||[]).map(v=>comparisonKey(v)===comparisonKey(oldValue)?newValue:v);
   [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{if(comparisonKey(ex?.[category])===comparisonKey(oldValue))ex[category]=newValue;});
   renameAttribute110(state,category,oldValue,newValue);
@@ -8335,7 +8340,7 @@ function saveSharedCatalogExercise(){
  if(hasWorkoutInProgress()&&findExerciseWorkoutDay(old)!=='-'){ruleBusy();return;}
  const e=readExerciseForm(old);if(!e.name)return;
  if(duplicateVariation(e,old)){variationCollision();return;}if(!validFormAttributes(old,e,()=>saveSharedCatalogExercise()))return;
- recordUndo('Exercício editado no cadastro');preserveExerciseDropdownValues(old);
+ hideUndo();preserveExerciseDropdownValues(old);
  if(!updateCanonicalExerciseFromAdd(old,e))return;
  if(!save())return;closeModal();renderAllCatalogLists();refreshAllStyledSelects();renderEquipmentOptions();render();
 }
@@ -8354,7 +8359,7 @@ function saveExerciseCatalogRename(){
     [['variationMuscle','muscle'],['variationEquipment','equipment'],['variationExecution','execution'],['variationGrip','grip']].forEach(([id,key])=>{const el=document.getElementById(id);if([...el.options].some(o=>comparisonKey(o.value)===comparisonKey(values[key])))el.value=[...el.options].find(o=>comparisonKey(o.value)===comparisonKey(values[key])).value;});
     refreshAllStyledSelects();return true;
   }
-  recordUndo('Exercício renomeado no cadastro');
+  hideUndo();
   const oldSig=pendingExerciseRename.signature;
   [...(state.exerciseCatalog||[]),...Object.values(state.workouts||{}).flat()].forEach(ex=>{if(exerciseVariationSignature(ex)===oldSig)ex.name=newName;});
   closeCatalogEdit();pendingExerciseRename=null;if(!save())return;renderAllCatalogLists();refreshAllStyledSelects();render();
@@ -11145,7 +11150,7 @@ html, body, *, *::before, *::after {
 <style>.invalid-field-110{border-color:#b76b6b!important;}</style>
 <script>
 function showClock110(){if(clockNotice110)return;clockNotice110=true;showCatalogNotice('Data e horário do dispositivo','Foi identificada uma inconsistência na data ou no horário do dispositivo. Verifique as configurações do celular para garantir o funcionamento correto dos registros de treino.');}
-(function(){if(undoHistory.length&&!hasWorkoutInProgress()){document.getElementById('undoMessage').textContent=undoHistory.at(-1).message+' · '+undoHistory.length+'/3';document.getElementById('undoToast').classList.add('show');if(undoTimer)clearTimeout(undoTimer);undoTimer=setTimeout(hideUndo,5000);}setInterval(checkClock110,1000);const checkOnReturn=()=>{const now=Date.now(),mono=performance.now();if(now>=clockLastWrite110&&now-clockWall110>=0&&now-clockWall110-(mono-clockMono110)>15*60000){clockWall110=now;clockMono110=mono;clockSuspectSince110=null;clockHeldWeek110=null;clockNotice110=false;}checkClock110();};window.addEventListener('focus',checkOnReturn);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkOnReturn();});window.addEventListener('beforeunload',e=>{if(unsaved110){e.preventDefault();e.returnValue='';}});})();
+(function(){const clearSessionUndo=()=>{hideUndo();unsavedUndo110=null;};window.addEventListener('pagehide',clearSessionUndo);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearSessionUndo();});setInterval(checkClock110,1000);const checkOnReturn=()=>{const now=Date.now(),mono=performance.now();if(now>=clockLastWrite110&&now-clockWall110>=0&&now-clockWall110-(mono-clockMono110)>15*60000){clockWall110=now;clockMono110=mono;clockSuspectSince110=null;clockHeldWeek110=null;clockNotice110=false;}checkClock110();};window.addEventListener('focus',checkOnReturn);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkOnReturn();});window.addEventListener('beforeunload',e=>{if(unsaved110){e.preventDefault();e.returnValue='';}});})();
 </script>
 
 <style id="meu-treino-1-1-1">
@@ -11250,5 +11255,17 @@ window.visualViewport?.addEventListener('scroll',positionAuditLoadToast);
 })();
 </script>
 
+<style id="catalog-day-undo-refinement">
+#exerciseReplaceModal .replace-option-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0;margin-top:0;}
+#exerciseReplaceModal .replace-location{display:flex;align-items:center;gap:6px;min-width:0;flex:1;font-size:12px;font-weight:800;line-height:1.2;color:#d7ff00;}
+#exerciseReplaceModal .replace-location.is-linked{color:#d7ff00;}
+#exerciseReplaceModal .replace-location svg{display:block;width:14px;height:14px;flex:0 0 14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+#exerciseReplaceModal .replace-location span{min-width:0;overflow-wrap:anywhere;}
+#exerciseReplaceModal .replace-option-footer .replace-select-label{align-self:center;flex:0 0 auto;white-space:nowrap;}
+#exerciseReplaceModal .replace-option:disabled{opacity:.48;cursor:not-allowed;background:#26332b;border-color:#405247;}
+#exerciseReplaceModal .replace-option:disabled .replace-select-label{color:#aebbb2;background:#272e28;border-color:#526458;}
+#exerciseReplaceModal .replace-option:disabled .replace-location{color:#aebbb2;}
+#undoToast{z-index:11990;}
+</style>
 </body>
 </html>
