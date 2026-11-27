@@ -6925,8 +6925,7 @@ function formatTimeValue(value){
 }
 function formatTimeInput(input){
   if(!input)return;
-  const value=input.value.trim();
-  input.setCustomValidity(!value||value===formatTimeValue(input.dataset.originalTime)||parseTimeMinutes(value)!==null?'':'Informe um tempo válido, por exemplo: 30 min, 1 hr 15 min ou 01:15.');
+  auditLoadMessage(input);
 }
 function normalizeTimeInput(input){
   if(!input)return;
@@ -6938,6 +6937,7 @@ function normalizeTimeInput(input){
 function renderLoadFields(loads,sets,aerobic=isAerobicExercise({muscle:fMuscle.value})){
   const container=document.getElementById('loadsBySet');
   if(!container) return;
+  hideAuditLoadToast();
   const count=Math.max(1,Math.min(100,Number(sets)||1));
   container.classList.toggle('legacy-load-fields',count>5);
   const abdominal=isAbdominalExercise({muscle:fMuscle.value});
@@ -6990,6 +6990,7 @@ function adjustEditLoadStep(index,direction,button,aerobic=false){
   // Em exercícios aeróbicos o valor HH:MM é válido, mas não é um número decimal.
   // Não desabilitar as setas após o primeiro toque.
   if(!aerobic) toggleEditLoadStepper(input);
+  auditLoadMessage(input);
   control.classList.remove('adjusting');
   void control.offsetWidth;
   control.classList.add('adjusting');
@@ -7007,8 +7008,19 @@ function readLoadFields(){
     return minutes===null?value:formatTimeMinutes(minutes);
   });
 }
-function auditLoadMessage(input){const v=input.value.trim(),time=input.hasAttribute('data-time-field');let msg='';if(v){if(time){const n=parseTimeMinutes(v);if(n===null||!Number.isFinite(n))msg='Informe um tempo válido. Exemplo: 30 min ou 01:15.';else if(n<=0)msg='Informe um tempo superior a zero.';}else if(/^[-−]/.test(v))msg='Informe uma carga igual ou superior a zero.';else if(comparisonKey(v)!=='corpo'&&(!/^\d+(?:[,.]\d+)?$/.test(v)||!Number.isFinite(Number(v.replace(',','.')))))msg='Informe um valor numérico ou utilize o termo “Corpo”.';}input.setCustomValidity(msg);input.classList.toggle('invalid-field-110',!!msg);let hint=input.parentElement.querySelector('.audit-load-error');if(!hint&&msg){hint=document.createElement('small');hint.className='audit-load-error';input.parentElement.append(hint);}if(hint)hint.textContent=msg;return msg;}
-function validateDurationFields(){let first=null;for(const input of document.querySelectorAll('.edit-load-input'))if(auditLoadMessage(input)&&!first)first=input;if(first)first.focus();return !first;}
+function auditLoadMessage(input){const v=input.value.trim(),time=input.hasAttribute('data-time-field');let msg='';if(v){if(time){const n=parseTimeMinutes(v);if(n===null||!Number.isFinite(n))msg='Informe um tempo válido. Exemplo: 30 min ou 01:15.';else if(n<=0)msg='Informe um tempo superior a zero.';}else if(/^[-−]/.test(v))msg='Informe uma carga igual ou superior a zero.';else if(comparisonKey(v)!=='corpo'&&(!/^\d+(?:[,.]\d+)?$/.test(v)||!Number.isFinite(Number(v.replace(',','.')))))msg='Informe um valor numérico ou utilize o termo “Corpo”.';}input.setCustomValidity(msg);input.classList.toggle('invalid-field-110',!!msg);if(!msg&&auditLoadToastField===input)hideAuditLoadToast();return msg;}
+var auditLoadToastField=null,auditLoadToastTimer=0,auditLoadInvalidBatch=false;
+function hideAuditLoadToast(){clearTimeout(auditLoadToastTimer);auditLoadToastField=null;const toast=document.getElementById('auditLoadToast');if(toast)toast.hidden=true;}
+function positionAuditLoadToast(){const toast=document.getElementById('auditLoadToast'),vp=window.visualViewport;if(toast&&!toast.hidden)toast.style.setProperty('--keyboard-gap',`${vp?Math.max(0,window.innerHeight-vp.height-vp.offsetTop):0}px`);}
+function showAuditLoadToast(input,msg){
+  if(!msg)return;
+  const toast=document.getElementById('auditLoadToast');if(!toast)return;
+  const label=input.closest('.load-set-field')?.querySelector('label')?.textContent?.trim();
+  auditLoadToastField=input;
+  toast.querySelector('span').textContent=(label?label+': ':'')+msg;
+  toast.hidden=false;positionAuditLoadToast();clearTimeout(auditLoadToastTimer);auditLoadToastTimer=setTimeout(hideAuditLoadToast,5000);
+}
+function validateDurationFields(showNotice=true){let first=null,message='';for(const input of document.querySelectorAll('.edit-load-input')){const msg=auditLoadMessage(input);if(msg&&!first){first=input;message=msg;}}if(first&&showNotice){showAuditLoadToast(first,message);first.focus({preventScroll:true});}return !first;}
 
 function preserveExerciseDropdownValues(exercise){
   if(!exercise) return;
@@ -7307,6 +7319,7 @@ fNameSelect.addEventListener('change',()=>{
 });
 
 function closeModal(){
+ hideAuditLoadToast();
  document.querySelectorAll('.styled-select-menu[data-portal="true"]').forEach(closeStyledSelectMenu);
  document.getElementById("editDayOverview").hidden=true;
   buildAddDay=null;catalogEditing=null;
@@ -8815,7 +8828,7 @@ cancelBtn.onclick=()=>auditDiscardForm("exerciseForm",closeModal);
 
 exerciseForm.onsubmit=saveExercise;
 function updateSetCount(nextValue){
-  if(!validateDurationFields())return;
+  if(!validateDurationFields(false))return;
   if(hasWorkoutInProgress()&&findExerciseWorkoutDay(formOriginal())!=='-'){ruleBusy();return;}
   const currentLoads=readLoadFields();
   const next=Math.max(1,Math.min(Math.max(5,Number(fSets.value)||1),Math.trunc(Number(nextValue)||1)));
@@ -11203,7 +11216,8 @@ function showClock110(){if(clockNotice110)return;clockNotice110=true;showCatalog
 </style>
 
 
-<style>.audit-load-error{display:block;color:var(--danger);font-size:11px;line-height:1.3;flex-basis:100%}.load-set-field .load-control:has(.audit-load-error){flex-wrap:wrap}#auditStorageStats small{color:var(--muted)}#auditSaveFailure .confirm-actions,#tabConflictDialog .confirm-actions,#auditBackupReminder .confirm-actions,#auditResume .confirm-actions{display:grid;gap:8px}</style>
+<style>#auditLoadToast{position:fixed;z-index:12010;left:50%;bottom:calc(max(16px,env(safe-area-inset-bottom)) + var(--keyboard-gap,0px));transform:translateX(-50%);display:flex;align-items:center;gap:10px;width:max-content;max-width:calc(100vw - 28px);padding:11px 13px;border:1px solid #804545;border-radius:12px;background:#302323;color:#ffbcbc;font-size:13px;line-height:1.35;box-shadow:0 8px 28px #0008;pointer-events:none;overflow-wrap:anywhere}#auditLoadToast[hidden]{display:none!important}#auditLoadToast svg{flex:0 0 19px;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#auditStorageStats small{color:var(--muted)}#auditSaveFailure .confirm-actions,#tabConflictDialog .confirm-actions,#auditBackupReminder .confirm-actions,#auditResume .confirm-actions{display:grid;gap:8px}</style>
+<div id="auditLoadToast" role="alert" aria-atomic="true" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4h.01"/></svg><span></span></div>
 <script>
 function auditRenderNavigation(){auditNavigationOnly=true;try{render();}finally{auditNavigationOnly=false;}}
 var auditFormBaselines=new Map();
@@ -11222,6 +11236,17 @@ function rollover(){if(clockUnsafe110())return;const today=localDateKey();if(tod
 setTimeout(checkClock110,2500);
 setTimeout(()=>{if((editingWorkout||state.buildMode)&&!workoutStorageReadBlocked){const build=!!state.buildMode;auditDialog('auditResume',build?'Construção não concluída':'Edição não concluída','Suas últimas alterações salvas estão disponíveis para recuperação.',[[build?'Continuar construção':'Continuar edição',()=>{},'primary'],[build?'Cancelar construção':'Cancelar edição',()=>build?requestCancelBuild():cancelWorkoutEditing(),'']]);}else reminder();},900);
 setInterval(rollover,30000);window.addEventListener('pageshow',rollover);document.addEventListener('visibilitychange',()=>{if(!document.hidden)rollover()});document.addEventListener('input',e=>{if(e.target.matches('.edit-load-input'))auditLoadMessage(e.target)});
+document.getElementById('exerciseForm').addEventListener('invalid',e=>{
+  const input=e.target;if(!input.matches('.edit-load-input'))return;
+  const msg=auditLoadMessage(input);if(!msg)return;
+  e.preventDefault();
+  if(auditLoadInvalidBatch)return;
+  auditLoadInvalidBatch=true;showAuditLoadToast(input,msg);
+  queueMicrotask(()=>{auditLoadInvalidBatch=false;if(input.isConnected&&input.validationMessage)input.focus({preventScroll:true});});
+},true);
+window.visualViewport?.addEventListener('resize',positionAuditLoadToast);
+window.visualViewport?.addEventListener('scroll',positionAuditLoadToast);
+
 })();
 </script>
 
